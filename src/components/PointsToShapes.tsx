@@ -38,8 +38,8 @@ const GOLDEN_ANGLE = 2.399963229728653
 // too dense once rendered.
 const COUNT = parseSvgPaths(pointsSvgRaw).ds.length
 
-const FORM_START = 4.0
-const FORM_DURATION = 3.5
+const FORM_START = 1.2
+const FORM_DURATION = 2.3
 
 // World-space width the shape SVG is scaled to — shared between
 // generateSvgFillPositions (initial formation targets) and createShapeMask
