@@ -3,6 +3,7 @@ import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
 import { OrbitControls, Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
+import { generateTextPositions } from '../lib/generateTextPositions'
 
 extend({ UnrealBloomPass })
 
@@ -16,11 +17,18 @@ const PARAMS = { radius: 120, spin: 2.5, warp: 1.2, thickness: 10 }
 const COUNT = 20000
 const GOLDEN_ANGLE = 2.399963229728653
 
+const TEXT_LINES = ['DIÁSPORAS', 'PATRIMONIALES']
+const FORM_START = 4.0
+const FORM_DURATION = 3.5
+
 function ParticleSwarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
+  const textPos = useMemo(() => new THREE.Vector3(), [])
   const color = useMemo(() => new THREE.Color(), [])
+
+  const textTargets = useMemo(() => generateTextPositions(TEXT_LINES, COUNT, 140), [])
 
   const [positions] = useState(() => {
     const pos: THREE.Vector3[] = []
@@ -41,7 +49,7 @@ function ParticleSwarm() {
     [],
   )
   const geometry = useMemo(() => {
-    const geo = new THREE.TetrahedronGeometry(0.25)
+    const geo = new THREE.IcosahedronGeometry(0.25, 1)
     // InstancedMesh.setColorAt() makes the shader multiply the per-instance
     // color against the geometry's own per-vertex `color` attribute. Without
     // one, that attribute is left unbound and WebGL reads it as (0,0,0),
@@ -56,6 +64,9 @@ function ParticleSwarm() {
     if (!meshRef.current) return
     const time = state.clock.getElapsedTime()
     const { radius, spin, warp, thickness } = PARAMS
+
+    const rawBlend = Math.min(Math.max((time - FORM_START) / FORM_DURATION, 0), 1)
+    const blend = rawBlend * rawBlend * (3 - 2 * rawBlend)
 
     for (let i = 0; i < COUNT; i++) {
       const u = (i + 0.5) / COUNT
@@ -73,6 +84,11 @@ function ParticleSwarm() {
       const z = r * sa
 
       target.set(x, y, z)
+
+      if (blend > 0) {
+        textPos.set(textTargets[i * 3], textTargets[i * 3 + 1], textTargets[i * 3 + 2])
+        target.lerp(textPos, blend)
+      }
 
       const glow = 1.0 - pull
       const hue = 0.08 + 0.12 * glow

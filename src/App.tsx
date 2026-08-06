@@ -1,7 +1,7 @@
-import AccretionBlackHole from './components/AccretionBlackHole'
+import PointsToShapes from './components/PointsToShapes'
 
 function App() {
-  return <AccretionBlackHole />
+  return <PointsToShapes />
 }
 
 export default App
