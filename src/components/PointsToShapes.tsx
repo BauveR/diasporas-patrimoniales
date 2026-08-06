@@ -1,6 +1,6 @@
-import { useRef, useMemo, useState } from 'react'
-import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
-import { OrbitControls, Effects } from '@react-three/drei'
+import { useRef, useMemo, useState, useEffect } from 'react'
+import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-three/fiber'
+import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
 import pointsSvgRaw from '../assets/diasporas patrimoniales-02.svg?raw'
@@ -70,6 +70,41 @@ const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 const COLOR_BLUE = new THREE.Color(0x3b82f6)
 const COLOR_ORANGE = new THREE.Color(0xf97316)
 const COLOR_WHITE = new THREE.Color(0xffffff)
+
+// The bloom pass's EffectComposer doesn't preserve alpha through its final
+// render, so a transparent <Canvas> over a CSS gradient just shows solid
+// black. Painting the gradient into the scene itself as a background texture
+// sidesteps that entirely — it's part of the render, not DOM compositing.
+function GradientBackground({ bottom, top }: { bottom: string; top: string }) {
+  const { scene } = useThree()
+  useEffect(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 2
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
+    gradient.addColorStop(0, bottom)
+    gradient.addColorStop(1, top)
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.colorSpace = THREE.SRGBColorSpace
+    // Mutating the Three.js scene imperatively is the standard R3F pattern
+    // for this — `scene` is a Three.js object handle, not React state; the
+    // lint rule can't tell the two apart.
+    // eslint-disable-next-line react-hooks/immutability
+    scene.background = texture
+
+    return () => {
+      texture.dispose()
+      scene.background = null
+    }
+  }, [scene, bottom, top])
+
+  return null
+}
 
 function ParticleSwarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -268,18 +303,36 @@ function ParticleSwarm() {
 
 export default function PointsToShapes() {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000' }}>
+    // A hero section, not a fixed-position overlay: `position: fixed; inset: 0`
+    // sizes against the live *visual* viewport, which on scroll (mobile
+    // address-bar collapse/expand, in particular) changes height mid-gesture.
+    // R3F's <Canvas> watches its container's size and updates the camera's
+    // aspect ratio whenever it changes, so that dynamic resize reads as the
+    // scene zooming in and out while scrolling. A normal section with a
+    // stable height only resizes on an actual window resize, and scrolls
+    // away with the page like any other section — same approach the
+    // reference site (casberry.in) uses for its hero canvas.
+    <section
+      style={{
+        position: 'relative',
+        height: '100svh',
+        background: 'linear-gradient(to top, #9a0a0a, #e55200)',
+      }}
+    >
       <Canvas camera={{ position: [0, 0, 100], fov: 60 }}>
+        <GradientBackground bottom="#9a0a0a" top="#e55200" />
         <fog attach="fog" args={['#000000', 0.01]} />
         <ParticleSwarm />
-        {/* No autoRotate: once particles settle into the SVG shapes they
-            should read exactly as the flat SVG does, not stop at whatever
-            angle autoRotate happened to be at. Manual orbit still works. */}
-        <OrbitControls autoRotate={false} />
+        {/* No OrbitControls: this is a passive hero background embedded in a
+            normal scrolling page, not an interactive viewer. OrbitControls
+            attaches a wheel listener to the canvas with enableZoom on by
+            default — it was swallowing the page's scroll wheel input and
+            dollying the 3D camera instead, which read as the whole scene
+            zooming in/out while scrolling. */}
         <Effects disableGamma>
-          <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.15]} />
+          <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />
         </Effects>
       </Canvas>
-    </div>
+    </section>
   )
 }
