@@ -64,6 +64,13 @@ const WANDER_ARRIVE_DIST = 0.4
 // drifting off the ring plane over time.
 const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 
+// Particles start as a blue/orange mix and fade to white as they settle —
+// driven by the same `blend` that morphs the swirl into the shape, so color
+// and position land together.
+const COLOR_BLUE = new THREE.Color(0x3b82f6)
+const COLOR_ORANGE = new THREE.Color(0xf97316)
+const COLOR_WHITE = new THREE.Color(0xffffff)
+
 function ParticleSwarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
@@ -85,6 +92,17 @@ function ParticleSwarm() {
     const arr: THREE.Vector3[] = []
     for (let i = 0; i < COUNT; i++) {
       arr.push(new THREE.Vector3(shapeTargets[i * 3], shapeTargets[i * 3 + 1], shapeTargets[i * 3 + 2]))
+    }
+    return arr
+  })
+
+  // Each particle keeps one fixed blue-or-orange base color for its whole
+  // lifetime (assigned randomly, not by index, so the swirl doesn't read as
+  // two visibly separate halves).
+  const [baseColors] = useState(() => {
+    const arr: THREE.Color[] = []
+    for (let i = 0; i < COUNT; i++) {
+      arr.push((Math.random() < 0.5 ? COLOR_BLUE : COLOR_ORANGE).clone())
     }
     return arr
   })
@@ -122,7 +140,7 @@ function ParticleSwarm() {
   useFrame((state, delta) => {
     if (!meshRef.current) return
     const time = state.clock.getElapsedTime()
-    const { scale, speed, twist, glow, brightness, chaos, layers, pulse, gravity } = PARAMS
+    const { scale, speed, twist, glow, chaos, layers, pulse, gravity } = PARAMS
 
     const rawBlend = Math.min(Math.max((time - FORM_START) / FORM_DURATION, 0), 1)
     const blend = rawBlend * rawBlend * (3 - 2 * rawBlend)
@@ -157,7 +175,6 @@ function ParticleSwarm() {
 
       const shellSpin = 0.65 + 0.25 * Math.cos(u * PI2 * 5.0 - t * 0.9)
       const wave = Math.sin(u * PI2 * 16.0 + t * pulse) * 0.5 + Math.cos(u * PI2 * 9.0 - t * 1.2) * 0.5
-      const bloomPulse = 1.0 + 0.2 * Math.sin(t * pulse + u * PI2 * 3.0)
 
       const ringRadius = scale * (0.22 + 0.12 * shellSpin + 0.06 * wave)
       const tubeRadius = scale * (0.04 + 0.02 * glow + 0.03 * Math.abs(Math.sin(v * 3.0 + t)))
@@ -234,24 +251,7 @@ function ParticleSwarm() {
         target.lerp(shapePos, blend)
       }
 
-      const energy = 0.5 + 0.5 * Math.sin(v * 4.0 + t * 0.7) + 0.25 * Math.cos((x + y + z) * 0.01 - t)
-      const hueRaw =
-        0.56 +
-        0.13 * Math.sin(u * PI2 * 2.0 + t * 0.25) +
-        0.08 * Math.sin(v * 6.0 + pulseField) +
-        0.05 * energy
-      const hue = hueRaw - Math.floor(hueRaw)
-      const satRaw = 0.72 + 0.18 * Math.cos(v * 5.0 - t * 0.8) + 0.08 * Math.sin(u * PI2 * 11.0 + t * 1.3)
-      const sat = satRaw < 0 ? 0 : satRaw > 1 ? 1 : satRaw
-      const litBase =
-        0.62 +
-        0.18 * Math.exp(-Math.abs(y) * 0.015) +
-        0.1 * Math.sin((x * x + z * z) * 0.00035 + t * 2.0) +
-        0.1 * bloomPulse
-      const litRaw = litBase * brightness + glow * 0.035
-      const lit = (litRaw < 0 ? 0 : litRaw > 1 ? 1 : litRaw) * 0.55
-
-      color.setHSL(hue, sat, lit)
+      color.copy(baseColors[i]).lerp(COLOR_WHITE, blend)
 
       positions[i].lerp(target, smoothing)
       dummy.position.copy(positions[i])
