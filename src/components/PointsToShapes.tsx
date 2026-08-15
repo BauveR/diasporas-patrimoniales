@@ -3,11 +3,11 @@ import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-th
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
-import pointsSvgRaw from '../assets/diasporas patrimoniales-02.svg?raw'
-import shapesSvgRaw from '../assets/diasporas patrimoniales-03.svg?raw'
-import { parseSvgPaths } from '../lib/parseSvgPaths'
+import shapesSvgRaw from '../assets/logo diasporas patrimoniales-03.svg?raw'
 import { generateSvgFillPositions } from '../lib/generateSvgFillPositions'
 import { createShapeMask } from '../lib/createShapeMask'
+import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
+import { HeroWordmark } from './HeroWordmark'
 
 extend({ UnrealBloomPass })
 
@@ -33,18 +33,26 @@ const PARAMS = {
 const PI2 = 6.283185307179586
 const GOLDEN_ANGLE = 2.399963229728653
 
-// The particle count comes from however many points the source SVG has, not
-// a fixed number — trim this (e.g. `ds.length / 2`) if the swarm reads as
-// too dense once rendered.
-const COUNT = parseSvgPaths(pointsSvgRaw).ds.length
+// BASE_POINTS was originally derived from counting <path> elements in a
+// reference SVG of scattered points — only the count mattered, never that
+// SVG's actual layout, so it's kept as a literal now that the file's gone.
+// Adjust EXTRA_POINTS on top of it if the swarm reads as too sparse or too
+// dense once rendered.
+const BASE_POINTS = 535
+const EXTRA_POINTS = 100
+const COUNT = (BASE_POINTS + EXTRA_POINTS) * 2
 
-const FORM_START = 1.2
-const FORM_DURATION = 2.3
 
 // World-space width the shape SVG is scaled to — shared between
 // generateSvgFillPositions (initial formation targets) and createShapeMask
 // (the ongoing wander bounds check), so both agree on the same mapping.
-const SHAPE_WORLD_WIDTH = 50
+const SHAPE_WORLD_WIDTH = 55
+
+// Shifts the formed shape up/down on screen without touching the wander/mask
+// math (which stays in the SVG's own coordinate space) — applied only where
+// the wander target becomes the render target, below. 0 = vertically
+// centered; positive moves it up, negative moves it down.
+const SHAPE_Y_OFFSET = 0
 
 // Once formed, particles keep wandering inside the shape instead of freezing:
 // each one hops WANDER_STEP world units in a random direction whenever it
@@ -64,44 +72,54 @@ const WANDER_ARRIVE_DIST = 0.4
 // drifting off the ring plane over time.
 const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 
-// Particles start as a blue/orange mix and fade to white as they settle —
-// driven by the same `blend` that morphs the swirl into the shape, so color
-// and position land together.
-const COLOR_BLUE = new THREE.Color(0x3b82f6)
-const COLOR_ORANGE = new THREE.Color(0xf97316)
-const COLOR_WHITE = new THREE.Color(0xffffff)
+// Particles are a single fixed color for their whole lifetime — swirling or
+// formed, it never changes, so there's no per-frame interpolation to do.
+const COLOR_PARTICLE = new THREE.Color(0xf04f23)
+
+// Matches Tailwind's `lg` breakpoint — the wordmark column below only shows
+// from `lg` up, so the camera only needs to shift left to make room for it
+// there too.
+const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
+// The two knobs for "shift the whole hero composition left," tuned together:
+// CAMERA_SHIFT_X moves the WebGL content (world units, panned via the
+// camera — see the `cameraX` comment below for why), HERO_SHIFT_REM moves
+// the DOM overlay (the wordmark grid) by the same visual amount in CSS
+// terms. They're independent numbers, not derived from one another — the
+// conversion between "world units" and "rem on screen" depends on the live
+// canvas size (FOV/distance/aspect), which isn't worth tracking just to
+// unify two constants that only get eyeballed against a screenshot anyway.
+const CAMERA_SHIFT_X = 35
+const HERO_SHIFT_REM = 4
+
+function useIsLargeScreen() {
+  const [matches, setMatches] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(LARGE_SCREEN_QUERY).matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(LARGE_SCREEN_QUERY)
+    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return matches
+}
 
 // The bloom pass's EffectComposer doesn't preserve alpha through its final
-// render, so a transparent <Canvas> over a CSS gradient just shows solid
-// black. Painting the gradient into the scene itself as a background texture
-// sidesteps that entirely — it's part of the render, not DOM compositing.
-function GradientBackground({ bottom, top }: { bottom: string; top: string }) {
+// render, so a transparent <Canvas> over a CSS background just shows solid
+// black. Setting the scene's own background color sidesteps that entirely —
+// it's part of the render, not DOM compositing.
+function SceneBackground({ color }: { color: string }) {
   const { scene } = useThree()
   useEffect(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 2
-    canvas.height = 256
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
-    gradient.addColorStop(0, bottom)
-    gradient.addColorStop(1, top)
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    const texture = new THREE.CanvasTexture(canvas)
-    texture.colorSpace = THREE.SRGBColorSpace
     // Mutating the Three.js scene imperatively is the standard R3F pattern
     // for this — `scene` is a Three.js object handle, not React state; the
     // lint rule can't tell the two apart.
     // eslint-disable-next-line react-hooks/immutability
-    scene.background = texture
-
+    scene.background = new THREE.Color(color)
     return () => {
-      texture.dispose()
       scene.background = null
     }
-  }, [scene, bottom, top])
+  }, [scene, color])
 
   return null
 }
@@ -111,7 +129,6 @@ function ParticleSwarm() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
   const shapePos = useMemo(() => new THREE.Vector3(), [])
-  const color = useMemo(() => new THREE.Color(), [])
 
   const shapeTargets = useMemo(
     () => generateSvgFillPositions(shapesSvgRaw, COUNT, SHAPE_WORLD_WIDTH),
@@ -131,17 +148,6 @@ function ParticleSwarm() {
     return arr
   })
 
-  // Each particle keeps one fixed blue-or-orange base color for its whole
-  // lifetime (assigned randomly, not by index, so the swirl doesn't read as
-  // two visibly separate halves).
-  const [baseColors] = useState(() => {
-    const arr: THREE.Color[] = []
-    for (let i = 0; i < COUNT; i++) {
-      arr.push((Math.random() < 0.5 ? COLOR_BLUE : COLOR_ORANGE).clone())
-    }
-    return arr
-  })
-
   const [positions] = useState(() => {
     const pos: THREE.Vector3[] = []
     for (let i = 0; i < COUNT; i++) {
@@ -155,6 +161,17 @@ function ParticleSwarm() {
     }
     return pos
   })
+
+  // Full size while free-swirling; eases down to 50% only once a particle is
+  // fully formed (blend reaches 1) — a separate, later transition from the
+  // position move above, not tied to it. Reuses the same frame-rate-
+  // independent `smoothing` factor as the position lerp below so it doesn't
+  // need its own tuning constant. A ref, not useState: mutated by direct
+  // index writes every frame (typed array slots aren't objects with their
+  // own mutating methods the way positions[i].lerp(...) is), which is
+  // exactly what refs — not state — are for.
+  const scales = useRef<Float32Array>(null!)
+  if (scales.current === null) scales.current = new Float32Array(COUNT).fill(1)
 
   const material = useMemo(
     () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
@@ -259,6 +276,16 @@ function ParticleSwarm() {
       if (blend > 0) {
         const wt = wanderTargets[i]
 
+        // At blend=1 this sets target to exactly shapePos, discarding the
+        // swirl math above entirely — the particle only ever chases its
+        // wander target once formed, it doesn't keep orbiting the swirl
+        // shape too. Computed up front so the arrival check below compares
+        // against the same offset point the particle is actually chasing —
+        // comparing against raw `wt` (pre-offset) meant positions[i] could
+        // never get within WANDER_ARRIVE_DIST of it, so it never "arrived"
+        // and the wander hop below never fired.
+        shapePos.set(wt.x, wt.y + SHAPE_Y_OFFSET, wt.z)
+
         if (blend >= 1) {
           // Fully formed: hop to a new nearby point once we've arrived at
           // the current one. Checking the whole segment (not just the
@@ -266,7 +293,7 @@ function ParticleSwarm() {
           // the SVG's rings are thin bands with gaps between them, so a hop
           // that only validates its destination could land cleanly inside a
           // *different* ring, tunnelling straight across the gap.
-          if (positions[i].distanceTo(wt) < WANDER_ARRIVE_DIST) {
+          if (positions[i].distanceTo(shapePos) < WANDER_ARRIVE_DIST) {
             const angle = Math.random() * PI2
             const dist = WANDER_STEP * (0.3 + 0.7 * Math.random())
             const candidateX = wt.x + Math.cos(angle) * dist
@@ -275,24 +302,23 @@ function ParticleSwarm() {
               const nextZ = wt.z + (Math.random() - 0.5) * 1.5
               const clampedZ = Math.max(-WANDER_Z_LIMIT, Math.min(WANDER_Z_LIMIT, nextZ))
               wt.set(candidateX, candidateY, clampedZ)
+              shapePos.set(candidateX, candidateY + SHAPE_Y_OFFSET, clampedZ)
             }
           }
         }
 
-        // At blend=1 this sets target to exactly wt, discarding the swirl
-        // math above entirely — the particle only ever chases its wander
-        // target once formed, it doesn't keep orbiting the swirl shape too.
-        shapePos.copy(wt)
         target.lerp(shapePos, blend)
       }
 
-      color.copy(baseColors[i]).lerp(COLOR_WHITE, blend)
+      const targetScale = blend >= 1 ? 0.5 : 1
+      scales.current[i] += (targetScale - scales.current[i]) * smoothing
 
       positions[i].lerp(target, smoothing)
       dummy.position.copy(positions[i])
+      dummy.scale.setScalar(scales.current[i])
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, color)
+      meshRef.current.setColorAt(i, COLOR_PARTICLE)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
@@ -302,6 +328,21 @@ function ParticleSwarm() {
 }
 
 export default function PointsToShapes() {
+  const isLargeScreen = useIsLargeScreen()
+  // Shifted left only from `lg` up, matching the wordmark column below that
+  // only appears at that breakpoint — on mobile/tablet the particle shape is
+  // the only content, so it stays centered there. Done via camera position,
+  // not a CSS transform on the canvas: translating the canvas element would
+  // reveal a sliver of the section's raw CSS background on the opposite
+  // edge, which doesn't quite match the bloom pass's post-processed render
+  // of the "same" color — invisible before because the canvas always
+  // covered the section edge-to-edge. Panning the camera instead keeps the
+  // canvas full-bleed, so no gap is ever exposed. `rotation: [0, 0, 0]`
+  // stops R3F's default auto-`lookAt(0,0,0)` for an off-axis camera, which
+  // would otherwise rotate to face the origin and skew the shape instead of
+  // giving a clean parallel shift.
+  const cameraX = isLargeScreen ? CAMERA_SHIFT_X : 0
+
   return (
     // A hero section, not a fixed-position overlay: `position: fixed; inset: 0`
     // sizes against the live *visual* viewport, which on scroll (mobile
@@ -316,11 +357,11 @@ export default function PointsToShapes() {
       style={{
         position: 'relative',
         height: '100svh',
-        background: 'linear-gradient(to top, #9a0a0a, #e55200)',
+        background: '#36200f',
       }}
     >
-      <Canvas camera={{ position: [0, 0, 100], fov: 60 }}>
-        <GradientBackground bottom="#9a0a0a" top="#e55200" />
+      <Canvas camera={{ position: [cameraX, 0, 100], rotation: [0, 0, 0], fov: 60 }}>
+        <SceneBackground color="#36200f" />
         <fog attach="fog" args={['#000000', 0.01]} />
         <ParticleSwarm />
         {/* No OrbitControls: this is a passive hero background embedded in a
@@ -333,6 +374,26 @@ export default function PointsToShapes() {
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />
         </Effects>
       </Canvas>
+
+      {/* Wordmark column, positioned via CSS Grid rather than flexbox with an
+          empty spacer div. Flexbox has no native "start in position N"
+          placement — that's why the earlier version needed a hollow spacer
+          child just to push the logo rightward; Grid places an item into an
+          explicit column directly, no filler element required. Only enabled
+          from `lg` up: below that, the particle shape's on-screen footprint
+          (fixed in 3D world units, so it covers proportionally more of a
+          narrower canvas) collided with the wordmark, since neither respects
+          the other's actual rendered bounds — a dedicated stacked
+          mobile/tablet treatment is the deferred "adjust responsive screens
+          later" pass. Padding matches this site's existing gutter scale
+          (px-6/8/10, see ActividadesSection/Navbar) rather than a one-off
+          hero-specific value. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 hidden lg:grid lg:grid-cols-2 lg:items-center lg:px-10 xl:px-14"
+        style={{ transform: `translateX(-${HERO_SHIFT_REM}rem)` }}
+      >
+        <HeroWordmark className="col-start-2 h-auto w-lg justify-self-start" />
+      </div>
     </section>
   )
 }

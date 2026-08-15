@@ -18,5 +18,11 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Codebase convention: an underscore prefix marks a parameter as
+      // intentionally unused (e.g. a mock signature that must match a real
+      // API's position but doesn't need the value).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
 ])
