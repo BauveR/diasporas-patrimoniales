@@ -80,16 +80,16 @@ const COLOR_PARTICLE = new THREE.Color(0xf04f23)
 // from `lg` up, so the camera only needs to shift left to make room for it
 // there too.
 const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
-// The two knobs for "shift the whole hero composition left," tuned together:
-// CAMERA_SHIFT_X moves the WebGL content (world units, panned via the
-// camera — see the `cameraX` comment below for why), HERO_SHIFT_REM moves
-// the DOM overlay (the wordmark grid) by the same visual amount in CSS
-// terms. They're independent numbers, not derived from one another — the
-// conversion between "world units" and "rem on screen" depends on the live
-// canvas size (FOV/distance/aspect), which isn't worth tracking just to
-// unify two constants that only get eyeballed against a screenshot anyway.
+// Two independent knobs, not derived from one another — the conversion
+// between "world units" and "rem on screen" depends on the live canvas size
+// (FOV/distance/aspect), which isn't worth tracking just to unify two
+// constants that only get eyeballed against a screenshot anyway.
+// CAMERA_SHIFT_X moves the particle ring (world units, panned via the
+// camera — see the `cameraX` comment below for why); positive = left.
+// HERO_SHIFT_REM moves the wordmark grid (CSS `translateX(-HERO_SHIFT_REM
+// rem)`); positive = left, negative = right.
 const CAMERA_SHIFT_X = 35
-const HERO_SHIFT_REM = 4
+const HERO_SHIFT_REM = 3.5
 
 function useIsLargeScreen() {
   const [matches, setMatches] = useState(
@@ -392,7 +392,7 @@ export default function PointsToShapes() {
         className="pointer-events-none absolute inset-0 z-10 hidden lg:grid lg:grid-cols-2 lg:items-center lg:px-10 xl:px-14"
         style={{ transform: `translateX(-${HERO_SHIFT_REM}rem)` }}
       >
-        <HeroWordmark className="col-start-2 h-auto w-lg justify-self-start" />
+        <HeroWordmark className="col-start-2 h-auto w-[48rem] justify-self-start" />
       </div>
     </section>
   )

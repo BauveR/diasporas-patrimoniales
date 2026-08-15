@@ -16,6 +16,11 @@ export type InscritoData = {
   displayName: string
   telefono: string
   inscritoEn: Date | null
+  // Acreditación en el evento (check-in por QR) — ver la sección "Acreditación"
+  // más abajo.
+  token: string
+  acreditado: boolean
+  acreditadoEn: Date | null
 }
 
 type Unsubscribe = () => void
@@ -51,6 +56,11 @@ const sedesStore = createStore<Sede>(SEDES.map(s => ({ ...s })))
 
 const _inscritos = new Map<number, Map<string, InscritoData>>()
 const _telefonos = new Map<string, string>()
+// Resuelve un token de QR escaneado directo a su inscripción, sin que el
+// dispositivo que escanea necesite saber de antemano actividadId/uid — mismo
+// rol que cumpliría usar el token como ID de documento en una colección
+// `acreditaciones/{token}` de Firestore real.
+const _tokenIndex = new Map<string, { actividadId: number; uid: string }>()
 const inscripcionListeners = new Set<() => void>()
 function notifyInscripciones() {
   for (const cb of inscripcionListeners) cb()
@@ -91,6 +101,16 @@ export function getTelefonoForUser(uid: string): string | undefined {
   return _telefonos.get(uid)
 }
 
+/**
+ * A user's own accreditation token for one actividad — for showing them
+ * their QR. Scoped to a single (actividadId, uid) pair rather than exposing
+ * `getInscritos`' full attendee list: a real Firestore rule would let a user
+ * read only their own inscripción doc, never the whole subcollection.
+ */
+export function getMiToken(actividadId: number, uid: string): string | undefined {
+  return _inscritos.get(actividadId)?.get(uid)?.token
+}
+
 // ── Inscription ───────────────────────────────────────────────────────────────
 
 export class SinPlazasError extends Error {
@@ -127,9 +147,14 @@ export async function inscribirse(
   const apertura = actividad.fechaAperturaInscripciones
   if (apertura && apertura > new Date().toISOString().slice(0, 10)) throw new InscripcionNoAbiertaError()
 
-  inscritosDeActividad.set(uid, { uid, email, displayName, telefono, inscritoEn: new Date() })
+  const token = randomToken()
+  inscritosDeActividad.set(uid, {
+    uid, email, displayName, telefono, inscritoEn: new Date(),
+    token, acreditado: false, acreditadoEn: null,
+  })
   _inscritos.set(actividadId, inscritosDeActividad)
   _telefonos.set(uid, telefono)
+  _tokenIndex.set(token, { actividadId, uid })
 
   actividadesStore.mutate(items =>
     items.map(a => (a.id === actividadId ? { ...a, plazasDisponibles: (a.plazasDisponibles ?? 0) - 1 } : a)),
@@ -141,6 +166,10 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
   const inscritosDeActividad = _inscritos.get(actividadId)
   if (!inscritosDeActividad?.has(uid)) throw new YaLiberadaError()
 
+  // El token de acreditación queda inválido junto con la plaza — si no se
+  // borra acá, un ticket cancelado seguiría acreditando en la puerta.
+  const inscrito = inscritosDeActividad.get(uid)
+  if (inscrito) _tokenIndex.delete(inscrito.token)
   inscritosDeActividad.delete(uid)
 
   actividadesStore.mutate(items =>
@@ -153,10 +182,55 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
   notifyInscripciones()
 }
 
+// ── Acreditación (check-in por QR) ──────────────────────────────────────────────
+// El QR de cada inscrito codifica únicamente `token` — un valor aleatorio
+// opaco, no un cálculo/firma sobre actividadId+uid. Con un secreto de firma
+// no habría dónde guardarlo con seguridad en una app 100% cliente (quedaría
+// expuesto en el JS del navegador, anulando la protección), y como acreditar
+// igual requiere una escritura en la base, la ventaja de "validar sin ir a
+// la base" de un token firmado no se aprovecha acá. Random + búsqueda directa
+// por token es el patrón estándar en sistemas de ticketing.
+
+export class TokenInvalidoError extends Error {
+  constructor() { super('TOKEN_INVALIDO') }
+}
+
+export type AcreditarResult = {
+  displayName: string
+  actividadId: number
+  // true si el token ya estaba acreditado antes de este escaneo — permite
+  // que la UI del escáner muestre "ya acreditado" en vez de tratarlo como
+  // error cuando dos dispositivos (o el mismo, dos veces) escanean el mismo
+  // QR casi al mismo tiempo.
+  yaAcreditado: boolean
+}
+
+export async function acreditar(token: string): Promise<AcreditarResult> {
+  const ref = _tokenIndex.get(token)
+  if (!ref) throw new TokenInvalidoError()
+
+  const inscrito = _inscritos.get(ref.actividadId)?.get(ref.uid)
+  if (!inscrito) throw new TokenInvalidoError()
+
+  const yaAcreditado = inscrito.acreditado
+  if (!yaAcreditado) {
+    inscrito.acreditado = true
+    inscrito.acreditadoEn = new Date()
+    notifyInscripciones()
+  }
+
+  return { displayName: inscrito.displayName, actividadId: ref.actividadId, yaAcreditado }
+}
+
 // ── Actividades CRUD ──────────────────────────────────────────────────────────
 
 function randomId(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0]
+}
+
+function randomToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16)) // 128 bits de entropía
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
 }
 
 export async function addActividad(data: Omit<Actividad, 'id'>): Promise<void> {
@@ -211,5 +285,6 @@ export function __resetMockDb(): void {
   sedesStore.mutate(() => SEDES.map(s => ({ ...s })))
   _inscritos.clear()
   _telefonos.clear()
+  _tokenIndex.clear()
   notifyInscripciones()
 }

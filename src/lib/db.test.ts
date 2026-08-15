@@ -2,11 +2,14 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   inscribirse,
   liberarPlaza,
+  acreditar,
+  getInscritos,
   subscribeActividades,
   SinPlazasError,
   EventoCanceladoError,
   InscripcionNoAbiertaError,
   YaLiberadaError,
+  TokenInvalidoError,
   __resetMockDb,
 } from './db'
 import { ACTIVIDADES } from '../data/actividades'
@@ -118,5 +121,44 @@ describe('liberarPlaza', () => {
   it('lanza YaLiberadaError si no había inscripción', async () => {
     const id = firstAbierta()
     await expect(liberarPlaza(id, 'uid-nunca-inscrito')).rejects.toBeInstanceOf(YaLiberadaError)
+  })
+})
+
+describe('acreditar', () => {
+  it('acredita un token válido y devuelve los datos del inscrito', async () => {
+    const id = firstAbierta()
+    await inscribirse(id, 'uid-1', 'a@b.com', 'Ana', '600000000')
+    const [inscrito] = await getInscritos(id)
+
+    const result = await acreditar(inscrito.token)
+
+    expect(result).toEqual({ displayName: 'Ana', actividadId: id, yaAcreditado: false })
+    const [actualizado] = await getInscritos(id)
+    expect(actualizado.acreditado).toBe(true)
+    expect(actualizado.acreditadoEn).toBeInstanceOf(Date)
+  })
+
+  it('un segundo escaneo del mismo token no es un error — devuelve yaAcreditado', async () => {
+    const id = firstAbierta()
+    await inscribirse(id, 'uid-1', 'a@b.com', 'Ana', '600000000')
+    const [inscrito] = await getInscritos(id)
+
+    await acreditar(inscrito.token)
+    const result = await acreditar(inscrito.token)
+
+    expect(result.yaAcreditado).toBe(true)
+  })
+
+  it('lanza TokenInvalidoError con un token desconocido', async () => {
+    await expect(acreditar('token-que-no-existe')).rejects.toBeInstanceOf(TokenInvalidoError)
+  })
+
+  it('invalida el token al liberar la plaza — un ticket cancelado no debe acreditar', async () => {
+    const id = firstAbierta()
+    await inscribirse(id, 'uid-1', 'a@b.com', 'Ana', '600000000')
+    const [inscrito] = await getInscritos(id)
+    await liberarPlaza(id, 'uid-1')
+
+    await expect(acreditar(inscrito.token)).rejects.toBeInstanceOf(TokenInvalidoError)
   })
 })
