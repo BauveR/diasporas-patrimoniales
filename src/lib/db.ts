@@ -203,6 +203,11 @@ export type AcreditarResult = {
   // error cuando dos dispositivos (o el mismo, dos veces) escanean el mismo
   // QR casi al mismo tiempo.
   yaAcreditado: boolean
+  // Momento del primer escaneo válido. Con `yaAcreditado`, le permite al
+  // escáner mostrar "denegado, ya usado a las HH:MM" en un reescaneo —
+  // la señal que necesita quien acredita en persona para no dejar pasar a
+  // una segunda persona con el mismo QR compartido.
+  acreditadoEn: Date
 }
 
 export async function acreditar(token: string): Promise<AcreditarResult> {
@@ -219,7 +224,7 @@ export async function acreditar(token: string): Promise<AcreditarResult> {
     notifyInscripciones()
   }
 
-  return { displayName: inscrito.displayName, actividadId: ref.actividadId, yaAcreditado }
+  return { displayName: inscrito.displayName, actividadId: ref.actividadId, yaAcreditado, acreditadoEn: inscrito.acreditadoEn! }
 }
 
 // ── Actividades CRUD ──────────────────────────────────────────────────────────

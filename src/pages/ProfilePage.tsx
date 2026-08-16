@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom'
 import type { MockUser } from '../lib/mockAuth'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
-import { liberarPlaza, getMiToken, YaLiberadaError } from '../lib/db'
+import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
-import { MiQRModal } from '../components/profile/MiQRModal'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
@@ -26,10 +25,9 @@ type GridCardProps = {
   actividadId: number
   uid: string
   inactiva: boolean
-  onVerQR: () => void
 }
 
-function GridCardWrapper({ actividadId, uid, inactiva, onVerQR }: GridCardProps) {
+function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
   const { actividades } = useDataContext()
   const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
@@ -81,13 +79,6 @@ function GridCardWrapper({ actividadId, uid, inactiva, onVerQR }: GridCardProps)
         ) : (
           <div className="flex gap-2 px-1" style={labelStyle}>
             <button
-              onClick={onVerQR}
-              className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
-            >
-              Ver QR
-            </button>
-            <span className="text-stone-200 text-[10px]">·</span>
-            <button
               onClick={() => setConfirmando(true)}
               className="w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
             >
@@ -104,7 +95,6 @@ export function ProfilePage() {
   const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
   const { actividades } = useDataContext()
   const [tab, setTab] = useState<Tab>('todas')
-  const [qrActividadId, setQrActividadId] = useState<number | null>(null)
 
   const inscritas  = actividades.filter(a => inscripcionIds.includes(a.id))
   const proximas   = inscritas.filter(a => a.fecha >= today && !a.cancelada)
@@ -251,7 +241,6 @@ export function ProfilePage() {
                         actividad={a}
                         inactiva={a.fecha < today}
                         onLiberar={a.fecha >= today && !a.cancelada ? makeLiberar(a.id) : undefined}
-                        onVerQR={a.fecha >= today && !a.cancelada ? () => setQrActividadId(a.id) : undefined}
                       />
                     </div>
                   ))}
@@ -265,7 +254,6 @@ export function ProfilePage() {
                       actividadId={a.id}
                       uid={user!.uid}
                       inactiva={a.fecha < today || !!a.cancelada}
-                      onVerQR={() => setQrActividadId(a.id)}
                     />
                   ))}
                 </div>
@@ -274,13 +262,6 @@ export function ProfilePage() {
           </>
         )}
       </div>
-
-      {qrActividadId && user && (() => {
-        const token = getMiToken(qrActividadId, user.uid)
-        const actividad = actividades.find(a => a.id === qrActividadId)
-        if (!token || !actividad) return null
-        return <MiQRModal token={token} titulo={actividad.titulo} onClose={() => setQrActividadId(null)} />
-      })()}
     </main>
   )
 }

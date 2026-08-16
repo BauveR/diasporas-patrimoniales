@@ -10,10 +10,9 @@ type Props = {
   actividad: Actividad
   inactiva?: boolean
   onLiberar?: () => Promise<void>
-  onVerQR?: () => void
 }
 
-export function ProfileCardCompact({ actividad, inactiva = false, onLiberar, onVerQR }: Props) {
+export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: Props) {
   const location = useLocation()
   const { sedes } = useDataContext()
   const sede = sedes.find(c => c.id === actividad.sedeId)
@@ -107,17 +106,6 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar, onV
             </div>
           ) : (
             <div className="flex gap-2 mt-1">
-              {onVerQR && (
-                <>
-                  <button
-                    onClick={onVerQR}
-                    className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
-                  >
-                    Ver QR
-                  </button>
-                  <span className="text-stone-200 text-[10px]">·</span>
-                </>
-              )}
               <button
                 onClick={() => setConfirmando(true)}
                 className="w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"

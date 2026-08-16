@@ -1,13 +1,24 @@
 import { useRef, useMemo, useState, useEffect } from 'react'
-import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-three/fiber'
+import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
-import shapesSvgRaw from '../assets/logo diasporas patrimoniales-03.svg?raw'
+import shapesSvgRaw from '../assets/orbit diasporas patrimoniales-03.svg?raw'
 import { generateSvgFillPositions } from '../lib/generateSvgFillPositions'
 import { createShapeMask } from '../lib/createShapeMask'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
 import { HeroWordmark } from './HeroWordmark'
+import { GrainientBackground } from './GrainientBackground'
+
+// Animated gradient colors for the hero background — brought over from the
+// Conjuntos Históricos project's Hero (Grainient), retuned to this site's
+// own palette. The shader blends two accent corners (GRADIENT_ACCENT/
+// GRADIENT_THIRD) against a shared color that dominates the rest of the
+// frame — that role goes to the orange so it reads as the gradient's
+// primary hue, matching the particles' own color.
+const GRADIENT_ACCENT = '#9b2923'
+const GRADIENT_DOMINANT = '#f04f23'
+const GRADIENT_THIRD = '#574e9e'
 
 extend({ UnrealBloomPass })
 
@@ -74,7 +85,7 @@ const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 
 // Particles are a single fixed color for their whole lifetime — swirling or
 // formed, it never changes, so there's no per-frame interpolation to do.
-const COLOR_PARTICLE = new THREE.Color(0xf04f23)
+const COLOR_PARTICLE = new THREE.Color(0xffffff)
 
 // Matches Tailwind's `lg` breakpoint — the wordmark column below only shows
 // from `lg` up, so the camera only needs to shift left to make room for it
@@ -88,7 +99,7 @@ const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
 // camera — see the `cameraX` comment below for why); positive = left.
 // HERO_SHIFT_REM moves the wordmark grid (CSS `translateX(-HERO_SHIFT_REM
 // rem)`); positive = left, negative = right.
-const CAMERA_SHIFT_X = 35
+const CAMERA_SHIFT_X = 50
 const HERO_SHIFT_REM = 3.5
 
 function useIsLargeScreen() {
@@ -102,26 +113,6 @@ function useIsLargeScreen() {
     return () => mq.removeEventListener('change', handler)
   }, [])
   return matches
-}
-
-// The bloom pass's EffectComposer doesn't preserve alpha through its final
-// render, so a transparent <Canvas> over a CSS background just shows solid
-// black. Setting the scene's own background color sidesteps that entirely —
-// it's part of the render, not DOM compositing.
-function SceneBackground({ color }: { color: string }) {
-  const { scene } = useThree()
-  useEffect(() => {
-    // Mutating the Three.js scene imperatively is the standard R3F pattern
-    // for this — `scene` is a Three.js object handle, not React state; the
-    // lint rule can't tell the two apart.
-    // eslint-disable-next-line react-hooks/immutability
-    scene.background = new THREE.Color(color)
-    return () => {
-      scene.background = null
-    }
-  }, [scene, color])
-
-  return null
 }
 
 function ParticleSwarm() {
@@ -357,12 +348,22 @@ export default function PointsToShapes() {
       style={{
         position: 'relative',
         height: '100svh',
-        background: '#36200f',
+        background: GRADIENT_THIRD,
       }}
     >
       <Canvas camera={{ position: [cameraX, 0, 100], rotation: [0, 0, 0], fov: 60 }}>
-        <SceneBackground color="#36200f" />
-        <fog attach="fog" args={['#000000', 0.01]} />
+        {/* contrast=1 / saturation=1 are the identity values for these two
+            shader passes ((c-0.5)*contrast+0.5 and mix(luma,c,saturation)) —
+            0 would collapse everything to flat gray / grayscale instead.
+            Identity keeps each requested hex color true wherever it's not
+            blending into a neighbor. */}
+        <GrainientBackground
+          color1={GRADIENT_ACCENT}
+          color2={GRADIENT_DOMINANT}
+          color3={GRADIENT_THIRD}
+          contrast={1}
+          saturation={1}
+        />
         <ParticleSwarm />
         {/* No OrbitControls: this is a passive hero background embedded in a
             normal scrolling page, not an interactive viewer. OrbitControls
@@ -375,24 +376,50 @@ export default function PointsToShapes() {
         </Effects>
       </Canvas>
 
-      {/* Wordmark column, positioned via CSS Grid rather than flexbox with an
-          empty spacer div. Flexbox has no native "start in position N"
-          placement — that's why the earlier version needed a hollow spacer
-          child just to push the logo rightward; Grid places an item into an
-          explicit column directly, no filler element required. Only enabled
-          from `lg` up: below that, the particle shape's on-screen footprint
+      {/* Content overlay on top of the full-bleed Canvas. Only enabled from
+          `lg` up: below that, the particle shape's on-screen footprint
           (fixed in 3D world units, so it covers proportionally more of a
           narrower canvas) collided with the wordmark, since neither respects
           the other's actual rendered bounds — a dedicated stacked
           mobile/tablet treatment is the deferred "adjust responsive screens
           later" pass. Padding matches this site's existing gutter scale
           (px-6/8/10, see ActividadesSection/Navbar) rather than a one-off
-          hero-specific value. */}
+          hero-specific value.
+          `justify-end` pins the content block to the right gutter, leaving
+          the left area free for the orbit shape, which lands there via the
+          camera pan (CAMERA_SHIFT_X) rather than a layout track — that
+          pairing is still two independently tuned numbers (one 3D, one CSS),
+          unrelated to the scaling change below. HERO_SHIFT_REM nudges this
+          whole overlay to line up against it. */}
       <div
-        className="pointer-events-none absolute inset-0 z-10 hidden lg:grid lg:grid-cols-2 lg:items-center lg:px-10 xl:px-14"
+        className="pointer-events-none absolute inset-0 z-10 hidden lg:flex lg:items-center lg:justify-end lg:px-10 xl:px-14"
         style={{ transform: `translateX(-${HERO_SHIFT_REM}rem)` }}
       >
-        <HeroWordmark className="col-start-2 h-auto w-[48rem] justify-self-start" />
+        {/* Wordmark + text column live under one shared width instead of
+            each carrying its own hand-tuned size (the wordmark was a flat
+            `w-[48rem]`, independent of the text column next to it) — this
+            `clamp()` is the single knob that scales the whole block together
+            as the viewport changes, with the two children split by
+            percentage of it. */}
+        <div className="flex items-center gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
+          <HeroWordmark className="h-auto w-[58%] shrink-0" />
+
+          <div className="pointer-events-auto flex w-[42%] min-w-0 flex-col items-start gap-5 text-white">
+            <p className="text-sm leading-relaxed text-white/80 md:text-base">
+              [Añadir aquí la descripción del evento]
+            </p>
+            <p className="text-xs tracking-widest text-white/60 uppercase">
+              [Fecha] · [Lugar]
+            </p>
+            <a
+              href="#actividades"
+              className="w-fit rounded-full px-6 py-2.5 text-[11px] tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+              style={{ backgroundColor: GRADIENT_DOMINANT }}
+            >
+              [Texto del botón]
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   )

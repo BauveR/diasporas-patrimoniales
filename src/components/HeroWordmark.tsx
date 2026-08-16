@@ -24,7 +24,7 @@ const HALO_GLOW_STROKE_WIDTH = 1
 const HALO_GLOW_BLUR_PX = 0.8
 const HALO_LOOP_MS = 13000
 
-// Line 3 ("SIMPOSIO INTERNACIONAL", orange, <g id="line3">): stays hidden
+// Line 3 ("SIMPOSIO INTERNACIONAL", white, <g id="line3">): stays hidden
 // until the particles finish forming the shape — reuses PointsToShapes' own
 // timing instead of an independent guess, so the two can't drift out of
 // sync. It arrived as pre-outlined paths now (not a <text>+scale() transform

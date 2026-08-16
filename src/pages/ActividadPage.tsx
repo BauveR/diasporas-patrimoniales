@@ -6,8 +6,9 @@ import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
+import { inscribirse, liberarPlaza, getTelefonoForUser, getMiToken, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
+import { MiQRModal } from '../components/profile/MiQRModal'
 import type { Actividad } from '../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -111,6 +112,7 @@ type BookingWidgetProps = {
   telefonoError: string
   onConfirmarInscripcion: () => void
   onCancelarTelefono: () => void
+  onVerQR?: () => void
   compact?: boolean
 }
 
@@ -123,6 +125,7 @@ export function BookingWidget({
   mostrandoTelefono, setMostrandoTelefono,
   telefono, onTelefonoChange, telefonoError,
   onConfirmarInscripcion, onCancelarTelefono,
+  onVerQR,
   compact = false,
 }: BookingWidgetProps) {
 
@@ -191,6 +194,14 @@ export function BookingWidget({
                 >
                   Ya inscrito ✓
                 </button>
+                {onVerQR && (
+                  <button
+                    onClick={onVerQR}
+                    className="w-full py-2.5 rounded-xl bg-stone-100 text-stone-600 text-[10px] tracking-widest uppercase hover:bg-stone-200 transition-colors cursor-pointer"
+                  >
+                    Ver QR
+                  </button>
+                )}
                 <button
                   onClick={() => setConfirmando(true)}
                   className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
@@ -433,6 +444,7 @@ export function ActividadPage() {
   const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
+  const [showQR, setShowQR] = useState(false)
 
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
   // getTelefonoForUser is a synchronous in-memory lookup (the real Firestore
@@ -554,12 +566,17 @@ export function ActividadPage() {
     telefonoError,
     onConfirmarInscripcion: handleConfirmarInscripcion,
     onCancelarTelefono: handleCancelarTelefono,
+    onVerQR: fromPerfil ? () => setShowQR(true) : undefined,
   }
 
   // ── Vista fromPerfil (modal estrecho) ───────────────────────────────────────
   if (fromPerfil && isModal) {
+    const token = user ? getMiToken(actividad.id, user.uid) : null
     return (
       <div className="flex flex-col" style={labelStyle}>
+        {showQR && token && (
+          <MiQRModal token={token} titulo={actividad.titulo} onClose={() => setShowQR(false)} />
+        )}
 
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
           <span

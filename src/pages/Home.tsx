@@ -36,7 +36,7 @@ export function Home() {
   }, [location.key])
 
   return (
-    <main className="pt-16">
+    <main>
       <PointsToShapes />
 
       <section id="sedes" className="scroll-mt-16">

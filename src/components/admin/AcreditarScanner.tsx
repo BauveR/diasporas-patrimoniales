@@ -6,8 +6,10 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type Resultado =
   | { tipo: 'ok'; nombre: string }
-  | { tipo: 'ya'; nombre: string }
+  | { tipo: 'ya'; nombre: string; acreditadoEn: Date }
   | { tipo: 'invalido' }
+
+const horaFormatter = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' })
 
 // How long a just-decoded token is "locked out" from re-triggering acreditar()
 // again — without this, a QR sitting in frame would re-fire on every single
@@ -33,7 +35,11 @@ export function AcreditarScanner() {
     async function handleToken(token: string) {
       try {
         const r = await acreditar(token)
-        setResultado({ tipo: r.yaAcreditado ? 'ya' : 'ok', nombre: r.displayName })
+        setResultado(
+          r.yaAcreditado
+            ? { tipo: 'ya', nombre: r.displayName, acreditadoEn: r.acreditadoEn }
+            : { tipo: 'ok', nombre: r.displayName },
+        )
       } catch (err) {
         if (!(err instanceof TokenInvalidoError)) throw err
         setResultado({ tipo: 'invalido' })
@@ -105,7 +111,7 @@ export function AcreditarScanner() {
       {resultado && (
         <div
           className={`w-full max-w-sm rounded-2xl p-5 text-center ${
-            resultado.tipo === 'invalido' ? 'bg-red-50' : resultado.tipo === 'ya' ? 'bg-amber-50' : 'bg-green-50'
+            resultado.tipo === 'ok' ? 'bg-green-50' : 'bg-red-50'
           }`}
         >
           {resultado.tipo === 'invalido' ? (
@@ -113,13 +119,14 @@ export function AcreditarScanner() {
           ) : (
             <>
               <p className="text-sm text-stone-800 mb-1">{resultado.nombre}</p>
-              <p
-                className={`text-[11px] tracking-widest uppercase ${
-                  resultado.tipo === 'ya' ? 'text-amber-600' : 'text-green-600'
-                }`}
-              >
-                {resultado.tipo === 'ya' ? 'Ya estaba acreditado' : 'Acreditado ✓'}
+              <p className={`text-[11px] tracking-widest uppercase ${resultado.tipo === 'ya' ? 'text-red-500' : 'text-green-600'}`}>
+                {resultado.tipo === 'ya' ? 'Denegado · QR ya usado' : 'Acreditado ✓'}
               </p>
+              {resultado.tipo === 'ya' && (
+                <p className="text-[10px] text-red-400 mt-1">
+                  Entrada registrada a las {horaFormatter.format(resultado.acreditadoEn)}h — no dejar pasar de nuevo
+                </p>
+              )}
             </>
           )}
         </div>
