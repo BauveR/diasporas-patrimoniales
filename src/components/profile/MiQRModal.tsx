@@ -9,8 +9,8 @@ type Props = {
   onClose: () => void
 }
 
-// Portal to document.body with z-[9999] — same convention the map drawers
-// use, to sit above Leaflet's own internal z-index stack.
+// Portal to document.body with z-[9999] — same convention the sede drawer
+// uses, to sit above the rest of the app's stacking contexts.
 export function MiQRModal({ token, titulo, onClose }: Props) {
   return createPortal(
     <div

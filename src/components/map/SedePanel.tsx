@@ -26,7 +26,7 @@ export function SedePanel({ sede, onClose }: Props) {
       <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-4">
         <HandTap className="w-40 h-40" />
         <p className="text-xs tracking-widest uppercase text-stone-400" style={labelStyle}>
-          Selecciona un sede en el mapa
+          Selecciona una sede de la lista
         </p>
       </div>
     )

@@ -4,8 +4,6 @@ import type { ReactNode } from 'react'
 type MapUIContextValue = {
   selectedId: number | null
   setSelectedId: (id: number | null) => void
-  selectedIsla: string | null
-  setSelectedIsla: (isla: string | null) => void
   drawerOpen: boolean
   setDrawerOpen: (open: boolean) => void
 }
@@ -14,13 +12,11 @@ const MapUIContext = createContext<MapUIContextValue | null>(null)
 
 export function MapUIProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [selectedIsla, setSelectedIsla] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
     <MapUIContext.Provider value={{
       selectedId, setSelectedId,
-      selectedIsla, setSelectedIsla,
       drawerOpen, setDrawerOpen,
     }}>
       {children}
