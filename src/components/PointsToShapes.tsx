@@ -1,5 +1,5 @@
 import { useRef, useMemo, useState, useEffect } from 'react'
-import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
+import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-three/fiber'
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
@@ -9,6 +9,11 @@ import { createShapeMask } from '../lib/createShapeMask'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
+import { BlurText } from './BlurText'
+import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
+import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
+import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
+import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.png'
 
 // Animated gradient colors for the hero background — brought over from the
 // Conjuntos Históricos project's Hero (Grainient), retuned to this site's
@@ -18,7 +23,7 @@ import { GrainientBackground } from './GrainientBackground'
 // primary hue, matching the particles' own color.
 const GRADIENT_ACCENT = '#9b2923'
 const GRADIENT_DOMINANT = '#f04f23'
-const GRADIENT_THIRD = '#574e9e'
+const GRADIENT_THIRD = '#9b2923'
 
 extend({ UnrealBloomPass })
 
@@ -57,13 +62,13 @@ const COUNT = (BASE_POINTS + EXTRA_POINTS) * 2
 // World-space width the shape SVG is scaled to — shared between
 // generateSvgFillPositions (initial formation targets) and createShapeMask
 // (the ongoing wander bounds check), so both agree on the same mapping.
-const SHAPE_WORLD_WIDTH = 55
+const SHAPE_WORLD_WIDTH = 62
 
 // Shifts the formed shape up/down on screen without touching the wander/mask
 // math (which stays in the SVG's own coordinate space) — applied only where
 // the wander target becomes the render target, below. 0 = vertically
 // centered; positive moves it up, negative moves it down.
-const SHAPE_Y_OFFSET = 0
+const SHAPE_Y_OFFSET = 4
 
 // Once formed, particles keep wandering inside the shape instead of freezing:
 // each one hops WANDER_STEP world units in a random direction whenever it
@@ -83,6 +88,10 @@ const WANDER_ARRIVE_DIST = 0.4
 // drifting off the ring plane over time.
 const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 
+// Fraction of the base geometry size (IcosahedronGeometry radius 0.25) a
+// particle eases down to once fully formed — full size while swirling.
+const FORMED_SCALE = 0.9
+
 // Particles are a single fixed color for their whole lifetime — swirling or
 // formed, it never changes, so there's no per-frame interpolation to do.
 const COLOR_PARTICLE = new THREE.Color(0xffffff)
@@ -99,8 +108,8 @@ const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
 // camera — see the `cameraX` comment below for why); positive = left.
 // HERO_SHIFT_REM moves the wordmark grid (CSS `translateX(-HERO_SHIFT_REM
 // rem)`); positive = left, negative = right.
-const CAMERA_SHIFT_X = 50
-const HERO_SHIFT_REM = 3.5
+const CAMERA_SHIFT_X = 60
+const HERO_SHIFT_REM = 9.5
 
 function useIsLargeScreen() {
   const [matches, setMatches] = useState(
@@ -113,6 +122,29 @@ function useIsLargeScreen() {
     return () => mq.removeEventListener('change', handler)
   }, [])
   return matches
+}
+
+// `cameraX` flips instantly whenever `isLargeScreen`'s matchMedia listener
+// fires — not just on an actual window resize, but on anything that changes
+// the layout viewport width, including a scrollbar appearing once the page
+// finishes laying out (common right around the FORM_START–FORM_DURATION
+// window, as sections below the hero mount in). R3F re-applies the `camera`
+// prop's position as a hard set whenever that object's identity changes, so
+// without this, a breakpoint flip mid-formation reads as the whole swarm
+// snapping sideways. Gliding position.x toward the target every frame turns
+// that hard cut into a pan, regardless of what triggers the flip.
+function CameraRig({ targetX }: { targetX: number }) {
+  const { camera } = useThree()
+  useFrame((_state, delta) => {
+    const clampedDelta = Math.min(delta, 1 / 20)
+    const smoothing = 1 - Math.pow(0.9, clampedDelta * 60)
+    // `camera` is a Three.js object handle from useThree(), not React
+    // state — mutating it imperatively every frame is the standard R3F
+    // pattern; the lint rule can't tell the two apart.
+    // eslint-disable-next-line react-hooks/immutability
+    camera.position.x += (targetX - camera.position.x) * smoothing
+  })
+  return null
 }
 
 function ParticleSwarm() {
@@ -164,6 +196,12 @@ function ParticleSwarm() {
   const scales = useRef<Float32Array>(null!)
   if (scales.current === null) scales.current = new Float32Array(COUNT).fill(1)
 
+  // Seconds of formation progress accumulated so far, advanced at most
+  // `clampedDelta` per rendered frame (see below) instead of being read
+  // straight off the wall clock — a ref because it persists across frames
+  // without triggering re-renders, same reasoning as `scales` above.
+  const formElapsed = useRef(0)
+
   const material = useMemo(
     () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
     [],
@@ -185,13 +223,29 @@ function ParticleSwarm() {
     const time = state.clock.getElapsedTime()
     const { scale, speed, twist, glow, chaos, layers, pulse, gravity } = PARAMS
 
-    const rawBlend = Math.min(Math.max((time - FORM_START) / FORM_DURATION, 0), 1)
+    // Both the swirl→shape blend and the position smoothing below are
+    // rate-limited by the same clamped delta instead of sampling the wall
+    // clock directly — a stall (GC pause, tab backgrounded, main thread busy
+    // loading the rest of the page) then just pauses the animation instead
+    // of forcing it to catch up to wherever raw elapsed time says it should
+    // be. Reading blend straight off `time` (the original approach) meant a
+    // single long stall inside the FORM_DURATION window could jump blend by
+    // however much wall-clock time had passed — e.g. a 600ms stall during a
+    // 2.3s transition advances it by a quarter in one frame — which is what
+    // read as the swarm freezing and then jumping straight to the formed
+    // shape. Accumulating progress by clampedDelta instead makes the
+    // transition itself immune to stalls, not just the position lerp.
+    const clampedDelta = Math.min(delta, 1 / 20)
+    if (time >= FORM_START) {
+      formElapsed.current = Math.min(formElapsed.current + clampedDelta, FORM_DURATION)
+    }
+    const rawBlend = formElapsed.current / FORM_DURATION
     const blend = rawBlend * rawBlend * (3 - 2 * rawBlend)
 
     // Frame-rate-independent smoothing: a fixed lerp(target, 0.1) converges
     // once per rendered frame, so on a slow frame rate it converges far
     // slower in wall-clock time than the blend timing above assumes.
-    const smoothing = 1 - Math.pow(0.9, delta * 60)
+    const smoothing = 1 - Math.pow(0.9, clampedDelta * 60)
 
     const t = time * speed
 
@@ -301,7 +355,7 @@ function ParticleSwarm() {
         target.lerp(shapePos, blend)
       }
 
-      const targetScale = blend >= 1 ? 0.5 : 1
+      const targetScale = blend >= 1 ? FORMED_SCALE : 1
       scales.current[i] += (targetScale - scales.current[i]) * smoothing
 
       positions[i].lerp(target, smoothing)
@@ -318,8 +372,69 @@ function ParticleSwarm() {
   return <instancedMesh ref={meshRef} args={[geometry, material, COUNT]} />
 }
 
+// Number of real frames to render, hidden, before revealing the canvas.
+// `gl.compile()` only warms shaders for materials already attached to the
+// scene graph — it can't reach the bloom pass's internal shaders (blur,
+// threshold, composite), since those render via their own manual `gl.render`
+// calls outside the normal scene traversal. Letting a few real frames
+// actually execute is the only way to force every shader in the pipeline
+// (background + particles + all of bloom) through its one-time GPU compile,
+// which is what was causing the visible hitch no matter which piece's mount
+// we delayed — delaying one piece just moved the hitch to whenever *it*
+// first rendered instead of removing it.
+const WARMUP_FRAMES = 3
+
+function WarmupGate({ onReady }: { onReady: () => void }) {
+  const framesRendered = useRef(0)
+  const firedRef = useRef(false)
+
+  useFrame(() => {
+    if (firedRef.current) return
+    framesRendered.current += 1
+    if (framesRendered.current >= WARMUP_FRAMES) {
+      firedRef.current = true
+      onReady()
+    }
+  })
+
+  return null
+}
+
 export default function PointsToShapes() {
   const isLargeScreen = useIsLargeScreen()
+  const sectionRef = useRef<HTMLElement>(null)
+  const [isVisible, setIsVisible] = useState(true)
+  const [canvasReady, setCanvasReady] = useState(false)
+
+  // First-paint hitch fix: background, particles, and bloom all mount
+  // together like normal, but the canvas stays invisible (opacity 0, the
+  // section's flat CSS fallback color showing through underneath) until
+  // WarmupGate confirms a few real frames have actually rendered — which is
+  // what forces every shader in the pipeline through its one-time GPU
+  // compile. Only then does the canvas fade in, already warm and already
+  // mid-animation. Delaying any one piece's *mount* (tried earlier) only
+  // relocated the hitch to whenever that piece first rendered instead of
+  // removing it; rendering everything for real, just hidden, is what
+  // actually eliminates it.
+
+  // The particle swirl, bloom pass, and gradient shader all run their own
+  // rAF loop regardless of scroll position — R3F's default `frameloop`
+  // keeps rendering every frame even while this section is scrolled far out
+  // of view. Left unpaused, that constant GPU/main-thread load is exactly
+  // what was making the page stutter right as this section scrolled back
+  // into view (the compositor had a backlog of a heavy canvas to catch up
+  // on). Freezing the loop via `frameloop="never"` while off-screen removes
+  // that load entirely — nothing to catch up on when it reappears.
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
   // Shifted left only from `lg` up, matching the wordmark column below that
   // only appears at that breakpoint — on mobile/tablet the particle shape is
   // the only content, so it stays centered there. Done via camera position,
@@ -334,6 +449,18 @@ export default function PointsToShapes() {
   // giving a clean parallel shift.
   const cameraX = isLargeScreen ? CAMERA_SHIFT_X : 0
 
+  // Frozen on purpose: R3F re-applies the `camera` prop with a hard
+  // `position.set(...)` (no interpolation) whenever the values inside it
+  // change, which would undo CameraRig's smoothing the instant `cameraX`
+  // changes — the prop and the rig would be fighting over who sets the
+  // position. Capturing only the first render's value here means the
+  // `camera` prop's own array never changes after mount, so R3F never
+  // touches position again; CameraRig becomes the sole owner of it from
+  // then on, and every change — including this initial one, if a later
+  // breakpoint flip changes `cameraX` before first paint — glides instead
+  // of snapping.
+  const [initialCameraX] = useState(cameraX)
+
   return (
     // A hero section, not a fixed-position overlay: `position: fixed; inset: 0`
     // sizes against the live *visual* viewport, which on scroll (mobile
@@ -345,13 +472,25 @@ export default function PointsToShapes() {
     // away with the page like any other section — same approach the
     // reference site (casberry.in) uses for its hero canvas.
     <section
+      ref={sectionRef}
       style={{
         position: 'relative',
         height: '100svh',
         background: GRADIENT_THIRD,
       }}
     >
-      <Canvas camera={{ position: [cameraX, 0, 100], rotation: [0, 0, 0], fov: 60 }}>
+      <Canvas
+        camera={{ position: [initialCameraX, 0, 100], rotation: [0, 0, 0], fov: 60 }}
+        frameloop={isVisible ? 'always' : 'never'}
+        style={{ opacity: canvasReady ? 1 : 0, transition: 'opacity 0.5s ease' }}
+        // R3F's default caps device pixel ratio at 2 — full native resolution
+        // on any Retina/HiDPI screen. GrainientBackground's fragment shader
+        // (domain-warped noise, evaluated per pixel, every frame) then runs
+        // on 4x the pixels it needs to. Capping at 1.5 cuts that back
+        // noticeably while still looking sharp for a soft gradient.
+        dpr={[1, 1.5]}
+      >
+        <CameraRig targetX={cameraX} />
         {/* contrast=1 / saturation=1 are the identity values for these two
             shader passes ((c-0.5)*contrast+0.5 and mix(luma,c,saturation)) —
             0 would collapse everything to flat gray / grayscale instead.
@@ -365,6 +504,7 @@ export default function PointsToShapes() {
           saturation={1}
         />
         <ParticleSwarm />
+        {!canvasReady && <WarmupGate onReady={() => setCanvasReady(true)} />}
         {/* No OrbitControls: this is a passive hero background embedded in a
             normal scrolling page, not an interactive viewer. OrbitControls
             attaches a wheel listener to the canvas with enableZoom on by
@@ -402,14 +542,26 @@ export default function PointsToShapes() {
             as the viewport changes, with the two children split by
             percentage of it. */}
         <div className="flex items-center gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
-          <HeroWordmark className="h-auto w-[58%] shrink-0" />
+          <HeroWordmark className="h-auto w-[64%] shrink-0" />
 
-          <div className="pointer-events-auto flex w-[42%] min-w-0 flex-col items-start gap-5 text-white">
+          <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
+            <BlurText
+              text="Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos"
+              delay={18}
+              animateBy="letters"
+              direction="top"
+              className="text-lg leading-snug font-bold uppercase md:text-xl"
+            />
             <p className="text-sm leading-relaxed text-white/80 md:text-base">
-              [Añadir aquí la descripción del evento]
+              Diásporas Patrimoniales es un foro internacional promovido desde las Islas Canarias con el objetivo de
+              situar el patrimonio arqueológico canario conservado fuera del archipiélago dentro de uno de los
+              grandes debates culturales de la actualidad: cómo deben relacionarse hoy los museos, las universidades
+              y las instituciones patrimoniales con los territorios de origen de los bienes que custodian.
             </p>
-            <p className="text-xs tracking-widest text-white/60 uppercase">
-              [Fecha] · [Lugar]
+            <p className="text-lg leading-snug font-bold tracking-widest text-white/60 uppercase md:text-xl">
+              12 y 13 de noviembre de 2026
+              <br />
+              TEA, Santa Cruz de Tenerife
             </p>
             <a
               href="#actividades"
@@ -418,6 +570,20 @@ export default function PointsToShapes() {
             >
               [Texto del botón]
             </a>
+
+            {/* Colaboradores/patrocinadores — dos filas de logos, ya en
+                blanco/claro en el propio archivo, así que se apoyan
+                directamente sobre el fondo oscuro sin tratamiento extra. */}
+            <div className="mt-8 flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-20.75 w-auto object-contain" />
+                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-16 w-auto object-contain" />
+              </div>
+              <div className="flex flex-wrap items-center gap-6">
+                <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
+                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -184,10 +184,21 @@ export function GrainientBackground({
     [],
   )
 
+  // Reused across every frame instead of `new THREE.Vector2()` per call —
+  // this ran 60 times a second, and that steady stream of thrown-away
+  // objects was enough garbage-collector pressure to cause periodic
+  // main-thread pauses. A GC pause blocks the whole thread at once, which
+  // is exactly why the background, the particles (same thread), and the
+  // wordmark's halo (a Web Animations API stroke animation — also
+  // main-thread work, not compositor-only) all appeared to stutter
+  // together: they weren't independently janky, the thread itself was
+  // stalling underneath all of them.
+  const drawingBufferSize = useRef(new THREE.Vector2())
+
   useFrame((state) => {
     const u = materialRef.current.uniforms
     u.iTime.value = state.clock.elapsedTime
-    const size = gl.getDrawingBufferSize(new THREE.Vector2())
+    const size = gl.getDrawingBufferSize(drawingBufferSize.current)
     u.iResolution.value.set(size.x, size.y)
   })
 

@@ -2,35 +2,20 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Sede } from '../../data/sedes'
 import { TEMATICA_COLORS } from '../../data/tematicas'
-import { HandTap } from '../HandTap'
 import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 
 type Props = {
-  sede: Sede | null
-  onClose?: () => void
+  sede: Sede
 }
 
-export function SedePanel({ sede, onClose }: Props) {
+export function SedePanel({ sede }: Props) {
   const location = useLocation()
   const { actividades: todasActividades } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
-  const actividades = sede
-    ? todasActividades.filter(a => a.sedeId === sede.id)
-    : []
-
-  if (!sede) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-10 gap-4">
-        <HandTap className="w-40 h-40" />
-        <p className="text-xs tracking-widest uppercase text-stone-400" style={labelStyle}>
-          Selecciona una sede de la lista
-        </p>
-      </div>
-    )
-  }
+  const actividades = todasActividades.filter(a => a.sedeId === sede.id)
 
   const stats = [
     `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
@@ -39,7 +24,7 @@ export function SedePanel({ sede, onClose }: Props) {
   ]
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col">
 
       {/* Hero image */}
       <div className="relative w-full aspect-16/7 shrink-0 overflow-hidden">
@@ -48,17 +33,6 @@ export function SedePanel({ sede, onClose }: Props) {
           alt={sede.nombre}
           className="w-full h-full object-cover"
         />
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm cursor-pointer"
-            aria-label="Cerrar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* Content */}

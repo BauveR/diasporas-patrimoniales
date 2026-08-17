@@ -9,7 +9,6 @@ import { Home } from './pages/Home'
 import { AuthPage } from './pages/AuthPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { DataProvider } from './contexts/DataContext'
-import { MapUIProvider } from './contexts/MapUIContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { pageVariants } from './utils/pageTransition'
 import './App.css'
@@ -33,7 +32,6 @@ export default function App() {
     <ErrorBoundary>
     <AuthProvider>
       <DataProvider>
-      <MapUIProvider>
         <Navbar />
 
         {/* Main content — renders background location when modal is open */}
@@ -74,7 +72,6 @@ export default function App() {
           )}
         </AnimatePresence>
         <CookieBanner />
-      </MapUIProvider>
       </DataProvider>
     </AuthProvider>
     </ErrorBoundary>

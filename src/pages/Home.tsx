@@ -3,7 +3,6 @@ import { useLocation, useNavigationType } from 'react-router-dom'
 import PointsToShapes from '../components/PointsToShapes'
 import { MapSection } from '../components/map/MapSection'
 import { ActividadesSection } from '../components/actividades/ActividadesSection'
-import { useMapRestoration } from '../hooks/useMapRestoration'
 
 const scrollPositions: Record<string, number> = {}
 
@@ -16,8 +15,6 @@ export function Home() {
     const saved = scrollPositions[location.key]
     if (saved !== undefined) window.scrollTo({ top: saved, behavior: 'instant' })
   }, [])
-
-  useMapRestoration()
 
   useEffect(() => {
     if (!location.hash || navType === 'POP') return
@@ -36,7 +33,7 @@ export function Home() {
   }, [location.key])
 
   return (
-    <main>
+    <main className="pt-16">
       <PointsToShapes />
 
       <section id="sedes" className="scroll-mt-16">
