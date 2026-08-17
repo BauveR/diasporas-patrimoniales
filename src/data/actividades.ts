@@ -24,461 +24,121 @@ export type Actividad = {
   fechaAperturaInscripciones?: string
 }
 
-const IMG = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg'
-
 export const ACTIVIDADES: Actividad[] = [
-  // ── La Laguna (Tenerife) ───────────────────────────────
   {
     id: 1,
-    imagen: IMG,
-    titulo: 'Ruta por el centro histórico de La Laguna',
+    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1786967427/simposio_internacioanl_diasporas_patrimoniales_tea_tenerife_-01.png',
+    titulo: 'Día 1 — 12 de noviembre',
     sedeId: 1,
-    descripcion: 'Recorrido guiado por las calles del primer núcleo urbano planificado de la colonización española en América. Arquitectura civil y religiosa del siglo XVI.',
-    fecha: '2026-07-15',
-    hora: '10:00',
-    duracion: '2h 30min',
+    descripcion: `Día 1 — 12 de noviembre
+
+Mañana
+08:45–09:30 h | Recepción y acreditaciones
+09:30–10:15 h | Sesión de apertura. Presentación e inauguración
+
+Participantes previstos
+Presidente del Gobierno de Canarias.
+Director General de Cultura y Patrimonio Cultural del Gobierno de Canarias.
+Representantes del Cabildo de Tenerife.
+Organismo Autónomo de Museos y Centros.
+Museo de la Naturaleza y Arqueología.
+Dirección científica del simposio.
+
+10:15–10:45 h | Pausa café
+
+10:45–12:00 h | Panel I. Coleccionismo desigual y museos: historias y prácticas de apropiación
+Moderador: Jorge Onrubia
+Participantes
+Hamady Bocoum – Exdirector del Musée des Civilisations Noires, Senegal.
+Alyne Mayra Rufino Dos Santos – Directora del Centro Nacional de Arqueología, IPHAN, Brasil.
+Benoît de Saint Chamas – Encargado de misión para la cooperación internacional en el ámbito del patrimonio, Ministerio de Europa y Asuntos Exteriores, Francia.
+Patricia Alonso Pajuelo – Directora del Museo Nacional de Antropología, España.
+
+12:00–12:15 h | Pausa técnica y cambio de panel
+
+12:15–13:30 h | Panel II. Cooperación y restitución: políticas y marcos de actuación
+Moderador: Isaac Sastre
+Participantes
+Claire Chastanier – Adjunta de la Subdirección de Colecciones, Dirección General de Patrimonios y Arquitectura, Ministerio de Cultura, Francia.
+Fátima Roque – Presidenta del Consejo Intergubernamental de Ibermuseos y coordinadora de la Red Portuguesa de Museos, Portugal.
+Hanna Pennock – Asesora sénior de la Agencia del Patrimonio Cultural de los Países Bajos y presidenta del Grupo de Trabajo sobre Descolonización del ICOM.
+Maria Auxiliadora Llamas Márquez – Presidenta de ICOM España y directora del Museo de Cádiz, España.
+
+13:30–15:30 h | Pausa almuerzo
+
+Tarde
+15:30–16:45 h | Panel III. Experiencias internacionales: Europa, África y América Latina
+Moderador: Isaac Sastre
+Participantes
+Mustapha Jlok – Director de Patrimonio Cultural, Ministerio de Juventud, Cultura y Comunicación, Marruecos.
+Patricia Ledesma Bouchán – Directora del Museo del Templo Mayor / ENAH, México.
+María Miñana – UNESCO, Convención de 1970 / Tráfico Ilícito Internacional y Museo Virtual, Francia.
+Raphael Callou – Director General de Cultura de la OEI, España.`,
+    fecha: '2026-11-12',
+    hora: '08:45',
+    duracion: '8h',
     dificultad: 'Fácil',
-    plazas: 20,
-    plazasDisponibles: 12,
-    tematica: 'Arquitectura',
-    organizador: 'Patronato de Turismo de Tenerife',
-    contacto: 'patrimonio@turismotenerife.es',
-    puntoEncuentro: 'Plaza del Adelantado, frente al Ayuntamiento',
+    plazas: 150,
+    plazasDisponibles: 150,
+    tematica: 'Arqueología',
+    organizador: 'TEA Tenerife Espacio de las Artes',
+    contacto: '[email de contacto]',
+    puntoEncuentro: 'TEA Tenerife Espacio de las Artes, Santa Cruz de Tenerife',
   },
   {
     id: 2,
-    imagen: IMG,
-    titulo: 'Personajes que forjaron La Laguna',
+    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1786967429/simposio_internacioanl_diasporas_patrimoniales_tea_tenerife_-02.png',
+    titulo: 'Día 2 — 13 de noviembre',
     sedeId: 1,
-    descripcion: 'Visita dramatizada con actores que dan vida a figuras históricas clave de la ciudad: religiosos, conquistadores y pensadores que marcaron la historia canaria.',
-    fecha: '2026-07-22',
-    hora: '18:00',
-    duracion: '1h 30min',
-    dificultad: 'Media',
-    plazas: 15,
-    plazasDisponibles: 8,
-    tematica: 'Personajes históricos',
-    organizador: 'Patronato de Turismo de Tenerife',
-    contacto: 'patrimonio@turismotenerife.es',
-    puntoEncuentro: 'Puerta de la Catedral de La Laguna, C/ Obispo Rey Redondo',
-  },
-  // ── Betancuria (Fuerteventura) ─────────────────────────
-  {
-    id: 3,
-    imagen: IMG,
-    titulo: 'El convento y la fe en Betancuria',
-    sedeId: 2,
-    descripcion: 'Visita al Convento de San Buenaventura y la iglesia de Santa María de Betancuria. Historia del catolicismo en la primera capital majorera.',
-    fecha: '2026-08-05',
-    hora: '11:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 18,
-    plazasDisponibles: 18,
-    tematica: 'Patrimonio religioso',
-    organizador: 'Cabildo de Fuerteventura — Área de Cultura',
-    contacto: 'cultura@cabildofuer.es',
-    puntoEncuentro: 'Entrada al Convento de San Buenaventura, Betancuria',
-  },
-  // ── Vegueta-Triana (Gran Canaria) ──────────────────────
-  {
-    id: 4,
-    imagen: IMG,
-    titulo: 'Vegueta: raíces de Las Palmas',
-    sedeId: 3,
-    descripcion: 'Recorrido por el barrio fundacional de Las Palmas: la Catedral de Santa Ana, la Plaza de Santa Ana y la Casa de Colón, testigos de cinco siglos de historia.',
-    fecha: '2026-07-18',
+    descripcion: `Día 2 — 13 de noviembre
+
+Mañana
+09:30–10:45 h | Panel IV. Canarias como estudio de caso: deslocalizaciones, colaboraciones y expectativas de restitución
+Moderador: Jorge Onrubia
+Participantes
+Dr. C. Armando Rangel Rivero. Director Museo Antropológico Montané. Universidad de La Habana, Cuba.
+André Delpuech – Centre Alexandre Koyré / exdirector del Musée de l'Homme, Francia.
+Tobias Mörike – Conservador del Weltmuseum Wien, Austria.
+Daniel Pérez Estévez – Director de El Museo Canario, España.
+
+10:45–11:15 h | Pausa café
+
+11:15–12:30 h | Panel V. Trayectorias clave y debates singulares
+Moderador: Jared Carballo
+Participantes
+Conrado Rodríguez Martín – Director del MUNA / Instituto Canario de Bioantropología, España.
+Alejandra Gómez Colorado – Directora del Museo Nacional de las Culturas del Mundo, México.
+José Fenoll – Doctorando y especialista en escultura ibérica y en la Dama de Elche, Universidad Autónoma de Madrid, España.
+Badayco Said Karboune Rodríguez – Doctorando y especialista en la historia de la translocación de la Momia del Barranco de Erques, Universidad de La Laguna, España.
+
+12:30–14:30 h | Pausa almuerzo
+
+Tarde
+14:30–15:45 h | Panel VI. Restos humanos y ética: ciencia, sensibilidad y responsabilidad pública
+Moderador: Jared Carballo
+Participantes
+Matilde Arnay de la Rosa – Profesora honoraria de Prehistoria, Universidad de La Laguna, España.
+Afaf Wahba – Directora del Departamento de Bioarqueología del Consejo Supremo de Antigüedades, Egipto.
+Sarita Fuentes Villalobos – Santuario Arqueológico de Pachacamac / Pontificia Universidad Católica del Perú, Perú.
+Rebecca Whiting – Conservadora de Bioarqueología, Departamento de Egipto y Sudán del British Museum, Reino Unido.
+
+15:45–16:15 h | Pausa café
+
+16:15–17:00 h | Sesión de clausura
+Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional.
+Participantes previstos
+Dirección General de Cultura y Patrimonio Cultural.
+Dirección científica del simposio.`,
+    fecha: '2026-11-13',
     hora: '09:30',
-    duracion: '3h',
-    dificultad: 'Difícil',
-    plazas: 25,
-    plazasDisponibles: 10,
-    tematica: 'Historia local',
-    organizador: 'Cabildo de Gran Canaria — Cultura',
-    contacto: 'cultura@grancanaria.com',
-    puntoEncuentro: 'Plaza de Santa Ana, escalinatas de la Catedral',
-  },
-  {
-    id: 5,
-    imagen: IMG,
-    titulo: 'Arqueología urbana en Vegueta',
-    sedeId: 3,
-    descripcion: 'Taller con arqueólogos que trabajan en las excavaciones del subsuelo de Vegueta. Descubrimiento de los yacimientos prehispánicos bajo la ciudad colonial.',
-    fecha: '2026-08-12',
-    hora: '10:00',
-    duracion: '2h',
-    dificultad: 'Media',
-    plazas: 12,
-    plazasDisponibles: 4,
+    duracion: '7h 30min',
+    dificultad: 'Fácil',
+    plazas: 150,
+    plazasDisponibles: 150,
     tematica: 'Arqueología',
-    organizador: 'Cabildo de Gran Canaria — Cultura',
-    contacto: 'cultura@grancanaria.com',
-    puntoEncuentro: 'Casa de Colón, C/ Colón 1, Vegueta',
-  },
-  // ── Garachico (Tenerife) ───────────────────────────────
-  {
-    id: 6,
-    imagen: IMG,
-    titulo: 'Garachico y el mar: memoria portuaria',
-    sedeId: 4,
-    descripcion: 'Historia del puerto natural de Garachico, epicentro del comercio atlántico del siglo XVII antes de ser sepultado por la lava. Tradición marinera y pesca artesanal.',
-    fecha: '2026-07-30',
-    hora: '17:00',
-    duracion: '2h',
-    dificultad: 'Media',
-    plazas: 20,
-    plazasDisponibles: 15,
-    tematica: 'Patrimonio marítimo',
-    organizador: 'Ayuntamiento de Garachico',
-    contacto: 'turismo@garachico.es',
-    puntoEncuentro: 'Plaza de la Libertad, junto al Castillo de San Miguel',
-  },
-  // ── Agüimes (Gran Canaria) ─────────────────────────────
-  {
-    id: 7,
-    imagen: IMG,
-    titulo: 'Agüimes: fiesta y tradición viva',
-    sedeId: 5,
-    descripcion: 'Inmersión en las fiestas patronales de Agüimes y sus tradiciones populares. Folklore, gastronomía y artesanía local en el corazón del casco histórico.',
-    fecha: '2026-08-20',
-    hora: '11:00',
-    duracion: '3h 30min',
-    dificultad: 'Fácil',
-    plazas: 30,
-    plazasDisponibles: 22,
-    tematica: 'Fiestas y tradiciones',
-    organizador: 'Ayuntamiento de Agüimes',
-    contacto: 'cultura@aguimes.es',
-    puntoEncuentro: 'Plaza de San Sebastián, frente a la Iglesia',
-  },
-  {
-    id: 8,
-    imagen: IMG,
-    titulo: 'El agua en Garachico: fuentes, aljibes y canales',
-    sedeId: 4,
-    descripcion: 'Recorrido por el sistema hidráulico histórico de Garachico: fuentes coloniales, aljibes subterráneos y la red de canales que abastecía la villa antes de la erupción de 1706.',
-    fecha: '2026-09-03',
-    hora: '09:00',
-    duracion: '2h',
-    dificultad: 'Difícil',
-    plazas: 16,
-    plazasDisponibles: 16,
-    tematica: 'Agua y paisaje',
-    organizador: 'Ayuntamiento de Garachico',
-    contacto: 'turismo@garachico.es',
-    puntoEncuentro: 'Fuente de los Caños, C/ Esteban de Ponte',
-  },
-  {
-    id: 9,
-    imagen: IMG,
-    titulo: 'Molinos y almazaras de La Laguna',
-    sedeId: 1,
-    descripcion: 'Visita a los molinos harineros y almazaras de aceite del entorno de La Laguna. Historia de la industria agroalimentaria canaria desde el siglo XVI hasta el XIX.',
-    fecha: '2026-09-10',
-    hora: '10:30',
-    duracion: '2h 30min',
-    dificultad: 'Fácil',
-    plazas: 20,
-    plazasDisponibles: 3,
-    tematica: 'Patrimonio industrial',
-    organizador: 'Patronato de Turismo de Tenerife',
-    contacto: 'patrimonio@turismotenerife.es',
-    puntoEncuentro: 'Museo de Historia de Tenerife, C/ San Agustín 22',
-  },
-  {
-    id: 10,
-    imagen: IMG,
-    titulo: 'El silbo gomero y la memoria oral de Canarias',
-    sedeId: 4,
-    descripcion: 'Taller sobre el silbo gomero y otras tradiciones orales inmateriales de Canarias. Demostración en vivo y práctica guiada de este lenguaje silbado declarado Patrimonio Inmaterial de la Humanidad.',
-    fecha: '2026-09-18',
-    hora: '17:30',
-    duracion: '1h 30min',
-    dificultad: 'Fácil',
-    plazas: 25,
-    plazasDisponibles: 0,
-    tematica: 'Patrimonio inmaterial',
-    organizador: 'Ayuntamiento de Garachico',
-    contacto: 'turismo@garachico.es',
-    puntoEncuentro: 'Casa de la Cultura de Garachico, Plaza Juan González de la Torre',
-  },
-  // ── Teguise (Lanzarote) ────────────────────────────────
-  {
-    id: 11,
-    imagen: IMG,
-    titulo: 'Teguise: sal, comercio y piratería',
-    sedeId: 6,
-    descripcion: 'Recorrido por la antigua capital de Lanzarote que revive los ataques piratas del siglo XVII, la ruta de la sal y el papel de la isla en el comercio atlántico.',
-    fecha: '2026-08-08',
-    hora: '10:00',
-    duracion: '3h',
-    dificultad: 'Fácil',
-    plazas: 22,
-    plazasDisponibles: 14,
-    tematica: 'Historia local',
-    organizador: 'Cabildo de Lanzarote — Turismo',
-    contacto: 'turismo@cabildodelanzarote.com',
-    puntoEncuentro: 'Plaza de la Constitución, Teguise',
-  },
-  {
-    id: 12,
-    imagen: IMG,
-    titulo: 'Castillo de Santa Bárbara y la defensa insular',
-    sedeId: 6,
-    descripcion: 'Visita al castillo volcánico que protegía Teguise de los piratas berberiscos. Arqueología militar, historia de la ocupación y panorámicas sobre el Mar de las Calmas.',
-    fecha: '2026-10-03',
-    hora: '09:30',
-    duracion: '2h',
-    dificultad: 'Media',
-    plazas: 18,
-    plazasDisponibles: 18,
-    tematica: 'Arqueología',
-    organizador: 'Cabildo de Lanzarote — Turismo',
-    contacto: 'turismo@cabildodelanzarote.com',
-    puntoEncuentro: 'Aparcamiento del Castillo de Santa Bárbara, Montaña Guanapay',
-  },
-  // ── Santa Cruz de La Palma (La Palma) ─────────────────
-  {
-    id: 13,
-    imagen: IMG,
-    titulo: 'Los balcones de La Palma: arquitectura renacentista',
-    sedeId: 7,
-    descripcion: 'Recorrido por la calle Real y la Plaza de España para descubrir los balcones labrados en madera de tea, símbolo de la arquitectura civil canaria del siglo XVI.',
-    fecha: '2026-07-25',
-    hora: '10:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 20,
-    plazasDisponibles: 9,
-    tematica: 'Arquitectura',
-    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
-    contacto: 'turismo@santacruzdelapalma.es',
-    puntoEncuentro: 'Plaza de España, escalinatas de la Iglesia El Salvador',
-  },
-  {
-    id: 14,
-    imagen: IMG,
-    titulo: 'La Bajada de la Virgen: fiesta de fiestas',
-    sedeId: 7,
-    descripcion: 'Taller sobre la Bajada de la Virgen de Las Nieves, declarada Patrimonio Inmaterial de la Humanidad. Historia, rituales y su impacto en la identidad palmera.',
-    fecha: '2026-08-14',
-    hora: '17:00',
-    duracion: '2h 30min',
-    dificultad: 'Fácil',
-    plazas: 25,
-    plazasDisponibles: 20,
-    tematica: 'Fiestas y tradiciones',
-    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
-    contacto: 'turismo@santacruzdelapalma.es',
-    puntoEncuentro: 'Santuario de Nuestra Señora de Las Nieves',
-  },
-  // ── San Sebastián de La Gomera (La Gomera) ─────────────
-  {
-    id: 15,
-    imagen: IMG,
-    titulo: 'La Torre del Conde: Colón y La Gomera',
-    sedeId: 8,
-    descripcion: 'Visita a la fortaleza donde se alojaría Colón en su último escalo antes de cruzar el Atlántico. Historia de la conquista, el agua del Pozo de la Aguada y la ruta americana.',
-    fecha: '2026-09-12',
-    hora: '10:00',
-    duracion: '1h 30min',
-    dificultad: 'Fácil',
-    plazas: 15,
-    plazasDisponibles: 6,
-    tematica: 'Personajes históricos',
-    organizador: 'Cabildo de La Gomera',
-    contacto: 'cultura@cabildogomera.org',
-    puntoEncuentro: 'Torre del Conde, Parque de La Torre, San Sebastián',
-  },
-  {
-    id: 16,
-    imagen: IMG,
-    titulo: 'Garajonay y el agua: paisaje de niebla',
-    sedeId: 8,
-    descripcion: 'Ruta de iniciación al laurisilva gomero desde San Sebastián. Geología volcánica, el ciclo del agua en la isla y la relación entre el bosque y el sustento histórico de la población.',
-    fecha: '2026-10-18',
-    hora: '08:30',
-    duracion: '4h',
-    dificultad: 'Difícil',
-    plazas: 12,
-    plazasDisponibles: 12,
-    tematica: 'Agua y paisaje',
-    organizador: 'Cabildo de La Gomera',
-    contacto: 'cultura@cabildogomera.org',
-    puntoEncuentro: 'Centro de Visitantes del Parque Nacional de Garajonay, Agulo',
-  },
-  // ── Valverde (El Hierro) ───────────────────────────────
-  {
-    id: 17,
-    imagen: IMG,
-    titulo: 'El Hierro: la isla del meridiano',
-    sedeId: 9,
-    descripcion: 'Visita a Valverde y su entorno para comprender por qué El Hierro fue durante siglos el meridiano cero del mundo. Cartografía histórica, astronomía y navegación atlántica.',
-    fecha: '2026-09-26',
-    hora: '10:00',
-    duracion: '2h 30min',
-    dificultad: 'Media',
-    plazas: 16,
-    plazasDisponibles: 11,
-    tematica: 'Historia local',
-    organizador: 'Cabildo de El Hierro',
-    contacto: 'cultura@cabildodelhierro.org',
-    puntoEncuentro: 'Iglesia de la Concepción, Plaza Quintero Núñez, Valverde',
-  },
-  {
-    id: 18,
-    imagen: IMG,
-    titulo: 'Grabados rupestres de El Hierro',
-    sedeId: 9,
-    descripcion: 'Ruta arqueológica por los principales yacimientos de grabados rupestres bimbaches en el entorno de Valverde. Interpretación de los símbolos y cultura de los aborígenes herreños.',
-    fecha: '2026-10-10',
-    hora: '09:00',
-    duracion: '3h',
-    dificultad: 'Difícil',
-    plazas: 10,
-    plazasDisponibles: 2,
-    tematica: 'Arqueología',
-    organizador: 'Cabildo de El Hierro',
-    contacto: 'cultura@cabildodelhierro.org',
-    puntoEncuentro: 'Ecomuseo de Guinea, El Hierro',
-  },
-  // ── FINALIZADAS ────────────────────────────────────────
-  {
-    id: 19,
-    imagen: IMG,
-    titulo: 'La imprenta en La Laguna: el saber impreso',
-    sedeId: 1,
-    descripcion: 'Visita a los espacios donde se instalaron las primeras imprentas de Canarias. Historia de la difusión del conocimiento en el archipiélago durante los siglos XVIII y XIX.',
-    fecha: '2026-05-10',
-    hora: '11:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 18,
-    plazasDisponibles: 18,
-    tematica: 'Patrimonio industrial',
-    organizador: 'Patronato de Turismo de Tenerife',
-    contacto: 'patrimonio@turismotenerife.es',
-    puntoEncuentro: 'Biblioteca Municipal de La Laguna, C/ Nava y Grimón',
-  },
-  {
-    id: 20,
-    imagen: IMG,
-    titulo: 'Betancuria: ecos del agua en el desierto',
-    sedeId: 2,
-    descripcion: 'Recorrido por los sistemas de captación y almacenamiento de agua que permitieron la supervivencia en la Betancuria medieval. Aljibes, galerías y fuentes históricas.',
-    fecha: '2026-06-05',
-    hora: '09:30',
-    duracion: '2h 30min',
-    dificultad: 'Media',
-    plazas: 14,
-    plazasDisponibles: 14,
-    tematica: 'Agua y paisaje',
-    organizador: 'Cabildo de Fuerteventura — Área de Cultura',
-    contacto: 'cultura@cabildofuer.es',
-    puntoEncuentro: 'Museo Arqueológico de Betancuria, C/ Roberto Roldán',
-  },
-  // ── AGOTADAS ──────────────────────────────────────────
-  {
-    id: 21,
-    imagen: IMG,
-    titulo: 'Astronomía y territorio en La Laguna',
-    sedeId: 1,
-    descripcion: 'Visita nocturna al observatorio histórico de la ciudad para explorar la relación entre la astronomía ilustrada y el urbanismo de La Laguna. Telescopios del siglo XVIII.',
-    fecha: '2026-11-07',
-    hora: '20:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 20,
-    plazasDisponibles: 0,
-    tematica: 'Patrimonio inmaterial',
-    organizador: 'Patronato de Turismo de Tenerife',
-    contacto: 'patrimonio@turismotenerife.es',
-    puntoEncuentro: 'Plaza del Adelantado, frente al Ayuntamiento',
-  },
-  {
-    id: 22,
-    imagen: IMG,
-    titulo: 'Vegueta: literatura y bohemia urbana',
-    sedeId: 3,
-    descripcion: 'Ruta literaria por los cafés, imprentas y tertulias que convirtieron a Vegueta en epicentro cultural de Canarias a finales del siglo XIX y principios del XX.',
-    fecha: '2026-10-22',
-    hora: '18:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 20,
-    plazasDisponibles: 0,
-    tematica: 'Personajes históricos',
-    organizador: 'Cabildo de Gran Canaria — Cultura',
-    contacto: 'cultura@grancanaria.com',
-    puntoEncuentro: 'Casa-Museo Pérez Galdós, C/ Cano 6, Vegueta',
-  },
-  {
-    id: 23,
-    imagen: IMG,
-    titulo: 'La lava y la vida: Garachico renace',
-    sedeId: 4,
-    descripcion: 'Recorrido geológico por las coladas de lava que sepultaron el puerto de Garachico en 1706 y el proceso de reconstrucción de la villa. Patrimonio geológico e historia urbana.',
-    fecha: '2026-11-14',
-    hora: '10:00',
-    duracion: '3h',
-    dificultad: 'Media',
-    plazas: 15,
-    plazasDisponibles: 0,
-    tematica: 'Arqueología',
-    organizador: 'Ayuntamiento de Garachico',
-    contacto: 'turismo@garachico.es',
-    puntoEncuentro: 'Plaza de la Libertad, junto al Castillo de San Miguel',
-  },
-  {
-    id: 24,
-    imagen: IMG,
-    titulo: 'Cerámica y barro: oficios de Agüimes',
-    sedeId: 5,
-    descripcion: 'Taller práctico de cerámica tradicional canaria con maestros alfareros de Agüimes. Técnicas prehispánicas, el barro como memoria y la producción artesanal contemporánea.',
-    fecha: '2026-10-30',
-    hora: '10:00',
-    duracion: '3h',
-    dificultad: 'Fácil',
-    plazas: 12,
-    plazasDisponibles: 0,
-    tematica: 'Patrimonio inmaterial',
-    organizador: 'Ayuntamiento de Agüimes',
-    contacto: 'cultura@aguimes.es',
-    puntoEncuentro: 'Centro de Artesanía de Agüimes, C/ Progreso 4',
-  },
-  {
-    id: 25,
-    imagen: IMG,
-    titulo: 'El mercado dominical de Teguise',
-    sedeId: 6,
-    descripcion: 'Visita guiada al mercado histórico de Teguise, el mayor mercado artesanal de Lanzarote. Contexto histórico del comercio insular, artesanía local y gastronomía majorera.',
-    fecha: '2026-11-01',
-    hora: '09:00',
-    duracion: '2h',
-    dificultad: 'Fácil',
-    plazas: 30,
-    plazasDisponibles: 7,
-    tematica: 'Fiestas y tradiciones',
-    organizador: 'Cabildo de Lanzarote — Turismo',
-    contacto: 'turismo@cabildodelanzarote.com',
-    puntoEncuentro: 'Plaza de la Constitución, Teguise',
-  },
-  {
-    id: 26,
-    imagen: IMG,
-    titulo: 'Astrofísica y tradición en La Palma',
-    sedeId: 7,
-    descripcion: 'Conexión entre el Observatorio del Roque de los Muchachos y la tradición astronómica palmera. Historia de la ciencia, el cielo más limpio de Europa y su impacto cultural.',
-    fecha: '2026-11-21',
-    hora: '19:00',
-    duracion: '2h 30min',
-    dificultad: 'Media',
-    plazas: 20,
-    plazasDisponibles: 13,
-    tematica: 'Patrimonio inmaterial',
-    organizador: 'Ayuntamiento de Santa Cruz de La Palma',
-    contacto: 'turismo@santacruzdelapalma.es',
-    puntoEncuentro: 'Centro de Visitantes del Roque de los Muchachos, La Palma',
+    organizador: 'TEA Tenerife Espacio de las Artes',
+    contacto: '[email de contacto]',
+    puntoEncuentro: 'TEA Tenerife Espacio de las Artes, Santa Cruz de Tenerife',
   },
 ]
 

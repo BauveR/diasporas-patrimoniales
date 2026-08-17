@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 import PointsToShapes from '../components/PointsToShapes'
 import { MapSection } from '../components/map/MapSection'
-import { ActividadesSection } from '../components/actividades/ActividadesSection'
 
 const scrollPositions: Record<string, number> = {}
 
@@ -38,10 +37,6 @@ export function Home() {
 
       <section id="sedes" className="scroll-mt-16">
         <MapSection />
-      </section>
-
-      <section id="actividades" className="scroll-mt-16">
-        <ActividadesSection />
       </section>
     </main>
   )

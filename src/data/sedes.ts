@@ -16,16 +16,18 @@ export type Sede = {
 export const SEDES: Sede[] = [
   {
     id: 1,
-    nombre: 'Sede Histórica de La Laguna',
-    municipio: 'San Cristóbal de La Laguna',
+    nombre: 'TEA Tenerife Espacio de las Artes',
+    municipio: 'Santa Cruz de Tenerife',
     isla: 'Tenerife',
-    imagen: 'https://upload.wikimedia.org/wikipedia/commons/4/40/Convento_de_San_Buenaventura_-_Betancuria_-_Fuerteventura.jpg',
-    descripcion: 'Ciudad fundada en 1496 y declarada Patrimonio de la Humanidad por la UNESCO en 1999. Su trazado urbano sirvió de modelo para las ciudades coloniales de América.',
+    // f_auto/q_auto dejan que Cloudinary elija formato (WebP/AVIF) y calidad
+    // según el navegador; w_900 evita servir el original de 1280px cuando la
+    // tarjeta nunca lo muestra a más de unos cientos de px de ancho.
+    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_900/v1786964737/1280px-TEA.Tenerife.jpg',
+    descripcion: 'El TEA Tenerife Espacio de las Artes es el centro de arte contemporáneo de Santa Cruz de Tenerife, diseñado por Herzog & de Meuron junto a Virgilio Gutiérrez. Acoge el Instituto Óscar Domínguez de Arte y Cultura Contemporánea, la Biblioteca Insular y espacios expositivos dedicados a la creación actual.',
     actividadIds: [1, 2, 9, 19, 21],
-    lat: 28.4853,
-    lng: -16.3161,
-    fundacion: '1496',
-    declaraciones: ['Patrimonio UNESCO'],
+    lat: 28.4636,
+    lng: -16.2492,
+    fundacion: '2008',
   },
   {
     id: 2,

@@ -595,8 +595,8 @@ export function ActividadPage() {
           )}
         </div>
 
-        <div className="relative overflow-hidden aspect-3/2">
-          <img src={actividad.imagen} alt={actividad.titulo} className="w-full h-full object-cover" />
+        <div className="flex justify-center overflow-hidden bg-stone-50">
+          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[50vh] w-auto object-contain" />
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-6">
@@ -678,8 +678,8 @@ export function ActividadPage() {
           </div>
         )}
 
-        <div className="relative overflow-hidden rounded-2xl aspect-16/7 mb-10">
-          <img src={actividad.imagen} alt={actividad.titulo} className="w-full h-full object-cover" />
+        <div className="mb-10 flex justify-center overflow-hidden rounded-2xl bg-stone-50">
+          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[70vh] w-auto object-contain" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 pb-16">
@@ -704,7 +704,7 @@ export function ActividadPage() {
                 {actividad.titulo}
               </h1>
             </div>
-            <p className="text-base text-stone-600 leading-relaxed wrap-break-word" style={labelStyle}>
+            <p className="text-base text-stone-600 leading-relaxed wrap-break-word whitespace-pre-line" style={labelStyle}>
               {actividad.descripcion}
             </p>
           </div>

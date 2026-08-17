@@ -9,7 +9,7 @@ import { createShapeMask } from '../lib/createShapeMask'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
-import { BlurText } from './BlurText'
+import { SlideInText } from './SlideInText'
 import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
 import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
 import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
@@ -545,12 +545,10 @@ export default function PointsToShapes() {
           <HeroWordmark className="h-auto w-[64%] shrink-0" />
 
           <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
-            <BlurText
+            <SlideInText
               text="Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos"
-              delay={18}
-              animateBy="letters"
-              direction="top"
-              className="text-lg leading-snug font-bold uppercase md:text-xl"
+              delayStep={0.045}
+              className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
             />
             <p className="text-sm leading-relaxed text-white/80 md:text-base">
               Diásporas Patrimoniales es un foro internacional promovido desde las Islas Canarias con el objetivo de
@@ -558,7 +556,7 @@ export default function PointsToShapes() {
               grandes debates culturales de la actualidad: cómo deben relacionarse hoy los museos, las universidades
               y las instituciones patrimoniales con los territorios de origen de los bienes que custodian.
             </p>
-            <p className="text-lg leading-snug font-bold tracking-widest text-white/60 uppercase md:text-xl">
+            <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white/60 uppercase md:text-lg">
               12 y 13 de noviembre de 2026
               <br />
               TEA, Santa Cruz de Tenerife
@@ -576,8 +574,8 @@ export default function PointsToShapes() {
                 directamente sobre el fondo oscuro sin tratamiento extra. */}
             <div className="mt-8 flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-6">
-                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-20.75 w-auto object-contain" />
-                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-16 w-auto object-contain" />
+                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
+                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
               </div>
               <div className="flex flex-wrap items-center gap-6">
                 <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />

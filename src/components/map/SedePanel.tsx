@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import type { Sede } from '../../data/sedes'
-import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -12,7 +10,6 @@ type Props = {
 }
 
 export function SedePanel({ sede }: Props) {
-  const location = useLocation()
   const { actividades: todasActividades } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
   const actividades = todasActividades.filter(a => a.sedeId === sede.id)
@@ -63,42 +60,6 @@ export function SedePanel({ sede }: Props) {
         </div>
 
         <div className="w-full h-px bg-stone-100" />
-
-        <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400" style={labelStyle}>
-          Actividades
-        </p>
-
-        {/* Mini-cards horizontal scroll */}
-        <div
-          className="flex gap-3 overflow-x-auto pb-2 -mx-8 px-8"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {actividades.map(act => (
-            <Link
-              key={act!.id}
-              to={`/actividades/${act!.id}`}
-              state={{ from: 'sedes', background: location }}
-              className="flex-none w-36 flex flex-col gap-1.5 group"
-            >
-              <div className="aspect-4/3 rounded-xl overflow-hidden">
-                <img
-                  src={act!.imagen}
-                  alt={act!.titulo}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <span
-                className="px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold w-fit"
-                style={{ backgroundColor: TEMATICA_COLORS[act!.tematica] }}
-              >
-                {act!.tematica}
-              </span>
-              <p className="text-xs text-stone-800 leading-snug line-clamp-2" style={labelStyle}>
-                {act!.titulo}
-              </p>
-            </Link>
-          ))}
-        </div>
 
         {/* Bibliografía */}
         {(sede.bibliografia?.length ?? 0) > 0 && (

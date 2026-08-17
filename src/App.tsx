@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from './components/Navbar'
+import { Footer } from './components/Footer'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieBanner } from './components/CookieBanner'
 import { Home } from './pages/Home'
@@ -71,6 +72,7 @@ export default function App() {
             </Suspense>
           )}
         </AnimatePresence>
+        <Footer />
         <CookieBanner />
       </DataProvider>
     </AuthProvider>
