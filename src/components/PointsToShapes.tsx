@@ -556,17 +556,17 @@ export default function PointsToShapes() {
               grandes debates culturales de la actualidad: cómo deben relacionarse hoy los museos, las universidades
               y las instituciones patrimoniales con los territorios de origen de los bienes que custodian.
             </p>
-            <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white/60 uppercase md:text-lg">
+            <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
               12 y 13 de noviembre de 2026
               <br />
               TEA, Santa Cruz de Tenerife
             </p>
             <a
-              href="#actividades"
-              className="w-fit rounded-full px-6 py-2.5 text-[11px] tracking-widest text-white uppercase transition-opacity hover:opacity-80"
-              style={{ backgroundColor: GRADIENT_DOMINANT }}
+              href="#sedes"
+              className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#321413' }}
             >
-              [Texto del botón]
+              Registro
             </a>
 
             {/* Colaboradores/patrocinadores — dos filas de logos, ya en

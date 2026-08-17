@@ -3,25 +3,27 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../contexts/AuthContext'
 import { useIsDesktop } from '../hooks/useIsDesktop'
+import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+const NAVBAR_BG = '#9b2923'
 
 type NavEntry = { label: string; to?: string; href?: string }
 
 const NAV_LINKS: NavEntry[] = [
-  { label: 'Inicio',                to: '/' },
-  { label: 'Sedes',             to: '/#sedes' },
-  { label: 'Rutas y Eventos',       to: '/#actividades' },
-  { label: 'Pasaporte Patrimonial', to: '/pasaporte' },
-  { label: 'Contacto',              to: '/contacto' },
+  { label: 'Inicio',        to: '/' },
+  { label: 'Registro',      to: '/#sedes' },
+  { label: 'Participantes', to: '/#sedes' },
+  { label: 'Programa',      to: '/#sedes' },
+  { label: 'Contacto',      to: '/contacto' },
 ]
 
 const linkClass =
-  'relative text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors duration-200 whitespace-nowrap ' +
-  'after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-stone-900 after:transition-all after:duration-300 hover:after:w-full'
+  'relative text-xs tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
+  'after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-white after:transition-all after:duration-300 hover:after:w-full'
 
 const mobileLinkClass =
-  'block text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors duration-200 py-4 border-b border-stone-100'
+  'block text-xs tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 py-4 border-b border-white/10'
 
 function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean; onClick?: () => void }) {
   const location = useLocation()
@@ -49,10 +51,10 @@ function AccountLabel({ displayName }: { displayName: string }) {
     <div className="flex items-start gap-1.5">
       <span className="mt-0.5 w-2 h-2 rounded-full bg-green-400 shrink-0" />
       <div className="flex flex-col gap-0">
-        <span className="text-[10px] tracking-widest uppercase text-stone-400 leading-none" style={labelStyle}>
+        <span className="text-[10px] tracking-widest uppercase text-white/50 leading-none" style={labelStyle}>
           Mi cuenta
         </span>
-        <span className="text-xs text-stone-700 leading-tight" style={labelStyle}>
+        <span className="text-xs text-white leading-tight" style={labelStyle}>
           {displayName}
         </span>
       </div>
@@ -80,18 +82,19 @@ export function Navbar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-stone-100"
+      className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10"
+      style={{ backgroundColor: NAVBAR_BG }}
     >
       {/* Barra principal */}
-      <div className="flex items-center px-6 sm:px-8 h-16">
+      <div className="flex items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-16">
 
         {/* Logo */}
-        <Link
-          to="/"
-          className="text-[11px] sm:text-sm tracking-widest uppercase whitespace-nowrap"
-          style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100", color: '#b19e7b' }}
-        >
-          Sedes Históricas de Canarias
+        <Link to="/" className="shrink-0">
+          <img
+            src={logoDiasporas}
+            alt="Diásporas Patrimoniales"
+            className="h-10 w-auto object-contain"
+          />
         </Link>
 
         {/* Links — solo desktop */}
@@ -132,15 +135,18 @@ export function Navbar() {
           onClick={() => setOpen(prev => !prev)}
           aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         >
-          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${open ? 'translate-y-1.5 rotate-45' : ''}`} />
-          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 ${open ? 'opacity-0' : ''}`} />
-          <span className={`block h-px w-6 bg-stone-800 transition-all duration-300 origin-center ${open ? '-translate-y-1.5 -rotate-45' : ''}`} />
+          <span className={`block h-px w-6 bg-white transition-all duration-300 origin-center ${open ? 'translate-y-1.5 rotate-45' : ''}`} />
+          <span className={`block h-px w-6 bg-white transition-all duration-300 ${open ? 'opacity-0' : ''}`} />
+          <span className={`block h-px w-6 bg-white transition-all duration-300 origin-center ${open ? '-translate-y-1.5 -rotate-45' : ''}`} />
         </button>
       </div>
 
       {/* Menú móvil */}
-      <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white ${open ? 'max-h-[32rem]' : 'max-h-0'}`}>
-        <nav className="flex flex-col px-6 sm:px-8 pb-4">
+      <div
+        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${open ? 'max-h-[32rem]' : 'max-h-0'}`}
+        style={{ backgroundColor: NAVBAR_BG }}
+      >
+        <nav className="flex flex-col px-8 sm:px-12 pb-4">
           {NAV_LINKS.map(entry => (
             <NavLink key={entry.label} entry={entry} mobile onClick={() => setOpen(false)} />
           ))}
@@ -159,7 +165,7 @@ export function Navbar() {
               )}
               <Link
                 to="/perfil"
-                className="py-4 border-b border-stone-100"
+                className="py-4 border-b border-white/10"
                 onClick={() => setOpen(false)}
               >
                 <AccountLabel displayName={displayName} />
