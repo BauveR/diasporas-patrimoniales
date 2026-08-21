@@ -19,11 +19,16 @@ import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arq
 // Conjuntos Históricos project's Hero (Grainient), retuned to this site's
 // own palette. The shader blends two accent corners (GRADIENT_ACCENT/
 // GRADIENT_THIRD) against a shared color that dominates the rest of the
-// frame — that role goes to the orange so it reads as the gradient's
-// primary hue, matching the particles' own color.
+// frame — that role goes to black.
 const GRADIENT_ACCENT = '#9b2923'
-const GRADIENT_DOMINANT = '#f04f23'
-const GRADIENT_THIRD = '#9b2923'
+const GRADIENT_DOMINANT = '#000000'
+const GRADIENT_THIRD = '#000000'
+
+// Holds the headline's letter-by-letter reveal off until the particle shape
+// is almost fully formed, so the two "big reveal" animations don't visually
+// compete at the same time — the text starts right as the shape's motion is
+// settling down instead of while it's still actively assembling.
+const HEADLINE_START_DELAY = FORM_START + FORM_DURATION - 0.4
 
 extend({ UnrealBloomPass })
 
@@ -476,7 +481,7 @@ export default function PointsToShapes() {
       style={{
         position: 'relative',
         height: '100svh',
-        background: GRADIENT_THIRD,
+        background: GRADIENT_DOMINANT,
       }}
     >
       <Canvas
@@ -548,6 +553,7 @@ export default function PointsToShapes() {
             <SlideInText
               text="Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos"
               delayStep={0.045}
+              startDelay={HEADLINE_START_DELAY}
               className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
             />
             <p className="text-sm leading-relaxed text-white/80 md:text-base">
@@ -564,7 +570,7 @@ export default function PointsToShapes() {
             <a
               href="#sedes"
               className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
-              style={{ backgroundColor: '#321413' }}
+              style={{ backgroundColor: '#f04f23' }}
             >
               Registro
             </a>

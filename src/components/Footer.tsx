@@ -11,7 +11,7 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer style={{ backgroundColor: '#321413' }}>
+    <footer style={{ backgroundColor: '#9b2923' }}>
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 sm:px-8 lg:px-10">
 
         {/* Marca propia + colaboradores, en una sola línea */}

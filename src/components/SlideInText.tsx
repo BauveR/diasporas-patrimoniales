@@ -18,9 +18,10 @@ type SlideInTextProps = {
   text: string
   className?: string
   delayStep?: number
+  startDelay?: number
 }
 
-export function SlideInText({ text, className = '', delayStep = 0.03 }: SlideInTextProps) {
+export function SlideInText({ text, className = '', delayStep = 0.03, startDelay = 0 }: SlideInTextProps) {
   const words = text.split(' ')
 
   // Each word's starting position in the flat letter sequence, computed
@@ -48,7 +49,7 @@ export function SlideInText({ text, className = '', delayStep = 0.03 }: SlideInT
                   key={charIndex}
                   initial={{ x: -50, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: flatIndex * delayStep, ease: 'easeOut' }}
+                  transition={{ delay: startDelay + flatIndex * delayStep, ease: 'easeOut' }}
                   className="inline-block"
                 >
                   {char}

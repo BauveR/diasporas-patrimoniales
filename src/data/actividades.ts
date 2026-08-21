@@ -27,7 +27,7 @@ export type Actividad = {
 export const ACTIVIDADES: Actividad[] = [
   {
     id: 1,
-    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1786967427/simposio_internacioanl_diasporas_patrimoniales_tea_tenerife_-01.png',
+    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1787320128/posters_diasporas-06.png',
     titulo: 'Día 1 — 12 de noviembre',
     sedeId: 1,
     descripcion: `Día 1 — 12 de noviembre
@@ -87,7 +87,7 @@ Raphael Callou – Director General de Cultura de la OEI, España.`,
   },
   {
     id: 2,
-    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1786967429/simposio_internacioanl_diasporas_patrimoniales_tea_tenerife_-02.png',
+    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1787320131/posters_diasporas-02.png',
     titulo: 'Día 2 — 13 de noviembre',
     sedeId: 1,
     descripcion: `Día 2 — 13 de noviembre
