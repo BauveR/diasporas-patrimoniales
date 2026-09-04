@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Actividad } from '../../data/actividades'
 import { ActividadCard } from './ActividadCard'
 
@@ -6,15 +7,10 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type Props = {
   actividades: Actividad[]
-  labelSingular?: string
-  labelPlural?: string
 }
 
-export function ActividadesSlider({
-  actividades,
-  labelSingular = 'actividad disponible',
-  labelPlural = 'actividades disponibles',
-}: Props) {
+export function ActividadesSlider({ actividades }: Props) {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'slider' | 'grid'>('slider')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -29,7 +25,7 @@ export function ActividadesSlider({
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <p className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-          {actividades.length} {actividades.length === 1 ? labelSingular : labelPlural}
+          {t('sedes.eventosProximos', { count: actividades.length })}
         </p>
         {actividades.length > 3 && (
           <button
@@ -37,7 +33,7 @@ export function ActividadesSlider({
             className="flex items-center gap-1.5 text-[11px] text-stone-500 hover:text-stone-800 tracking-wide transition-colors"
             style={labelStyle}
           >
-            {mode === 'slider' ? <>Ver todas <span aria-hidden>→</span></> : <><span aria-hidden>←</span> Volver al slider</>}
+            {mode === 'slider' ? <>{t('sedes.verTodas')} <span aria-hidden>→</span></> : <><span aria-hidden>←</span> {t('sedes.volverAlSlider')}</>}
           </button>
         )}
       </div>

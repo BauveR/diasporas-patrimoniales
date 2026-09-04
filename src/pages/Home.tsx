@@ -1,13 +1,16 @@
 import { useEffect, useLayoutEffect } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import PointsToShapes from '../components/PointsToShapes'
 import { MapSection } from '../components/map/MapSection'
+import { SeoHead } from '../components/SeoHead'
 
 const scrollPositions: Record<string, number> = {}
 
 export function Home() {
   const location = useLocation()
   const navType = useNavigationType()
+  const { t } = useTranslation()
 
   useLayoutEffect(() => {
     if (navType !== 'POP') return
@@ -33,6 +36,7 @@ export function Home() {
 
   return (
     <main className="pt-16">
+      <SeoHead title={t('meta.homeTitle')} description={t('meta.homeDescription')} />
       <PointsToShapes />
 
       <section id="sedes" className="scroll-mt-16">

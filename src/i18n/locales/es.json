@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "homeTitle": "Diásporas Patrimoniales — Simposio Internacional",
+    "homeDescription": "Simposio internacional sobre la dispersión y restitución del patrimonio arqueológico canario. 12 y 13 de noviembre de 2026, TEA, Santa Cruz de Tenerife."
+  },
+  "nav": {
+    "inicio": "Inicio",
+    "registro": "Registro",
+    "participantes": "Participantes",
+    "programa": "Programa",
+    "contacto": "Contacto",
+    "login": "Login / Mi Cuenta",
+    "miCuenta": "Mi cuenta",
+    "salir": "Salir",
+    "admin": "Admin",
+    "cerrarSesion": "Cerrar sesión"
+  },
+  "hero": {
+    "headline": "Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos",
+    "description": "Diásporas Patrimoniales es un foro internacional promovido desde las Islas Canarias con el objetivo de situar el patrimonio arqueológico canario conservado fuera del archipiélago dentro de uno de los grandes debates culturales de la actualidad: cómo deben relacionarse hoy los museos, las universidades y las instituciones patrimoniales con los territorios de origen de los bienes que custodian.",
+    "dateLine": "12 y 13 de noviembre de 2026",
+    "location": "TEA, Santa Cruz de Tenerife",
+    "cta": "Registro"
+  },
+  "footer": {
+    "rights": "© {{year}} Diásporas Patrimoniales. Todos los derechos reservados.",
+    "legal": "Sitio web sujeto a la legislación española y a la normativa específica de la Comunidad Autónoma de Canarias.",
+    "privacyLink": "Política de privacidad y cookies",
+    "legalPending": "[Aviso legal pendiente]"
+  },
+  "sedes": {
+    "eventosProximos_one": "{{count}} evento próximo",
+    "eventosProximos_other": "{{count}} eventos próximos",
+    "verTodas": "Ver todas",
+    "volverAlSlider": "Volver al slider",
+    "fundadaEn": "Fundada en {{year}}",
+    "actividad_one": "{{count}} actividad",
+    "actividad_other": "{{count}} actividades",
+    "bibliografia": "Bibliografía",
+    "youtubeAlt": "Síguelo en directo por YouTube"
+  },
+  "actividadCard": {
+    "verDetalle": "Ver detalle",
+    "cancelado": "Cancelado",
+    "agotada": "Agotada",
+    "finalizada": "Finalizada",
+    "abreEl": "Abre el {{fecha}}",
+    "inscripcionesDesde": "Inscripciones desde el {{fecha}}",
+    "plazasDisponibles": "{{disponibles}} de {{total}} plazas disponibles",
+    "plazasBadge": "{{n}} plazas"
+  }
+}

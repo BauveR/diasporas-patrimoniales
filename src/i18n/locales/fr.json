@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "homeTitle": "Diásporas Patrimoniales — Symposium international",
+    "homeDescription": "Symposium international sur la dispersion et la restitution du patrimoine archéologique canarien. 12 et 13 novembre 2026, TEA, Santa Cruz de Tenerife."
+  },
+  "nav": {
+    "inicio": "Accueil",
+    "registro": "Inscription",
+    "participantes": "Participants",
+    "programa": "Programme",
+    "contacto": "Contact",
+    "login": "Connexion / Mon compte",
+    "miCuenta": "Mon compte",
+    "salir": "Déconnexion",
+    "admin": "Admin",
+    "cerrarSesion": "Se déconnecter"
+  },
+  "hero": {
+    "headline": "Un regard depuis les Canaries sur la dispersion et la restitution des legs archéologiques",
+    "description": "Diásporas Patrimoniales est un forum international porté par les îles Canaries, dont l'objectif est de situer le patrimoine archéologique canarien conservé hors de l'archipel au cœur de l'un des grands débats culturels actuels : comment les musées, les universités et les institutions patrimoniales doivent-ils se positionner vis-à-vis des territoires d'origine des biens qu'ils conservent.",
+    "dateLine": "12 et 13 novembre 2026",
+    "location": "TEA, Santa Cruz de Tenerife",
+    "cta": "Inscription"
+  },
+  "footer": {
+    "rights": "© {{year}} Diásporas Patrimoniales. Tous droits réservés.",
+    "legal": "Ce site est soumis à la législation espagnole et à la réglementation spécifique de la Communauté autonome des Canaries.",
+    "privacyLink": "Politique de confidentialité et cookies",
+    "legalPending": "[Mentions légales à venir]"
+  },
+  "sedes": {
+    "eventosProximos_one": "{{count}} événement à venir",
+    "eventosProximos_other": "{{count}} événements à venir",
+    "verTodas": "Voir tout",
+    "volverAlSlider": "Retour au carrousel",
+    "fundadaEn": "Fondée en {{year}}",
+    "actividad_one": "{{count}} activité",
+    "actividad_other": "{{count}} activités",
+    "bibliografia": "Bibliographie",
+    "youtubeAlt": "Suivez-le en direct sur YouTube"
+  },
+  "actividadCard": {
+    "verDetalle": "Voir le détail",
+    "cancelado": "Annulé",
+    "agotada": "Complet",
+    "finalizada": "Terminé",
+    "abreEl": "Ouvre le {{fecha}}",
+    "inscripcionesDesde": "Inscriptions à partir du {{fecha}}",
+    "plazasDisponibles": "{{disponibles}} places disponibles sur {{total}}",
+    "plazasBadge": "{{n}} places"
+  }
+}

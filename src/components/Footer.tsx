@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { DEFAULT_LOCALE } from '../i18n/config'
+import { getLocaleFromPathname } from '../i18n/routing'
 import logoDiasporasTea from '../assets/diásporas patrimoniales tea tenerife-12.png'
 import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
 import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
@@ -9,6 +12,10 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export function Footer() {
   const year = new Date().getFullYear()
+  const { t } = useTranslation()
+  const location = useLocation()
+  const locale = getLocaleFromPathname(location.pathname)
+  const privacyPath = locale === DEFAULT_LOCALE ? '/privacidad' : `/${locale}/privacidad`
 
   return (
     <footer style={{ backgroundColor: '#9b2923' }}>
@@ -37,17 +44,14 @@ export function Footer() {
           style={labelStyle}
         >
           <div className="flex flex-col gap-1">
-            <p>© {year} Diásporas Patrimoniales. Todos los derechos reservados.</p>
-            <p>
-              Sitio web sujeto a la legislación española y a la normativa específica de la
-              Comunidad Autónoma de Canarias.
-            </p>
+            <p>{t('footer.rights', { year })}</p>
+            <p>{t('footer.legal')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-white/70">
-            <Link to="/privacidad" className="transition-colors hover:text-white">
-              Política de privacidad y cookies
+            <Link to={privacyPath} className="transition-colors hover:text-white">
+              {t('footer.privacyLink')}
             </Link>
-            <span className="text-white/40">[Aviso legal pendiente]</span>
+            <span className="text-white/40">{t('footer.legalPending')}</span>
           </div>
         </div>
       </div>

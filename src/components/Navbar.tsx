@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 
 import { useAuth } from '../contexts/AuthContext'
 import { useIsDesktop } from '../hooks/useIsDesktop'
+import { ALL_LOCALES, DEFAULT_LOCALE } from '../i18n/config'
+import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -10,13 +14,44 @@ const NAVBAR_BG = '#9b2923'
 
 type NavEntry = { label: string; to?: string; href?: string }
 
-const NAV_LINKS: NavEntry[] = [
-  { label: 'Inicio',        to: '/' },
-  { label: 'Registro',      to: '/#sedes' },
-  { label: 'Participantes', to: '/#sedes' },
-  { label: 'Programa',      to: '/#sedes' },
-  { label: 'Contacto',      to: '/contacto' },
-]
+// Built from `t()` (not a module-level constant) so the labels re-resolve
+// whenever the active language changes; the section-anchor links append the
+// hash directly to the prefix instead of via a leading slash, to avoid a
+// double slash before "#sedes" that would otherwise leave a trailing slash
+// on the path React Router has to match (e.g. "/en/#sedes" vs "/en#sedes").
+function getNavLinks(t: TFunction, prefix: string): NavEntry[] {
+  const sedesLink = prefix ? `${prefix}#sedes` : '/#sedes'
+  return [
+    { label: t('nav.inicio'),        to: prefix || '/' },
+    { label: t('nav.registro'),      to: sedesLink },
+    { label: t('nav.participantes'), to: sedesLink },
+    { label: t('nav.programa'),      to: sedesLink },
+    { label: t('nav.contacto'),      to: `${prefix}/contacto` },
+  ]
+}
+
+function LanguageSwitcher({ mobile, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
+  const location = useLocation()
+  const currentLocale = getLocaleFromPathname(location.pathname)
+
+  return (
+    <div className={mobile ? 'flex items-center gap-2 py-4' : 'flex items-center gap-2'} style={labelStyle}>
+      {ALL_LOCALES.map((loc, i) => (
+        <span key={loc} className="flex items-center gap-2">
+          {i > 0 && <span className="text-white/30" aria-hidden>·</span>}
+          <Link
+            to={localizePathname(location.pathname, loc)}
+            onClick={onNavigate}
+            aria-current={loc === currentLocale ? 'true' : undefined}
+            className={`text-[10px] tracking-widest uppercase transition-colors ${loc === currentLocale ? 'text-white' : 'text-white/50 hover:text-white'}`}
+          >
+            {loc}
+          </Link>
+        </span>
+      ))}
+    </div>
+  )
+}
 
 const linkClass =
   'relative text-xs tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
@@ -29,11 +64,11 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
   const location = useLocation()
   const cls = mobile ? mobileLinkClass : linkClass
 
-  if (entry.to?.startsWith('/#')) {
-    const sectionId = entry.to.slice(2)
+  if (entry.to?.includes('#')) {
+    const [pagePath, sectionId] = entry.to.split('#')
     const handleClick = () => {
       onClick?.()
-      if (location.pathname === '/') {
+      if (location.pathname === (pagePath || '/')) {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
       }
     }
@@ -47,12 +82,13 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
 }
 
 function AccountLabel({ displayName }: { displayName: string }) {
+  const { t } = useTranslation()
   return (
     <div className="flex items-start gap-1.5">
       <span className="mt-0.5 w-2 h-2 rounded-full bg-green-400 shrink-0" />
       <div className="flex flex-col gap-0">
         <span className="text-[10px] tracking-widest uppercase text-white/50 leading-none" style={labelStyle}>
-          Mi cuenta
+          {t('nav.miCuenta')}
         </span>
         <span className="text-xs text-white leading-tight" style={labelStyle}>
           {displayName}
@@ -68,15 +104,21 @@ export function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const isDesktop = useIsDesktop()
+  const { t } = useTranslation()
+
+  const currentLocale = getLocaleFromPathname(location.pathname)
+  const prefix = currentLocale === DEFAULT_LOCALE ? '' : `/${currentLocale}`
+  const navLinks = getNavLinks(t, prefix)
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? ''
 
   const openLogin = () => {
     setOpen(false)
+    const loginPath = `${prefix}/login`
     if (isDesktop) {
-      navigate('/login', { state: { background: location, redirectAfterLogin: true } })
+      navigate(loginPath, { state: { background: location, redirectAfterLogin: true } })
     } else {
-      navigate('/login', { state: { redirectAfterLogin: true } })
+      navigate(loginPath, { state: { redirectAfterLogin: true } })
     }
   }
 
@@ -89,7 +131,7 @@ export function Navbar() {
       <div className="flex items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-16">
 
         {/* Logo */}
-        <Link to="/" className="shrink-0">
+        <Link to={prefix || '/'} className="shrink-0">
           <img
             src={logoDiasporas}
             alt="Diásporas Patrimoniales"
@@ -99,19 +141,20 @@ export function Navbar() {
 
         {/* Links — solo desktop */}
         <nav className="hidden lg:flex items-center gap-8 flex-1 ml-10">
-          {NAV_LINKS.map(entry => (
+          {navLinks.map(entry => (
             <NavLink key={entry.label} entry={entry} />
           ))}
         </nav>
 
-        {/* Auth — solo desktop */}
+        {/* Auth + idioma — solo desktop */}
         <div className="hidden lg:flex items-center gap-5">
+          <LanguageSwitcher />
           {user ? (
             <>
               {userRole === 'admin' && (
-                <Link to="/admin" className={linkClass} style={labelStyle}>Admin</Link>
+                <Link to={`${prefix}/admin`} className={linkClass} style={labelStyle}>{t('nav.admin')}</Link>
               )}
-              <Link to="/perfil">
+              <Link to={`${prefix}/perfil`}>
                 <AccountLabel displayName={displayName} />
               </Link>
               <button
@@ -119,12 +162,12 @@ export function Navbar() {
                 className={`${linkClass} cursor-pointer`}
                 style={labelStyle}
               >
-                Salir
+                {t('nav.salir')}
               </button>
             </>
           ) : (
             <button onClick={openLogin} className={`${linkClass} cursor-pointer`} style={labelStyle}>
-              Login / Mi Cuenta
+              {t('nav.login')}
             </button>
           )}
         </div>
@@ -147,24 +190,26 @@ export function Navbar() {
         style={{ backgroundColor: NAVBAR_BG }}
       >
         <nav className="flex flex-col px-8 sm:px-12 pb-4">
-          {NAV_LINKS.map(entry => (
+          {navLinks.map(entry => (
             <NavLink key={entry.label} entry={entry} mobile onClick={() => setOpen(false)} />
           ))}
+
+          <LanguageSwitcher mobile onNavigate={() => setOpen(false)} />
 
           {user ? (
             <>
               {userRole === 'admin' && (
                 <Link
-                  to="/admin"
+                  to={`${prefix}/admin`}
                   className={mobileLinkClass}
                   style={labelStyle}
                   onClick={() => setOpen(false)}
                 >
-                  Admin
+                  {t('nav.admin')}
                 </Link>
               )}
               <Link
-                to="/perfil"
+                to={`${prefix}/perfil`}
                 className="py-4 border-b border-white/10"
                 onClick={() => setOpen(false)}
               >
@@ -175,7 +220,7 @@ export function Navbar() {
                 className={`${mobileLinkClass} text-left cursor-pointer`}
                 style={labelStyle}
               >
-                Cerrar sesión
+                {t('nav.cerrarSesion')}
               </button>
             </>
           ) : (
@@ -184,7 +229,7 @@ export function Navbar() {
               className={`${mobileLinkClass} text-left cursor-pointer`}
               style={labelStyle}
             >
-              Login / Mi Cuenta
+              {t('nav.login')}
             </button>
           )}
         </nav>

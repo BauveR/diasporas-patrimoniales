@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "homeTitle": "Diásporas Patrimoniales — International Symposium",
+    "homeDescription": "International symposium on the dispersal and restitution of Canarian archaeological heritage. November 12–13, 2026, TEA, Santa Cruz de Tenerife."
+  },
+  "nav": {
+    "inicio": "Home",
+    "registro": "Registration",
+    "participantes": "Participants",
+    "programa": "Program",
+    "contacto": "Contact",
+    "login": "Login / My Account",
+    "miCuenta": "My account",
+    "salir": "Log out",
+    "admin": "Admin",
+    "cerrarSesion": "Sign out"
+  },
+  "hero": {
+    "headline": "A Canarian perspective on the dispersal and restitution of archaeological heritage",
+    "description": "Diásporas Patrimoniales is an international forum promoted from the Canary Islands, aiming to place Canarian archaeological heritage held outside the archipelago within one of today's major cultural debates: how museums, universities, and heritage institutions should relate to the territories of origin of the objects they hold.",
+    "dateLine": "November 12–13, 2026",
+    "location": "TEA, Santa Cruz de Tenerife",
+    "cta": "Register"
+  },
+  "footer": {
+    "rights": "© {{year}} Diásporas Patrimoniales. All rights reserved.",
+    "legal": "This website is subject to Spanish legislation and the specific regulations of the Autonomous Community of the Canary Islands.",
+    "privacyLink": "Privacy and cookies policy",
+    "legalPending": "[Legal notice pending]"
+  },
+  "sedes": {
+    "eventosProximos_one": "{{count}} upcoming event",
+    "eventosProximos_other": "{{count}} upcoming events",
+    "verTodas": "View all",
+    "volverAlSlider": "Back to slider",
+    "fundadaEn": "Founded in {{year}}",
+    "actividad_one": "{{count}} activity",
+    "actividad_other": "{{count}} activities",
+    "bibliografia": "Bibliography",
+    "youtubeAlt": "Follow it live on YouTube"
+  },
+  "actividadCard": {
+    "verDetalle": "View details",
+    "cancelado": "Cancelled",
+    "agotada": "Sold out",
+    "finalizada": "Finished",
+    "abreEl": "Opens on {{fecha}}",
+    "inscripcionesDesde": "Registration opens {{fecha}}",
+    "plazasDisponibles": "{{disponibles}} of {{total}} spots available",
+    "plazasBadge": "{{n}} spots"
+  }
+}

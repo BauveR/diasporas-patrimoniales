@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "homeTitle": "Diásporas Patrimoniales — Simpósio Internacional",
+    "homeDescription": "Simpósio internacional sobre a dispersão e a restituição do património arqueológico canário. 12 e 13 de novembro de 2026, TEA, Santa Cruz de Tenerife."
+  },
+  "nav": {
+    "inicio": "Início",
+    "registro": "Registo",
+    "participantes": "Participantes",
+    "programa": "Programa",
+    "contacto": "Contacto",
+    "login": "Iniciar sessão / A minha conta",
+    "miCuenta": "A minha conta",
+    "salir": "Sair",
+    "admin": "Admin",
+    "cerrarSesion": "Terminar sessão"
+  },
+  "hero": {
+    "headline": "Um olhar a partir das Canárias sobre a dispersão e a restituição dos legados arqueológicos",
+    "description": "Diásporas Patrimoniales é um fórum internacional promovido a partir das Ilhas Canárias, com o objetivo de situar o património arqueológico canário conservado fora do arquipélago num dos grandes debates culturais da atualidade: como devem relacionar-se hoje os museus, as universidades e as instituições patrimoniais com os territórios de origem dos bens que custodiam.",
+    "dateLine": "12 e 13 de novembro de 2026",
+    "location": "TEA, Santa Cruz de Tenerife",
+    "cta": "Registo"
+  },
+  "footer": {
+    "rights": "© {{year}} Diásporas Patrimoniales. Todos os direitos reservados.",
+    "legal": "Este sítio está sujeito à legislação espanhola e à regulamentação específica da Comunidade Autónoma das Canárias.",
+    "privacyLink": "Política de privacidade e cookies",
+    "legalPending": "[Aviso legal pendente]"
+  },
+  "sedes": {
+    "eventosProximos_one": "{{count}} evento próximo",
+    "eventosProximos_other": "{{count}} eventos próximos",
+    "verTodas": "Ver todos",
+    "volverAlSlider": "Voltar ao slider",
+    "fundadaEn": "Fundada em {{year}}",
+    "actividad_one": "{{count}} atividade",
+    "actividad_other": "{{count}} atividades",
+    "bibliografia": "Bibliografia",
+    "youtubeAlt": "Acompanhe ao vivo no YouTube"
+  },
+  "actividadCard": {
+    "verDetalle": "Ver detalhe",
+    "cancelado": "Cancelado",
+    "agotada": "Esgotado",
+    "finalizada": "Terminado",
+    "abreEl": "Abre a {{fecha}}",
+    "inscripcionesDesde": "Inscrições a partir de {{fecha}}",
+    "plazasDisponibles": "{{disponibles}} de {{total}} vagas disponíveis",
+    "plazasBadge": "{{n}} vagas"
+  }
+}

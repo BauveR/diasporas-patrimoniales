@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { SedePanel } from './SedePanel'
 import { ActividadesSlider } from '../actividades/ActividadesSlider'
 import { useDataContext } from '../../contexts/DataContext'
@@ -7,6 +8,7 @@ import logoYoutube from '../../assets/diasporas patrimoniales live youtube-15.pn
 const YOUTUBE_URL = '#'
 
 export function MapSection() {
+  const { t } = useTranslation()
   const { sedes, actividades } = useDataContext()
   const sede = sedes[0]
 
@@ -26,11 +28,7 @@ export function MapSection() {
 
         {proximosEventos.length > 0 && (
           <div className="lg:w-165 lg:shrink-0">
-            <ActividadesSlider
-              actividades={proximosEventos}
-              labelSingular="evento próximo"
-              labelPlural="eventos próximos"
-            />
+            <ActividadesSlider actividades={proximosEventos} />
           </div>
         )}
 
@@ -38,7 +36,7 @@ export function MapSection() {
           <a href={YOUTUBE_URL} target="_blank" rel="noopener noreferrer" className="-translate-y-16 transition-opacity hover:opacity-80">
             <img
               src={logoYoutube}
-              alt="Síguelo en directo por YouTube"
+              alt={t('sedes.youtubeAlt')}
               className="h-32 w-auto object-contain"
             />
           </a>

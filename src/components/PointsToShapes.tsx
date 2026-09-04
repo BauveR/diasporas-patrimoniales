@@ -1,4 +1,6 @@
 import { useRef, useMemo, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router-dom'
 import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-three/fiber'
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
@@ -6,6 +8,8 @@ import * as THREE from 'three'
 import shapesSvgRaw from '../assets/orbit diasporas patrimoniales-03.svg?raw'
 import { generateSvgFillPositions } from '../lib/generateSvgFillPositions'
 import { createShapeMask } from '../lib/createShapeMask'
+import { DEFAULT_LOCALE } from '../i18n/config'
+import { getLocaleFromPathname } from '../i18n/routing'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
@@ -406,6 +410,10 @@ function WarmupGate({ onReady }: { onReady: () => void }) {
 }
 
 export default function PointsToShapes() {
+  const { t } = useTranslation()
+  const location = useLocation()
+  const locale = getLocaleFromPathname(location.pathname)
+  const sedesHref = locale === DEFAULT_LOCALE ? '#sedes' : `/${locale}#sedes`
   const isLargeScreen = useIsLargeScreen()
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -551,28 +559,25 @@ export default function PointsToShapes() {
 
           <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
             <SlideInText
-              text="Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos"
+              text={t('hero.headline')}
               delayStep={0.045}
               startDelay={HEADLINE_START_DELAY}
               className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
             />
             <p className="text-sm leading-relaxed text-white/80 md:text-base">
-              Diásporas Patrimoniales es un foro internacional promovido desde las Islas Canarias con el objetivo de
-              situar el patrimonio arqueológico canario conservado fuera del archipiélago dentro de uno de los
-              grandes debates culturales de la actualidad: cómo deben relacionarse hoy los museos, las universidades
-              y las instituciones patrimoniales con los territorios de origen de los bienes que custodian.
+              {t('hero.description')}
             </p>
             <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
-              12 y 13 de noviembre de 2026
+              {t('hero.dateLine')}
               <br />
-              TEA, Santa Cruz de Tenerife
+              {t('hero.location')}
             </p>
             <a
-              href="#sedes"
+              href={sedesHref}
               className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
               style={{ backgroundColor: '#f04f23' }}
             >
-              Registro
+              {t('hero.cta')}
             </a>
 
             {/* Colaboradores/patrocinadores — dos filas de logos, ya en

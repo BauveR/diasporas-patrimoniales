@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Sede } from '../../data/sedes'
 import { useDataContext } from '../../contexts/DataContext'
 
@@ -10,14 +11,15 @@ type Props = {
 }
 
 export function SedePanel({ sede }: Props) {
+  const { t } = useTranslation()
   const { actividades: todasActividades } = useDataContext()
   const [bibOpen, setBibOpen] = useState(false)
   const actividades = todasActividades.filter(a => a.sedeId === sede.id)
 
   const stats = [
-    `${actividades.length} actividad${actividades.length !== 1 ? 'es' : ''}`,
+    t('sedes.actividad', { count: actividades.length }),
     ...(sede.declaraciones ?? []),
-    ...(sede.fundacion ? [`Fundada en ${sede.fundacion}`] : []),
+    ...(sede.fundacion ? [t('sedes.fundadaEn', { year: sede.fundacion })] : []),
   ]
 
   return (
@@ -69,7 +71,7 @@ export function SedePanel({ sede }: Props) {
               className="w-full flex items-center justify-between px-5 py-3.5 text-left cursor-pointer hover:bg-stone-50 transition-colors"
               style={labelStyle}
             >
-              <span className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Bibliografía</span>
+              <span className="text-[10px] tracking-[0.25em] uppercase text-stone-400">{t('sedes.bibliografia')}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"

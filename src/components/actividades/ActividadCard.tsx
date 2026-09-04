@@ -1,35 +1,33 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { Actividad } from '../../data/actividades'
 
 import { DifficultyDots } from './DifficultyDots'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
+import { LOCALE_TAGS, type Locale } from '../../i18n/config'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-
-function plazasBadge(disponibles: number, total: number) {
-  if (total === 0) return null
-  const pct = disponibles / total
-  if (pct <= 0.10 || pct < 0.40 || pct >= 0.60) return { text: `${disponibles} plazas` }
-  return null
-}
 
 type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
 export function ActividadCard({ actividad, inactiva = false, from = 'actividades' }: Props) {
+  const { t, i18n } = useTranslation()
   const location = useLocation()
   const isDesktop = useIsDesktop()
   const { sedes } = useDataContext()
   const sede = sedes.find(c => c.id === actividad.sedeId)
-  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+  const dateTag = LOCALE_TAGS[i18n.language as Locale] ?? LOCALE_TAGS.es
+  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString(dateTag, {
     day: 'numeric',
     month: 'short',
   })
-  const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
+  const plazasPct = actividad.plazas === 0 ? null : actividad.plazasDisponibles / actividad.plazas
+  const showPlazasBadge = plazasPct !== null && (plazasPct <= 0.10 || plazasPct < 0.40 || plazasPct >= 0.60)
   const today = new Date().toISOString().slice(0, 10)
   const esProximamente = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
   const fechaApertura = esProximamente
-    ? new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    ? new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString(dateTag, { day: 'numeric', month: 'short' })
     : null
 
   return (
@@ -49,7 +47,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         {(inactiva || actividad.cancelada) && (
           <div className="absolute inset-0 bg-white/10 flex items-center justify-center">
             <span className="px-3 py-1 bg-white/90 text-stone-500 text-[10px] tracking-widest uppercase rounded-full" style={labelStyle}>
-              {actividad.cancelada ? 'Cancelado' : actividad.plazasDisponibles === 0 ? 'Agotada' : 'Finalizada'}
+              {actividad.cancelada ? t('actividadCard.cancelado') : actividad.plazasDisponibles === 0 ? t('actividadCard.agotada') : t('actividadCard.finalizada')}
             </span>
           </div>
         )}
@@ -66,14 +64,14 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
             className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
             style={{ ...labelStyle, backgroundColor: '#595d8d' }}
           >
-            Abre el {fechaApertura}
+            {t('actividadCard.abreEl', { fecha: fechaApertura })}
           </span>
-        ) : badge && (
+        ) : showPlazasBadge && (
           <span
             className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
             style={{ ...labelStyle, backgroundColor: '#cd6a26' }}
           >
-            {badge.text}
+            {t('actividadCard.plazasBadge', { n: actividad.plazasDisponibles })}
           </span>
         )}
       </div>
@@ -102,15 +100,15 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
 
         <p className="text-[11px] text-stone-400" style={labelStyle}>
           {esProximamente
-            ? `Inscripciones desde el ${fechaApertura}`
-            : `${actividad.plazasDisponibles} de ${actividad.plazas} plazas disponibles`}
+            ? t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })
+            : t('actividadCard.plazasDisponibles', { disponibles: actividad.plazasDisponibles, total: actividad.plazas })}
         </p>
 
         <span
           className="mt-1 text-[10px] tracking-widest uppercase text-stone-400 group-hover:text-stone-700 transition-colors duration-200 flex items-center gap-1"
           style={labelStyle}
         >
-          Ver detalle
+          {t('actividadCard.verDetalle')}
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="translate-x-0 group-hover:translate-x-0.5 transition-transform duration-200">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
