@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useEffect } from 'react'
+import { useRef, useMemo, useState, useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { Canvas, useFrame, useThree, extend, type ThreeElement } from '@react-three/fiber'
@@ -11,6 +11,7 @@ import { createShapeMask } from '../lib/createShapeMask'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
+import { HERO_TUNING_DEFAULTS } from '../lib/heroTuning'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
 import { SlideInText } from './SlideInText'
@@ -27,6 +28,18 @@ import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arq
 const GRADIENT_ACCENT = '#9b2923'
 const GRADIENT_DOMINANT = '#000000'
 const GRADIENT_THIRD = '#000000'
+
+// `import.meta.env.DEV` is a Vite build-time constant: in a production
+// build this whole ternary collapses to `null` and the `import()` call is
+// never reached, so it's never executed — the browser never fetches
+// HeroTuningPanel's chunk (or the `leva` dependency inside it). A plain
+// `if (DEV) import(...)` guard alone doesn't achieve this: Rollup decides
+// what to bundle from the static module graph before a minifier's dead-code
+// elimination ever runs, so `leva` previously shipped in production despite
+// being reachable only through a dev-only branch. A real `import()` code-
+// split point, only ever invoked on this branch, is what actually keeps it
+// out.
+const HeroTuningPanel = import.meta.env.DEV ? lazy(() => import('./HeroTuningPanel')) : null
 
 // Holds the headline's letter-by-letter reveal off until the particle shape
 // is almost fully formed, so the two "big reveal" animations don't visually
@@ -109,16 +122,56 @@ const COLOR_PARTICLE = new THREE.Color(0xffffff)
 // from `lg` up, so the camera only needs to shift left to make room for it
 // there too.
 const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
-// Two independent knobs, not derived from one another — the conversion
-// between "world units" and "rem on screen" depends on the live canvas size
-// (FOV/distance/aspect), which isn't worth tracking just to unify two
-// constants that only get eyeballed against a screenshot anyway.
-// CAMERA_SHIFT_X moves the particle ring (world units, panned via the
-// camera — see the `cameraX` comment below for why); positive = left.
-// HERO_SHIFT_REM moves the wordmark grid (CSS `translateX(-HERO_SHIFT_REM
-// rem)`); positive = left, negative = right.
-const CAMERA_SHIFT_X = 60
-const HERO_SHIFT_REM = 9.5
+
+// An orthographic camera's `zoom` maps 1 world unit to exactly `zoom` CSS
+// pixels — unlike R3F's default `zoom: 1` (1 world unit = 1 raw pixel, which
+// rendered SHAPE_WORLD_WIDTH's 62 units as a ~62px speck), zoom here is
+// derived from the live viewport height so the shape's on-screen size tracks
+// viewport height directly, the same way the rest of the page scales via CSS
+// `vh`/`clamp()`.
+//
+// PERSPECTIVE_VISIBLE_WORLD_HEIGHT reproduces the vertical world-space extent
+// the old perspective camera (fov 60, distance 100: 2*100*tan(30°)) showed at
+// any canvas height — using it as the zoom baseline (shapeGrowth = 1)
+// reproduces the shape's original on-screen size exactly; shapeGrowth (from
+// the `tuning` state below, live-editable via HeroTuningPanel in dev) divides
+// it down to grow the shape past that baseline.
+const PERSPECTIVE_VISIBLE_WORLD_HEIGHT = 2 * 100 * Math.tan((60 / 2) * (Math.PI / 180))
+
+// Reference viewport height (px) the +/-30% zoom clamp below is centered on.
+const REFERENCE_VIEWPORT_HEIGHT_PX = 900
+
+// Without a ceiling, zoom scales linearly forever with window.innerHeight —
+// fine near REFERENCE_VIEWPORT_HEIGHT_PX, but on a tall/large monitor (or a
+// maximized window on a big display) it keeps growing well past where the
+// shape still reads as proportionate. Clamped to +/-30% of the reference
+// zoom so very tall or very short viewports can't run away in either
+// direction; this is exactly the "large screens" case the switch to an
+// orthographic camera was meant to fix.
+function computeViewportZoom(shapeGrowth: number) {
+  const referenceWorldHeight = PERSPECTIVE_VISIBLE_WORLD_HEIGHT / shapeGrowth
+  const referenceZoom = REFERENCE_VIEWPORT_HEIGHT_PX / referenceWorldHeight
+  if (typeof window === 'undefined') return referenceZoom
+  const raw = window.innerHeight / referenceWorldHeight
+  return Math.min(referenceZoom * 1.3, Math.max(referenceZoom * 0.7, raw))
+}
+
+// Tracks viewport height (not just a large-screen boolean) because the
+// orthographic zoom above needs to react continuously — a window resize
+// changes it, and so does browser zoom, which reports as a `resize` event
+// too since it changes `window.innerHeight` in CSS pixels the same way an
+// actual viewport resize would. Also recomputes whenever `shapeGrowth`
+// changes (live edits from the dev-only tuning panel).
+function useViewportZoom(shapeGrowth: number) {
+  const [zoom, setZoom] = useState(() => computeViewportZoom(shapeGrowth))
+  useEffect(() => {
+    const handler = () => setZoom(computeViewportZoom(shapeGrowth))
+    handler()
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [shapeGrowth])
+  return zoom
+}
 
 function useIsLargeScreen() {
   const [matches, setMatches] = useState(
@@ -415,6 +468,11 @@ export default function PointsToShapes() {
   const locale = getLocaleFromPathname(location.pathname)
   const sedesHref = locale === DEFAULT_LOCALE ? '#sedes' : `/${locale}#sedes`
   const isLargeScreen = useIsLargeScreen()
+  // Defaults own this in production (HeroTuningPanel never mounts there);
+  // in development, HeroTuningPanel reports live slider edits back here.
+  const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
+  const { shapeGrowth, largeScreenShiftWorldX, heroOverlayShiftPx, railMaxWidthRem } = tuning
+  const zoom = useViewportZoom(shapeGrowth)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [canvasReady, setCanvasReady] = useState(false)
@@ -459,8 +517,11 @@ export default function PointsToShapes() {
   // canvas full-bleed, so no gap is ever exposed. `rotation: [0, 0, 0]`
   // stops R3F's default auto-`lookAt(0,0,0)` for an off-axis camera, which
   // would otherwise rotate to face the origin and skew the shape instead of
-  // giving a clean parallel shift.
-  const cameraX = isLargeScreen ? CAMERA_SHIFT_X : 0
+  // giving a clean parallel shift. A fixed world-unit constant (not divided
+  // by zoom): the shape itself is fixed in world units, so this pans onto
+  // screen by the same zoom factor the shape scales by, staying in
+  // proportion to it at every viewport height.
+  const cameraX = isLargeScreen ? largeScreenShiftWorldX : 0
 
   // Frozen on purpose: R3F re-applies the `camera` prop with a hard
   // `position.set(...)` (no interpolation) whenever the values inside it
@@ -493,7 +554,15 @@ export default function PointsToShapes() {
       }}
     >
       <Canvas
-        camera={{ position: [initialCameraX, 0, 100], rotation: [0, 0, 0], fov: 60 }}
+        orthographic
+        // An orthographic camera's projection is linear (world unit = `zoom`
+        // CSS pixels, independent of aspect ratio), unlike the perspective
+        // camera this replaced, whose FOV/aspect math made the shape shrink
+        // relative to *width* on wide/large screens. `zoom` tracks viewport
+        // height (see useViewportZoom) so the shape's on-screen size instead
+        // tracks height, the same way the rest of the page already scales
+        // via CSS `vh`/`clamp()`.
+        camera={{ zoom, position: [initialCameraX, 0, 100], rotation: [0, 0, 0] }}
         frameloop={isVisible ? 'always' : 'never'}
         style={{ opacity: canvasReady ? 1 : 0, transition: 'opacity 0.5s ease' }}
         // R3F's default caps device pixel ratio at 2 — full native resolution
@@ -535,67 +604,81 @@ export default function PointsToShapes() {
           narrower canvas) collided with the wordmark, since neither respects
           the other's actual rendered bounds — a dedicated stacked
           mobile/tablet treatment is the deferred "adjust responsive screens
-          later" pass. Padding matches this site's existing gutter scale
-          (px-6/8/10, see ActividadesSection/Navbar) rather than a one-off
-          hero-specific value.
-          `justify-end` pins the content block to the right gutter, leaving
-          the left area free for the orbit shape, which lands there via the
-          camera pan (CAMERA_SHIFT_X) rather than a layout track — that
-          pairing is still two independently tuned numbers (one 3D, one CSS),
-          unrelated to the scaling change below. HERO_SHIFT_REM nudges this
-          whole overlay to line up against it. */}
-      <div
-        className="pointer-events-none absolute inset-0 z-10 hidden lg:flex lg:items-center lg:justify-end lg:px-10 xl:px-14"
-        style={{ transform: `translateX(-${HERO_SHIFT_REM}rem)` }}
-      >
-        {/* Wordmark + text column live under one shared width instead of
-            each carrying its own hand-tuned size (the wordmark was a flat
-            `w-[48rem]`, independent of the text column next to it) — this
-            `clamp()` is the single knob that scales the whole block together
-            as the viewport changes, with the two children split by
-            percentage of it. */}
-        <div className="flex items-center gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
-          <HeroWordmark className="h-auto w-[64%] shrink-0" />
+          later" pass. */}
+      <div className="pointer-events-none absolute inset-0 z-10 hidden lg:flex lg:items-center">
+        {/* `railMaxWidthRem` starts at 80rem — the same content rail
+            Footer.tsx uses (`mx-auto max-w-7xl ... px-6 sm:px-8 lg:px-10`),
+            here as a live-tunable value instead of a fixed Tailwind class
+            since it kept being the actual limit hit while tuning the shift
+            below. On very wide screens this caps how far right (and thus how
+            far from center) the text column can drift, instead of chasing
+            the physical screen edge the way `inset-0` + padding alone would.
+            Padding matches this site's existing gutter scale otherwise (see
+            ActividadesSection/Navbar).
+            `justify-end` pins the content block to this rail's right edge,
+            leaving the left area free for the orbit shape, which lands there
+            via the camera pan (largeScreenShiftWorldX, from `tuning` state)
+            rather than a layout track — heroOverlayShiftPx nudges this whole
+            overlay to approximate the same leftward shift in CSS pixels,
+            unrelated to the scaling change below. */}
+        <div
+          className="mx-auto flex w-full justify-end px-10 xl:px-14"
+          style={{ maxWidth: `${railMaxWidthRem}rem`, transform: `translateX(-${heroOverlayShiftPx}px)` }}
+        >
+          {/* Wordmark + text column live under one shared width instead of
+              each carrying its own hand-tuned size (the wordmark was a flat
+              `w-[48rem]`, independent of the text column next to it) — this
+              `clamp()` is the single knob that scales the whole block
+              together as the viewport changes, with the two children split
+              by percentage of it. */}
+          <div className="flex items-center gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
+            <HeroWordmark className="h-auto w-[64%] shrink-0" />
 
-          <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
-            <SlideInText
-              text={t('hero.headline')}
-              delayStep={0.045}
-              startDelay={HEADLINE_START_DELAY}
-              className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
-            />
-            <p className="text-sm leading-relaxed text-white/80 md:text-base">
-              {t('hero.description')}
-            </p>
-            <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
-              {t('hero.dateLine')}
-              <br />
-              {t('hero.location')}
-            </p>
-            <a
-              href={sedesHref}
-              className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
-              style={{ backgroundColor: '#f04f23' }}
-            >
-              {t('hero.cta')}
-            </a>
+            <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
+              <SlideInText
+                text={t('hero.headline')}
+                delayStep={0.045}
+                startDelay={HEADLINE_START_DELAY}
+                className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
+              />
+              <p className="text-sm leading-relaxed text-white/80 md:text-base">
+                {t('hero.description')}
+              </p>
+              <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
+                {t('hero.dateLine')}
+                <br />
+                {t('hero.location')}
+              </p>
+              <a
+                href={sedesHref}
+                className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+                style={{ backgroundColor: '#f04f23' }}
+              >
+                {t('hero.cta')}
+              </a>
 
-            {/* Colaboradores/patrocinadores — dos filas de logos, ya en
-                blanco/claro en el propio archivo, así que se apoyan
-                directamente sobre el fondo oscuro sin tratamiento extra. */}
-            <div className="mt-8 flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-6">
-                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
-                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
-              </div>
-              <div className="flex flex-wrap items-center gap-6">
-                <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
-                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
+              {/* Colaboradores/patrocinadores — dos filas de logos, ya en
+                  blanco/claro en el propio archivo, así que se apoyan
+                  directamente sobre el fondo oscuro sin tratamiento extra. */}
+              <div className="mt-8 flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-6">
+                  <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
+                  <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
+                </div>
+                <div className="flex flex-wrap items-center gap-6">
+                  <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
+                  <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      {HeroTuningPanel && (
+        <Suspense fallback={null}>
+          <HeroTuningPanel onChange={setTuning} />
+        </Suspense>
+      )}
     </section>
   )
 }
