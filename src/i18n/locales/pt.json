@@ -26,7 +26,8 @@
     "rights": "© {{year}} Diásporas Patrimoniales. Todos os direitos reservados.",
     "legal": "Este sítio está sujeito à legislação espanhola e à regulamentação específica da Comunidade Autónoma das Canárias.",
     "privacyLink": "Política de privacidade e cookies",
-    "legalPending": "[Aviso legal pendente]"
+    "legalPending": "[Aviso legal pendente]",
+  "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 novembro 2026"
   },
   "sedes": {
     "eventosProximos_one": "{{count}} evento próximo",

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import logoDiasporasTea from '../assets/diásporas patrimoniales tea tenerife-12.png'
+import logoDiasporasPoster from '../assets/posters diasporas-16.png'
 import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
 import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
 import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
@@ -21,18 +22,33 @@ export function Footer() {
     <footer style={{ backgroundColor: '#9b2923' }}>
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 sm:px-8 lg:px-10">
 
-        {/* Marca propia + colaboradores, en una sola línea */}
-        <div className="flex flex-wrap items-center gap-x-12 gap-y-6">
-          <img
-            src={logoDiasporasTea}
-            alt="Diásporas Patrimoniales — TEA Tenerife"
-            className="h-20 w-auto object-contain"
-          />
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-            <img src={logoGobCan} alt="Gobierno de Canarias" className="h-10 w-auto object-contain" />
-            <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-8 w-auto object-contain" />
-            <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-8 w-auto object-contain" />
-            <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-9 w-auto object-contain" />
+        {/* Marca propia + contacto + colaboradores */}
+        <div className="flex flex-wrap items-start justify-between gap-x-12 gap-y-6">
+          <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
+            <img
+              src={logoDiasporasTea}
+              alt="Diásporas Patrimoniales — TEA Tenerife"
+              className="h-20 w-auto object-contain"
+            />
+            <img
+              src={logoDiasporasPoster}
+              alt="Diásporas Patrimoniales"
+              className="ml-8 h-20 w-auto object-contain"
+            />
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+              <img src={logoGobCan} alt="Gobierno de Canarias" className="h-[5.25rem] w-auto object-contain" />
+              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-[4.2rem] w-auto object-contain" />
+              <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-[4.2rem] w-auto object-contain" />
+              <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-[3.375rem] w-auto object-contain" />
+            </div>
+            <div className="flex flex-col gap-1 text-sm text-white/80" style={labelStyle}>
+              <a href="mailto:diasporaspatrimoniales@gmail.com" className="transition-colors hover:text-white">
+                diasporaspatrimoniales@gmail.com
+              </a>
+              <p>{t('footer.eventLine')}</p>
+            </div>
           </div>
         </div>
 
