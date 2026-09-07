@@ -19,6 +19,7 @@ import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
 import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
 import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
 import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.png'
+import logoPatrimonioCultural from '../assets/patrimonio cultural de canarias.png'
 
 // Animated gradient colors for the hero background — brought over from the
 // Conjuntos Históricos project's Hero (Grainient), retuned to this site's
@@ -90,7 +91,7 @@ const SHAPE_WORLD_WIDTH = 62
 // math (which stays in the SVG's own coordinate space) — applied only where
 // the wander target becomes the render target, below. 0 = vertically
 // centered; positive moves it up, negative moves it down.
-const SHAPE_Y_OFFSET = 4
+const SHAPE_Y_OFFSET = 10
 
 // Once formed, particles keep wandering inside the shape instead of freezing:
 // each one hops WANDER_STEP world units in a random direction whenever it
@@ -631,24 +632,60 @@ export default function PointsToShapes() {
               `clamp()` is the single knob that scales the whole block
               together as the viewport changes, with the two children split
               by percentage of it. */}
-          <div className="flex items-center gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
-            <HeroWordmark className="h-auto w-[64%] shrink-0" />
-
-            <div className="pointer-events-auto flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
+          <div className="flex items-start gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
+            {/* Headline now lives under the wordmark instead of in the text
+                column to its right — it used to run there via SlideInText,
+                but reads as a caption to the mark itself, not as an intro to
+                the description block. `gap-6` (wider than the `gap-4` used
+                elsewhere in this row) is deliberate breathing room between
+                the mark and its caption.
+                Row alignment is `items-start`, not `items-center`: both this
+                column and the text column next to it need to start at the
+                exact same height regardless of how tall either one grows —
+                centering each independently (the previous approach) shifted
+                a column's *top* every time content was added to it, which is
+                what made the SVG and the text column drift out of vertical
+                sync. Top-anchoring both means growth only ever extends a
+                column downward. */}
+            <div className="mt-8 flex w-[64%] shrink-0 flex-col gap-6">
+              <HeroWordmark className="h-auto w-full" />
               <SlideInText
                 text={t('hero.headline')}
-                delayStep={0.045}
+                delayStep={0.15}
                 startDelay={HEADLINE_START_DELAY}
-                className="mb-2 text-base leading-snug font-bold uppercase md:text-lg"
+                className="font-mattone mt-10 text-sm leading-snug font-normal text-white uppercase md:text-base"
               />
-              <p className="text-sm leading-relaxed text-white/80 md:text-base">
-                {t('hero.description')}
-              </p>
-              <p className="mt-7 text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
-                {t('hero.dateLine')}
-                <br />
-                {t('hero.location')}
-              </p>
+
+              {/* Colaboradores/patrocinadores — una sola fila horizontal, ya
+                  en blanco/claro en el propio archivo, así que se apoyan
+                  directamente sobre el fondo oscuro sin tratamiento extra. */}
+              <div className="flex w-full flex-wrap items-center justify-between gap-6">
+                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
+                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
+                <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
+                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
+              </div>
+            </div>
+
+            <div className="pointer-events-auto mt-14 flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
+              <div>
+                <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase whitespace-nowrap md:text-lg">
+                  {t('hero.simposio')}
+                </p>
+                <p className="text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
+                  {t('hero.dateLine')}
+                  <br />
+                  {t('hero.location')}
+                </p>
+                <img
+                  src={logoPatrimonioCultural}
+                  alt="Patrimonio Cultural de Canarias"
+                  className="mt-4 h-[3.9rem] w-auto object-contain"
+                />
+                <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
+                  {t('hero.description')}
+                </p>
+              </div>
               <a
                 href={sedesHref}
                 className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
@@ -656,20 +693,6 @@ export default function PointsToShapes() {
               >
                 {t('hero.cta')}
               </a>
-
-              {/* Colaboradores/patrocinadores — dos filas de logos, ya en
-                  blanco/claro en el propio archivo, así que se apoyan
-                  directamente sobre el fondo oscuro sin tratamiento extra. */}
-              <div className="mt-8 flex flex-col gap-4">
-                <div className="flex flex-wrap items-center gap-6">
-                  <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
-                  <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
-                </div>
-                <div className="flex flex-wrap items-center gap-6">
-                  <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
-                  <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
-                </div>
-              </div>
             </div>
           </div>
         </div>

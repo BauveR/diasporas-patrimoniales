@@ -1,21 +1,32 @@
 import { useEffect, useRef } from 'react'
-import Logo from '../assets/diasporas patrimoniales-03.svg?react'
-import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
+import Logo from '../assets/diasporas patrimoniales-canarias-01-01-01.svg?react'
 
-// Lines 1–2 ("DIÁSPORAS" / "PATRIMONIALES", white): a dim static fill with a
-// bright traveling stroke "halo" — HALO_COVERAGE of each letter's own
-// perimeter lit at once, looping forever. The halo itself is two layers
-// sharing the exact same dasharray/dashoffset animation so they travel in
-// lockstep: a wider blurred "glow" underneath, and a thin crisp line on top.
+// Both lines ("DIÁSPORAS" / "PATRIMONIALES CANARIAS", white): a dim static
+// fill with a bright traveling stroke "halo" — HALO_COVERAGE of each
+// letter's own perimeter lit at once, looping forever. The halo itself is
+// two layers sharing the exact same dasharray/dashoffset animation so they
+// travel in lockstep: a wider blurred "glow" underneath, and a thin crisp
+// line on top.
 //
-// Both halo layers always need to live on their own stroke-only (fill:none)
-// elements: a blur filter softens everything an element renders, so
-// blurring a path that also carries the dim fill would soften the whole
-// letterform, not just the traveling highlight. DIÁSPORAS ships pre-split
-// into `.c` (fill only) and `.e` (stroke only) — the halo layers clone from
-// `.e`. PATRIMONIALES (`.d`) carries fill and stroke on the same paths, so
-// its halo layers clone from `.d` instead, after neutralizing `.d`'s own
-// stroke so it doesn't also render a third, unstyled outline underneath.
+// This export (2026-09-07, "diasporas patrimoniales-canarias-01-01-01.svg")
+// dropped the separate stroke-only letter layer earlier exports had — that
+// layer existed only as Illustrator's `Outline Stroke` output, which is what
+// was deforming the S letters (offsetting a stroke into filled geometry
+// breaks down on tight curve reversals; see prior discussion). With no
+// stroke class left in the file's `<style>` block at all (every path is
+// `.b { fill: #fff }`), every letter on both lines now gets uniform
+// treatment: dim the fill, then clone the same path for the halo — there's
+// no separate template to neutralize a stroke on, since none exists.
+// (This file's class names are assigned per-export by Illustrator and
+// aren't stable across swaps — re-derive the mapping from each new file's
+// own `<style>` block rather than assuming a class name carries over.)
+//
+// `.b` still duplicates the DIÁSPORAS fill layer as two identical, fully
+// overlapping copies (same as prior exports). Left alone, dimming both would
+// compound into ~64% effective opacity instead of the intended
+// FILL_OPACITY — and cloning a halo from both would double up the traveling
+// highlight too — so the dedup below keeps only the first copy of each
+// duplicated path and hides the rest.
 const FILL_OPACITY = 0.4
 const HALO_COLOR = '#fff'
 const HALO_COVERAGE = 0.6
@@ -24,18 +35,9 @@ const HALO_GLOW_STROKE_WIDTH = 1
 const HALO_GLOW_BLUR_PX = 0.8
 const HALO_LOOP_MS = 13000
 
-// Line 3 ("SIMPOSIO INTERNACIONAL", white, <g id="line3">): stays hidden
-// until the particles finish forming the shape — reuses PointsToShapes' own
-// timing instead of an independent guess, so the two can't drift out of
-// sync. It arrived as pre-outlined paths now (not a <text>+scale() transform
-// like before), so only opacity is touched here — nothing that could
-// distort those letterforms' proportions.
-const LINE3_DELAY_MS = (FORM_START + FORM_DURATION) * 1000
-const LINE3_FADE_MS = 600
-
-// Builds the glow+crisp halo pair from `templatePath` (already fill:none,
-// stroke:none — either the real .e path or a stroke-only .d clone) and
-// inserts both right after it, in glow-then-crisp paint order.
+// Builds the glow+crisp halo pair from `templatePath` (any letter's fill
+// path — cloned with `fill: none` regardless of the source's own styling)
+// and inserts both right after it, in glow-then-crisp paint order.
 function createHaloLayers(templatePath: SVGPathElement, animations: Animation[], clones: SVGPathElement[]) {
   const length = templatePath.getTotalLength()
   const dasharray = `${length * HALO_COVERAGE} ${length * (1 - HALO_COVERAGE)}`
@@ -74,36 +76,22 @@ export function HeroWordmark({ className }: { className?: string }) {
     const animations: Animation[] = []
     const clones: SVGPathElement[] = []
 
-    // DIÁSPORAS: fill (.c) dimmed; halo layers cloned from the pre-built
-    // stroke-only layer (.e), which is then hidden so it doesn't also show
-    // through as a plain, unstyled orange outline underneath the clones.
-    root.querySelectorAll<SVGPathElement>('.c').forEach((path) => {
+    // Every letter on both lines is a plain fill-only `.b` path now — dim
+    // it and clone a halo from it, uniformly. `.b` ships DIÁSPORAS's fill
+    // layer as two fully identical, overlapping copies (see the top-of-file
+    // comment) — skip the second occurrence of each duplicated path so
+    // dimming and the halo clone aren't both doubled on the same letters.
+    const seenFillPaths = new Set<string>()
+    root.querySelectorAll<SVGPathElement>('.b').forEach((path) => {
+      const d = path.getAttribute('d')
+      if (d && seenFillPaths.has(d)) {
+        path.style.display = 'none'
+        return
+      }
+      if (d) seenFillPaths.add(d)
       path.style.fillOpacity = String(FILL_OPACITY)
-    })
-    root.querySelectorAll<SVGPathElement>('.e').forEach((path) => {
-      path.style.stroke = 'none'
       createHaloLayers(path, animations, clones)
     })
-
-    // PATRIMONIALES: fill and stroke share the same paths (.d). Dim the
-    // fill and strip the default stroke on the original, then clone the
-    // glow+crisp halo layers from it.
-    root.querySelectorAll<SVGPathElement>('.d').forEach((path) => {
-      path.style.fillOpacity = String(FILL_OPACITY)
-      path.style.stroke = 'none'
-      createHaloLayers(path, animations, clones)
-    })
-
-    const line3 = root.querySelector<SVGGElement>('#line3')
-    if (line3) {
-      line3.style.opacity = '0'
-      animations.push(
-        line3.animate(
-          [{ opacity: 0 }, { opacity: 1 }],
-          { duration: LINE3_FADE_MS, delay: LINE3_DELAY_MS, easing: 'ease', fill: 'forwards' },
-        ),
-      )
-    }
 
     // StrictMode double-invokes effects in dev — without cancelling
     // animations and removing cloned overlays, the second run would stack a

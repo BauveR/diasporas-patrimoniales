@@ -16,11 +16,11 @@
     "cerrarSesion": "Sign out"
   },
   "hero": {
-    "headline": "A Canarian perspective on the dispersal and restitution of archaeological heritage",
-    "description": "A portion of the Canary Islands' archaeological heritage is held today outside the archipelago. On November 12 and 13, Tenerife will bring together museum directors and specialists from Europe, Africa, and the Americas to trace the history of these collections and discuss what relationships can be built today with the places they come from.",
+    "headline": "A Canarian perspective on the dispersal and restitution of archaeological heritage",    "description": "A portion of the Canary Islands' archaeological heritage is held today outside the archipelago. On November 12 and 13, Tenerife will bring together museum directors and specialists from Europe, Africa, and the Americas to trace the history of these collections and discuss what relationships can be built today with the places they come from.",
+    "simposio": "International Symposium",
     "dateLine": "November 12–13, 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Register"
+    "cta": "Sign me up"
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. All rights reserved.",

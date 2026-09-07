@@ -16,11 +16,12 @@
     "cerrarSesion": "Cerrar sesión"
   },
   "hero": {
-    "headline": "Una mirada desde Canarias a la dispersión y la restitución de los legados arqueológicos",
+    "headline": "Una mirada desde Canarias a la dispersión y restitución de los legados arqueológicos",
     "description": "Una parte del patrimonio arqueológico canario se conserva hoy fuera del archipiélago. Los días 12 y 13 de noviembre, Tenerife reunirá a responsables de museos y especialistas de Europa, África y América para seguir la historia de esas colecciones y discutir qué relaciones pueden construirse hoy con los lugares de los que proceden.",
+    "simposio": "Simposio Internacional",
     "dateLine": "12 y 13 de noviembre de 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Registro"
+    "cta": "Inscribirme"
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Todos los derechos reservados.",

@@ -16,11 +16,11 @@
     "cerrarSesion": "Se déconnecter"
   },
   "hero": {
-    "headline": "Un regard depuis les Canaries sur la dispersion et la restitution des legs archéologiques",
-    "description": "Une partie du patrimoine archéologique canarien est aujourd'hui conservée hors de l'archipel. Les 12 et 13 novembre, Tenerife réunira des responsables de musées et des spécialistes d'Europe, d'Afrique et d'Amérique pour retracer l'histoire de ces collections et discuter des relations qui peuvent aujourd'hui se construire avec les lieux dont elles proviennent.",
+    "headline": "Un regard depuis les Canaries sur la dispersion et la restitution des legs archéologiques",    "description": "Une partie du patrimoine archéologique canarien est aujourd'hui conservée hors de l'archipel. Les 12 et 13 novembre, Tenerife réunira des responsables de musées et des spécialistes d'Europe, d'Afrique et d'Amérique pour retracer l'histoire de ces collections et discuter des relations qui peuvent aujourd'hui se construire avec les lieux dont elles proviennent.",
+    "simposio": "Symposium international",
     "dateLine": "12 et 13 novembre 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Inscription"
+    "cta": "M'inscrire"
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Tous droits réservés.",
