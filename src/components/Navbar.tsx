@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
@@ -20,13 +20,18 @@ type NavEntry = { label: string; to?: string; href?: string }
 // double slash before "#sedes" that would otherwise leave a trailing slash
 // on the path React Router has to match (e.g. "/en/#sedes" vs "/en#sedes").
 function getNavLinks(t: TFunction, prefix: string): NavEntry[] {
-  const sedesLink = prefix ? `${prefix}#sedes` : '/#sedes'
+  const anchor = (id: string) => (prefix ? `${prefix}#${id}` : `/#${id}`)
   return [
     { label: t('nav.inicio'),        to: prefix || '/' },
-    { label: t('nav.registro'),      to: sedesLink },
-    { label: t('nav.participantes'), to: sedesLink },
-    { label: t('nav.programa'),      to: sedesLink },
-    { label: t('nav.contacto'),      to: `${prefix}/contacto` },
+    { label: t('nav.registro'),      to: anchor('sedes') },
+    { label: t('nav.participantes'), to: anchor('participantes') },
+    { label: t('nav.programa'),      to: anchor('programa') },
+    // A diferencia de los 3 links de arriba, el footer no vive solo en
+    // Home.tsx — <Footer/> se monta en App.tsx por fuera de <Routes>, así
+    // que existe en el DOM sin importar la página actual. No hace falta
+    // navegar a ningún lado para llegar a él, solo hacer scroll — por eso
+    // usa `href` (anchor puro) en vez de `to` (ruta de react-router).
+    { label: t('nav.contacto'),      href: '#footer' },
   ]
 }
 
@@ -78,6 +83,20 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
   if (entry.to) {
     return <Link to={entry.to} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</Link>
   }
+
+  // Plain in-page anchor (the footer, present on every route) — smooth-
+  // scrolls directly instead of navigating, since there's nowhere to
+  // navigate to: the target element already exists on the current page.
+  if (entry.href?.startsWith('#')) {
+    const targetId = entry.href.slice(1)
+    const handleClick = (e: MouseEvent) => {
+      e.preventDefault()
+      onClick?.()
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' })
+    }
+    return <a href={entry.href} className={cls} style={labelStyle} onClick={handleClick}>{entry.label}</a>
+  }
+
   return <a href={entry.href ?? '#'} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</a>
 }
 

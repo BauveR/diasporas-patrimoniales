@@ -37,7 +37,7 @@
   },
   "participantes": {
     "titulo": "Participants",
-    "parrafo1": "The symposium brings together 24 guests linked to museums, universities, heritage administrations and international organizations. Each profile will show the role confirmed by the person themselves, a short biography and the title of their talk."
+    "parrafo1": "The symposium brings together 24 guests linked to museums, universities, heritage administrations and international organizations."
   },
   "programa": {
     "titulo": "Programme",
@@ -61,8 +61,7 @@
     "fundadaEn": "Founded in {{year}}",
     "actividad_one": "{{count}} activity",
     "actividad_other": "{{count}} activities",
-    "bibliografia": "Bibliography",
-    "youtubeAlt": "Follow it live on YouTube"
+    "bibliografia": "Bibliography"
   },
   "actividadCard": {
     "verDetalle": "View details",

@@ -37,7 +37,7 @@
   },
   "participantes": {
     "titulo": "Participants",
-    "parrafo1": "Le symposium réunit 24 invité·e·s liés à des musées, des universités, des administrations patrimoniales et des organismes internationaux. Chaque fiche indiquera la fonction confirmée par la personne elle-même, une brève biographie et le titre de son intervention."
+    "parrafo1": "Le symposium réunit 24 invité·e·s liés à des musées, des universités, des administrations patrimoniales et des organismes internationaux."
   },
   "programa": {
     "titulo": "Programme",
@@ -61,8 +61,7 @@
     "fundadaEn": "Fondée en {{year}}",
     "actividad_one": "{{count}} activité",
     "actividad_other": "{{count}} activités",
-    "bibliografia": "Bibliographie",
-    "youtubeAlt": "Suivez-le en direct sur YouTube"
+    "bibliografia": "Bibliographie"
   },
   "actividadCard": {
     "verDetalle": "Voir le détail",

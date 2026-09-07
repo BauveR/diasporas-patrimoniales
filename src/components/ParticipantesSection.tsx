@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { PARTICIPANTES, type Participante } from '../data/participantes'
+import { SlideInText } from './SlideInText'
+import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -33,26 +35,38 @@ export function ParticipantesSection() {
   const { t } = useTranslation()
 
   return (
-    <section className="w-full bg-white px-10 py-16 sm:px-16 sm:py-20 lg:px-24 lg:py-24">
+    <section id="participantes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
         <div className="flex flex-col gap-4">
-          <h2 className="font-mattone text-2xl font-bold tracking-tight text-[#9b2923] uppercase md:text-3xl">
-            {t('participantes.titulo')}
-          </h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-stone-600 md:text-base" style={labelStyle}>
-            {t('participantes.parrafo1')}
-          </p>
+          <SlideInText
+            text={t('participantes.titulo')}
+            revealOnScroll
+            className="font-mattone text-3xl font-bold tracking-tight text-[#9b2923] uppercase md:text-4xl lg:text-5xl"
+          />
+          <RevealOnScroll>
+            <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
+              {t('participantes.parrafo1')}
+            </p>
+          </RevealOnScroll>
         </div>
 
         {/* 24 entra parejo en 2/3/4/6 columnas — a diferencia de la
             plantilla de referencia (11 miembros), no hace falta el
             col-span/col-start manual que usaba para centrar una última fila
-            incompleta. */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            incompleta. staggerChildren bajo (0.06) porque son 24 tarjetas:
+            con el 0.12 por defecto la última no arrancaría hasta ~2.8s
+            después de la primera; a 0.06 el total baja a ~1.4s. */}
+        <RevealGroup
+          className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+          amount={0.05}
+          staggerChildren={0.06}
+        >
           {PARTICIPANTES.map(p => (
-            <ParticipanteCard key={p.id} nombre={p.nombre} cargo={p.cargo} foto={p.foto} />
+            <RevealItem key={p.id}>
+              <ParticipanteCard nombre={p.nombre} cargo={p.cargo} foto={p.foto} />
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   )

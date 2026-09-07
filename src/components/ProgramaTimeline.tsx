@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProgramaItem } from '../data/programa'
+import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 
 // Adaptado del componente "ProfessionalTimeline" que pasó el usuario:
 // - Sin dark mode (el sitio no lo tiene) y paleta slate-* → stone-*/rojo
@@ -137,19 +138,25 @@ export function ProgramaTimeline({ dia, items }: { dia: string; items: ProgramaI
 
   return (
     <div>
-      <h3 className="font-mattone mb-6 text-lg font-bold tracking-tight text-[#f04f23] uppercase">{dia}</h3>
-      <div>
+      {/* Plain RevealOnScroll (not SlideInText) here: SlideInText always
+          renders an <h2>, which would break the h2 (section title) → h3
+          (day header) heading hierarchy the rest of the page follows. */}
+      <RevealOnScroll>
+        <h3 className="font-mattone mb-6 text-lg font-bold tracking-tight text-[#f04f23] uppercase">{dia}</h3>
+      </RevealOnScroll>
+      <RevealGroup amount={0.05} staggerChildren={0.08}>
         {items.map((item, i) => (
-          <TimelineRow
-            key={item.id}
-            item={item}
-            expanded={expanded.has(item.id)}
-            onToggle={onToggle}
-            isLast={i === items.length - 1}
-            moderadorLabel={t('programa.moderador')}
-          />
+          <RevealItem key={item.id}>
+            <TimelineRow
+              item={item}
+              expanded={expanded.has(item.id)}
+              onToggle={onToggle}
+              isLast={i === items.length - 1}
+              moderadorLabel={t('programa.moderador')}
+            />
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
     </div>
   )
 }

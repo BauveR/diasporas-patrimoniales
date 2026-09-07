@@ -19,7 +19,7 @@ export function Footer() {
   const privacyPath = locale === DEFAULT_LOCALE ? '/privacidad' : `/${locale}/privacidad`
 
   return (
-    <footer style={{ backgroundColor: '#9b2923' }}>
+    <footer id="footer" className="scroll-mt-16" style={{ backgroundColor: '#9b2923' }}>
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 sm:px-8 lg:px-10">
 
         {/* Marca propia + contacto + colaboradores */}

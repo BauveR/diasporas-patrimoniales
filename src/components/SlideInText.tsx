@@ -18,10 +18,19 @@ type SlideInTextProps = {
   className?: string
   delayStep?: number
   startDelay?: number
+  // Opt-in: the hero mounts and is visible at the same instant (nothing to
+  // wait for), so it keeps firing on mount via `animate`. Below-the-fold
+  // section titles pass this to switch to `whileInView` instead — same
+  // words-by-word motion, but held until the title actually scrolls into
+  // view rather than firing the moment Home.tsx mounts all sections at once.
+  revealOnScroll?: boolean
 }
 
-export function SlideInText({ text, className = '', delayStep = 0.08, startDelay = 0 }: SlideInTextProps) {
+export function SlideInText({ text, className = '', delayStep = 0.08, startDelay = 0, revealOnScroll = false }: SlideInTextProps) {
   const words = text.split(' ')
+  const triggerProps = revealOnScroll
+    ? { whileInView: { y: 0, opacity: 1, filter: 'blur(0px)' }, viewport: { once: true, amount: 0.6 } }
+    : { animate: { y: 0, opacity: 1, filter: 'blur(0px)' } }
 
   return (
     <h2 className={className}>
@@ -29,7 +38,7 @@ export function SlideInText({ text, className = '', delayStep = 0.08, startDelay
         <Fragment key={wordIndex}>
           <motion.span
             initial={{ y: 14, opacity: 0, filter: 'blur(8px)' }}
-            animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+            {...triggerProps}
             transition={{
               // `delay` only applies per property when repeated inside each
               // one — a shared top-level `delay` alongside per-property

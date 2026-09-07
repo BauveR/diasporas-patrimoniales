@@ -5,7 +5,7 @@
   },
   "nav": {
     "inicio": "Inicio",
-    "registro": "Registro",
+    "registro": "Inscripción",
     "participantes": "Participantes",
     "programa": "Programa",
     "contacto": "Contacto",
@@ -38,7 +38,7 @@
   },
   "participantes": {
     "titulo": "Participantes",
-    "parrafo1": "El simposio reúne a 24 invitados e invitadas vinculados a museos, universidades, administraciones patrimoniales y organismos internacionales. Cada ficha mostrará el cargo confirmado por la propia persona, una breve biografía y el título de su intervención."
+    "parrafo1": "El simposio reúne a 24 invitados e invitadas vinculados a museos, universidades, administraciones patrimoniales y organismos internacionales."
   },
   "programa": {
     "titulo": "Programa",
@@ -62,8 +62,7 @@
     "fundadaEn": "Fundada en {{year}}",
     "actividad_one": "{{count}} actividad",
     "actividad_other": "{{count}} actividades",
-    "bibliografia": "Bibliografía",
-    "youtubeAlt": "Síguelo en directo por YouTube"
+    "bibliografia": "Bibliografía"
   },
   "actividadCard": {
     "verDetalle": "Ver detalle",
