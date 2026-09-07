@@ -32,11 +32,11 @@ import { ISLAS, DIFICULTADES } from '../data/islas'
 import { useDataContext } from '../contexts/DataContext'
 import { isValidTelefono } from '../utils/validators'
 import { downloadCsv, toTsv } from '../utils/csv'
-import { formatMes } from '../components/actividades/FilterSheet'
+import { formatMes } from '../utils/formatMes'
 import { AcreditarScanner } from '../components/admin/AcreditarScanner'
 import {
-  addActividad, updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
-  addSede, updateSede,
+  updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
+  updateSede,
   getInscritos,
   type InscritoData,
 } from '../lib/db'
@@ -45,7 +45,7 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 const ACCENT = '#cd6a26'
 
-type AdminSection = 'sedes' | 'actividad' | 'asistentes' | 'acreditar'
+type AdminSection = 'sedes' | 'asistentes' | 'acreditar'
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 
@@ -55,14 +55,6 @@ function IconBuilding() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 21h18M6 21V7l6-4 6 4v14M9 21V12h6v9" />
-    </svg>
-  )
-}
-
-function IconCalendarPlus() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
     </svg>
   )
 }
@@ -85,8 +77,7 @@ function IconQr() {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'sedes',  label: 'Sedes',        sublabel: 'Ver y editar',   Icon: IconBuilding     },
-  { key: 'actividad',  label: 'Nueva actividad',   sublabel: 'Crear evento',   Icon: IconCalendarPlus },
+  { key: 'sedes',  label: 'Sede',        sublabel: 'Ver y editar',   Icon: IconBuilding     },
   { key: 'asistentes', label: 'Eventos',             sublabel: 'Asistentes',     Icon: IconUsers        },
   { key: 'acreditar',  label: 'Acreditar',   sublabel: 'Escanear QR',   Icon: IconQr           },
 ]
@@ -322,355 +313,6 @@ export function validateActividad(form: ActividadForm): ActividadErrors {
     e.imagen = 'URL no válida (debe empezar por http:// o https://)'
 
   return e
-}
-
-const MAX_FECHAS = 5
-
-function MultiDatePicker({ selected, onChange }: {
-  selected: string[]
-  onChange: (dates: string[]) => void
-}) {
-  const today = new Date().toISOString().split('T')[0]
-  const [view, setView] = useState(() => {
-    const d = new Date()
-    return { year: d.getFullYear(), month: d.getMonth() }
-  })
-
-  const { year, month } = view
-  const startPad  = (new Date(year, month, 1).getDay() + 6) % 7
-  const daysCount = new Date(year, month + 1, 0).getDate()
-
-  const prevMonth = () => setView(v =>
-    v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 }
-  )
-  const nextMonth = () => setView(v =>
-    v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 }
-  )
-
-  const toggle = (dateStr: string) => {
-    if (selected.includes(dateStr)) {
-      onChange(selected.filter(d => d !== dateStr))
-    } else if (selected.length < MAX_FECHAS) {
-      onChange([...selected, dateStr].sort())
-    }
-  }
-
-  const monthLabel = new Date(year, month, 1)
-    .toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-
-  return (
-    <div className="flex flex-col gap-3 select-none rounded-xl border border-stone-200 p-4" style={labelStyle}>
-      {/* Navegación mes */}
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={prevMonth}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 transition-colors cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
-        </button>
-        <span className="text-[11px] tracking-widest uppercase text-stone-500 capitalize">{monthLabel}</span>
-        <button type="button" onClick={nextMonth}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 transition-colors cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
-        </button>
-      </div>
-
-      {/* Cabecera días */}
-      <div className="grid grid-cols-7">
-        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
-          <div key={d} className="text-center text-[10px] text-stone-400 py-1">{d}</div>
-        ))}
-      </div>
-
-      {/* Grid de días */}
-      <div className="grid grid-cols-7 gap-y-1">
-        {Array(startPad).fill(null).map((_, i) => <div key={`e${i}`} />)}
-        {Array.from({ length: daysCount }, (_, i) => i + 1).map(day => {
-          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const isPast     = dateStr < today
-          const isSelected = selected.includes(dateStr)
-          const isFull     = !isSelected && selected.length >= MAX_FECHAS
-          const disabled   = isPast || isFull
-          return (
-            <button
-              key={day}
-              type="button"
-              disabled={disabled}
-              onClick={() => toggle(dateStr)}
-              className={`mx-auto w-8 h-8 rounded-full text-[12px] transition-colors
-                ${isSelected
-                  ? 'text-white'
-                  : isPast
-                    ? 'text-stone-400 cursor-default'
-                    : isFull
-                      ? 'text-stone-500 cursor-default'
-                      : 'text-stone-700 hover:bg-stone-100 cursor-pointer'
-                }`}
-              style={isSelected ? { backgroundColor: '#595d8d' } : {}}
-            >
-              {day}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Contador + preview */}
-      <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-[10px]">
-        <span className="text-stone-400">{selected.length} / {MAX_FECHAS} fechas</span>
-        {selected.length === MAX_FECHAS && (
-          <span className="text-amber-500">Máximo alcanzado</span>
-        )}
-      </div>
-      {selected.length > 0 && (
-        <p className="text-[11px] text-stone-500 leading-relaxed">
-          {selected.map(d =>
-            new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
-          ).join(' · ')}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function AltaActividad({ sedes }: { sedes: Sede[] }) {
-  const [form, setForm] = useState<ActividadForm>(defaultActividadForm)
-  const [errors, setErrors] = useState<ActividadErrors>({})
-  const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [saveError, setSaveError] = useState('')
-  const [modo, setModo] = useState<'unica' | 'multiple'>('unica')
-  const [fechas, setFechas] = useState<string[]>([])
-  const [durKey, setDurKey] = useState(0)
-
-  const set = (key: keyof ActividadForm) => (v: string) => {
-    setForm(f => ({ ...f, [key]: v }))
-    setErrors(e => ({ ...e, [key]: undefined }))
-  }
-
-  const switchModo = (m: 'unica' | 'multiple') => {
-    setModo(m)
-    setFechas([])
-    setErrors(e => ({ ...e, fecha: undefined }))
-  }
-
-  const handleSave = async () => {
-    const fechaRef = modo === 'unica' ? form.fecha : (fechas[0] ?? '')
-    const errs = validateActividad({ ...form, fecha: fechaRef })
-    if (modo === 'multiple' && fechas.length === 0) errs.fecha = 'Selecciona al menos una fecha'
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-
-    setSaving(true)
-    setSaveError('')
-    try {
-      const plazas = Number(form.plazas)
-      const base = {
-        titulo: form.titulo,
-        sedeId: Number(form.sedeId),
-        tematica: form.tematica as Tematica,
-        hora: form.hora,
-        duracion: form.duracion,
-        dificultad: form.dificultad as Dificultad,
-        plazas,
-        plazasDisponibles: plazas,
-        organizador: form.organizador,
-        contacto: form.contacto,
-        puntoEncuentro: form.puntoEncuentro,
-        descripcion: form.descripcion,
-        imagen: form.imagen || DEFAULT_IMAGE,
-        ...(form.fechaAperturaInscripciones ? { fechaAperturaInscripciones: form.fechaAperturaInscripciones } : {}),
-      }
-      if (modo === 'unica') {
-        await addActividad({ ...base, fecha: form.fecha })
-      } else {
-        const serieId = Math.random().toString(36).slice(2, 10)
-        await Promise.all(fechas.map(f => addActividad({ ...base, fecha: f, serieId })))
-      }
-      setForm(defaultActividadForm)
-      setFechas([])
-      setErrors({})
-      setDurKey(k => k + 1)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-    } catch {
-      setSaveError('Error al crear la actividad. Inténtalo de nuevo.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
-      {/* Left — obligatory fields */}
-      <SectionCard title="Datos principales">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Título *</FieldLabel>
-            <Input value={form.titulo} onChange={set('titulo')} placeholder="Nombre de la actividad" error={!!errors.titulo} />
-            <FieldError msg={errors.titulo} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Sede *</FieldLabel>
-              <Select value={form.sedeId} onChange={set('sedeId')} error={!!errors.sedeId}>
-                <option value="">Seleccionar</option>
-                {sedes.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre.replace('Sede Histórica de ', '')}
-                  </option>
-                ))}
-              </Select>
-              <FieldError msg={errors.sedeId} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Temática *</FieldLabel>
-              <Select value={form.tematica} onChange={set('tematica')} error={!!errors.tematica}>
-                <option value="">Seleccionar</option>
-                {TEMATICAS.map(t => <option key={t} value={t}>{t}</option>)}
-              </Select>
-              <FieldError msg={errors.tematica} />
-            </div>
-          </div>
-
-          {/* Toggle modo fecha */}
-          <div className="flex gap-2">
-            {(['unica', 'multiple'] as const).map(m => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => switchModo(m)}
-                className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
-                  modo === m ? 'text-white border-transparent' : 'text-stone-400 border-stone-200 hover:border-stone-400'
-                }`}
-                style={modo === m ? { backgroundColor: '#595d8d' } : {}}
-              >
-                {m === 'unica' ? 'Fecha única' : 'Fechas múltiples'}
-              </button>
-            ))}
-          </div>
-
-          {modo === 'unica' ? (
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel>Fecha *</FieldLabel>
-                <Input value={form.fecha} onChange={set('fecha')} type="date" error={!!errors.fecha} />
-                <FieldError msg={errors.fecha} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel>Hora</FieldLabel>
-                <Input value={form.hora} onChange={set('hora')} type="time" />
-              </div>
-              <DuracionField key={durKey} value={form.duracion} onChange={set('duracion')} />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <FieldLabel>Hora</FieldLabel>
-                  <Input value={form.hora} onChange={set('hora')} type="time" />
-                </div>
-                <DuracionField key={durKey} value={form.duracion} onChange={set('duracion')} />
-              </div>
-              <MultiDatePicker
-                selected={fechas}
-                onChange={f => { setFechas(f); setErrors(e => ({ ...e, fecha: undefined })) }}
-              />
-              <FieldError msg={errors.fecha} />
-            </div>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Apertura de inscripciones</FieldLabel>
-            <Input
-              value={form.fechaAperturaInscripciones}
-              onChange={set('fechaAperturaInscripciones')}
-              type="date"
-              error={!!errors.fechaAperturaInscripciones}
-            />
-            <FieldError msg={errors.fechaAperturaInscripciones} />
-            <p className="text-[10px] text-stone-400">Vacío = inscripciones abiertas desde ya. El evento se publica igual.</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Plazas *</FieldLabel>
-              <Input value={form.plazas} onChange={set('plazas')} type="number" placeholder="20" error={!!errors.plazas} />
-              <FieldError msg={errors.plazas} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Dificultad</FieldLabel>
-              <Select value={form.dificultad} onChange={set('dificultad')}>
-                <option value="">Seleccionar</option>
-                {DIFICULTADES.map(d => <option key={d} value={d}>{d}</option>)}
-              </Select>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* Right — optional + submit */}
-      <SectionCard title="Información adicional">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Organizador</FieldLabel>
-              <Input value={form.organizador} onChange={set('organizador')} placeholder="Entidad organizadora" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Contacto</FieldLabel>
-              <Input value={form.contacto} onChange={set('contacto')} placeholder="email o 6XXXXXXXX" error={!!errors.contacto} />
-              <FieldError msg={errors.contacto} />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Punto de encuentro</FieldLabel>
-            <Input value={form.puntoEncuentro} onChange={set('puntoEncuentro')} placeholder="Lugar exacto de inicio" />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Descripción *</FieldLabel>
-            <Textarea value={form.descripcion} onChange={set('descripcion')} rows={5} />
-            <FieldError msg={errors.descripcion} />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Imagen URL</FieldLabel>
-            <div className="flex gap-2">
-              <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
-              <button
-                type="button"
-                onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
-                className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
-              >
-                Biblioteca
-              </button>
-            </div>
-            {form.imagen && !errors.imagen && (
-              <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
-              />
-            )}
-            <FieldError msg={errors.imagen} />
-          </div>
-
-          <SaveButton
-            loading={saving}
-            success={success}
-            onClick={handleSave}
-            label={modo === 'multiple' && fechas.length > 0
-              ? `Crear ${fechas.length} evento${fechas.length !== 1 ? 's' : ''}`
-              : 'Crear actividad'
-            }
-          />
-          {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
-        </div>
-      </SectionCard>
-
-    </div>
-  )
 }
 
 // ── Edit Actividad Drawer ─────────────────────────────────────────────────────
@@ -1605,185 +1247,18 @@ function SedeRow({ sede }: { sede: Sede }) {
   )
 }
 
-function NuevoSedePanel() {
-  const [form, setForm] = useState<SedeForm>({
-    nombre: '', municipio: '', isla: '', imagen: '', descripcion: '',
-    lat: '', lng: '', fundacion: '', declaraciones: '', bibliografia: '',
-  })
-  const [errors, setErrors] = useState<SedeErrors>({})
-  const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [saveError, setSaveError] = useState('')
-
-  const set = (key: keyof SedeForm) => (v: string) => {
-    setForm(f => ({ ...f, [key]: v }))
-    setErrors(e => ({ ...e, [key]: undefined }))
-  }
-
-  const handleSave = async () => {
-    const errs = validateSede(form)
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    setSaving(true)
-    setSaveError('')
-    try {
-      await addSede(formToSedeData(form))
-      setForm({ nombre: '', municipio: '', isla: '', imagen: '', descripcion: '', lat: '', lng: '', fundacion: '', declaraciones: '', bibliografia: '' })
-      setErrors({})
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 2500)
-    } catch {
-      setSaveError('Error al crear el sede. Inténtalo de nuevo.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <SectionCard title="+ Nuevo sede">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Nombre *</FieldLabel>
-          <Input value={form.nombre} onChange={set('nombre')} placeholder="Sede Histórica de..." error={!!errors.nombre} />
-          <FieldError msg={errors.nombre} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Municipio *</FieldLabel>
-            <Input value={form.municipio} onChange={set('municipio')} error={!!errors.municipio} />
-            <FieldError msg={errors.municipio} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Isla *</FieldLabel>
-            <Select value={form.isla} onChange={set('isla')} error={!!errors.isla}>
-              <option value="">Seleccionar</option>
-              {ISLAS.map(i => <option key={i} value={i}>{i}</option>)}
-            </Select>
-            <FieldError msg={errors.isla} />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Latitud *</FieldLabel>
-            <Input value={form.lat} onChange={set('lat')} type="number" error={!!errors.lat} />
-            <FieldError msg={errors.lat} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Longitud *</FieldLabel>
-            <Input value={form.lng} onChange={set('lng')} type="number" error={!!errors.lng} />
-            <FieldError msg={errors.lng} />
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Imagen URL</FieldLabel>
-          <div className="flex gap-2">
-            <Input value={form.imagen} onChange={set('imagen')} placeholder="https://..." error={!!errors.imagen} />
-            <button
-              type="button"
-              onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
-              className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
-            >
-              Biblioteca
-            </button>
-          </div>
-          {form.imagen && !errors.imagen && (
-            <img src={form.imagen} alt="" className="h-24 w-full object-cover rounded-xl mt-1"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-              onLoad={e => { (e.target as HTMLImageElement).style.display = '' }}
-            />
-          )}
-          <FieldError msg={errors.imagen} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Descripción *</FieldLabel>
-          <Textarea value={form.descripcion} onChange={set('descripcion')} rows={3} />
-          <FieldError msg={errors.descripcion} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Fundación</FieldLabel>
-            <Input value={form.fundacion} onChange={set('fundacion')} placeholder="s. XVI" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>Declaraciones (coma)</FieldLabel>
-            <Input value={form.declaraciones} onChange={set('declaraciones')} placeholder="Patrimonio UNESCO" />
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Bibliografía (una referencia por línea)</FieldLabel>
-          <Textarea value={form.bibliografia} onChange={set('bibliografia')} rows={3} placeholder={'Autor, A. (2005). Título. Editorial.\nhttps://...'} />
-        </div>
-        <SaveButton loading={saving} success={success} onClick={handleSave} label="Crear sede" />
-        {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
-      </div>
-    </SectionCard>
-  )
-}
-
+// El evento tiene una única sede fija (TEA) — sin buscador ni alta de sedes
+// nuevas, que solo tenían sentido con la lista multi-sede de la plantilla
+// original. Lo que queda es editar los datos de esa sede única.
 function GestionSedes({ sedes }: { sedes: Sede[] }) {
-  const [query, setQuery] = useState('')
-
-  const filtered = query.trim()
-    ? sedes.filter(c => {
-        const q = query.toLowerCase()
-        return (
-          c.nombre.toLowerCase().includes(q) ||
-          c.municipio.toLowerCase().includes(q) ||
-          c.isla.toLowerCase().includes(q)
-        )
-      })
-    : sedes
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
-
-      {/* Left — list */}
-      <SectionCard title="Sedes históricos">
-
-        {/* Filter */}
-        {sedes.length > 0 && (
-          <div className="relative mb-5">
-            <svg
-              xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
-            >
-              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar por nombre, municipio o isla…"
-              className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
-
-        <div>
-          {sedes.length === 0 ? (
-            <p className="text-sm text-stone-500 py-4 text-center">Sin sedes. Inicializa la base de datos.</p>
-          ) : filtered.length === 0 ? (
-            <p className="text-sm text-stone-500 py-4 text-center">Sin resultados para «{query}»</p>
-          ) : (
-            filtered.map(c => <SedeRow key={c.id} sede={c} />)
-          )}
-        </div>
-      </SectionCard>
-
-      {/* Right — new sede (always visible) */}
-      <NuevoSedePanel />
-
-    </div>
+    <SectionCard title="Sede">
+      {sedes.length === 0 ? (
+        <p className="text-sm text-stone-500 py-4 text-center">Sin sede. Inicializa la base de datos.</p>
+      ) : (
+        sedes.map(c => <SedeRow key={c.id} sede={c} />)
+      )}
+    </SectionCard>
   )
 }
 
@@ -1898,7 +1373,7 @@ function ContentHeader({ item }: { item: NavItem }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function AdminPage() {
-  const { actividades, sedes, dataLoading } = useDataContext()
+  const { actividades, sedes } = useDataContext()
   const [section, setSection] = useState<AdminSection>('sedes')
 
   const currentNav = NAV_ITEMS.find(n => n.key === section)!
@@ -1919,14 +1394,7 @@ export function AdminPage() {
 
         <div className="flex-1 px-6 sm:px-8 py-8">
 
-          {!dataLoading && actividades.length === 0 && (
-            <p className="text-xs text-stone-400 text-center py-8" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-              No hay actividades. Crea la primera desde "Nueva actividad".
-            </p>
-          )}
-
           {section === 'sedes'  && <GestionSedes sedes={sedes} />}
-          {section === 'actividad'  && <AltaActividad sedes={sedes} />}
           {section === 'asistentes' && <ControlAsistentes actividades={actividades} sedes={sedes} />}
           {section === 'acreditar'  && <AcreditarScanner />}
 

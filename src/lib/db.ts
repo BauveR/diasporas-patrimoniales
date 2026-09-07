@@ -269,11 +269,8 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
 }
 
 // ── Sedes CRUD ────────────────────────────────────────────────────────────────
-
-export async function addSede(data: Omit<Sede, 'id' | 'actividadIds'>): Promise<void> {
-  const id = randomId()
-  sedesStore.mutate(items => [...items, { ...data, id, actividadIds: [] }])
-}
+// Solo `updateSede` — el evento tiene una única sede fija; nada da de alta
+// sedes nuevas (por eso no hay `addSede` acá).
 
 export async function updateSede(
   id: number,

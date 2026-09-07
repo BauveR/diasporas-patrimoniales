@@ -20,7 +20,6 @@ import './App.css'
 const ActividadPage  = lazy(() => import('./pages/ActividadPage').then(m  => ({ default: m.ActividadPage  })))
 const ProfilePage    = lazy(() => import('./pages/ProfilePage').then(m    => ({ default: m.ProfilePage    })))
 const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ default: m.AdminPage      })))
-const PasaportePage  = lazy(() => import('./pages/PasaportePage').then(m  => ({ default: m.PasaportePage  })))
 const ContactoPage   = lazy(() => import('./pages/ContactoPage').then(m   => ({ default: m.ContactoPage   })))
 const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage').then(m => ({ default: m.PrivacidadPage })))
 const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
@@ -36,7 +35,6 @@ function pageRoutes() {
     <Route key="login" path="login" element={<AuthPage />} />,
     <Route key="perfil" path="perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />,
     <Route key="admin" path="admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />,
-    <Route key="pasaporte" path="pasaporte" element={<PasaportePage />} />,
     <Route key="contacto" path="contacto" element={<ContactoPage />} />,
     <Route key="privacidad" path="privacidad" element={<PrivacidadPage />} />,
   ]
