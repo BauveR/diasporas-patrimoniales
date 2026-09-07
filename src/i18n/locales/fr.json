@@ -22,6 +22,30 @@
     "location": "TEA, Santa Cruz de Tenerife",
     "cta": "M'inscrire"
   },
+  "sobreEncuentro": {
+    "titulo": "À propos de la rencontre",
+    "parrafo1": "Depuis le XVIIIe siècle, des objets archéologiques et des restes humains indigènes des îles Canaries ont progressivement intégré des collections de la péninsule ibérique et de l'étranger. Certains cas sont bien connus ; d'autres commencent à peine à être reconstitués.",
+    "parrafo2": "Diásporas Patrimoniales est né du travail que le Gouvernement des Canaries mène autour du Legado Canario Disperso (legs canarien dispersé). Le symposium réunira des professionnels qui conservent des collections canariennes hors des îles, des spécialistes ayant travaillé sur des processus de restitution, ainsi que des institutions en train de réexaminer l'histoire de leurs propres fonds.",
+    "parrafo3": "La rencontre se conclura par la Déclaration de Santa Cruz de Tenerife, conçue comme un point de départ pour maintenir ces conversations ouvertes au-delà du mois de novembre."
+  },
+  "inscripcion": {
+    "titulo": "Inscription",
+    "parrafo": "Les sessions académiques se déroulent en présentiel et nécessitent une inscription préalable jusqu'à épuisement des places. Vous pouvez réserver une place pour une des journées ou pour les deux. Une fois le formulaire complété, vous recevrez la confirmation par e-mail."
+  },
+  "sedeSection": {
+    "titulo": "Lieu"
+  },
+  "participantes": {
+    "titulo": "Participants",
+    "parrafo1": "Le symposium réunit 24 invité·e·s liés à des musées, des universités, des administrations patrimoniales et des organismes internationaux. Chaque fiche indiquera la fonction confirmée par la personne elle-même, une brève biographie et le titre de son intervention."
+  },
+  "programa": {
+    "titulo": "Programme",
+    "parrafo": "Les interventions dureront 10 minutes. Chaque panel réservera ensuite du temps pour l'échange entre les participants et les questions du public.",
+    "dia1": "Jour 1 — 12 novembre",
+    "dia2": "Jour 2 — 13 novembre",
+    "moderador": "Modérateur/rice :"
+  },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Tous droits réservés.",
     "legal": "Ce site est soumis à la législation espagnole et à la réglementation spécifique de la Communauté autonome des Canaries.",

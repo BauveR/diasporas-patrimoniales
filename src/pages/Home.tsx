@@ -2,7 +2,11 @@ import { useEffect, useLayoutEffect } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import PointsToShapes from '../components/PointsToShapes'
-import { MapSection } from '../components/map/MapSection'
+import { AboutSection } from '../components/AboutSection'
+import { InscripcionSection } from '../components/InscripcionSection'
+import { SedeSection } from '../components/SedeSection'
+import { ParticipantesSection } from '../components/ParticipantesSection'
+import { ProgramaSection } from '../components/ProgramaSection'
 import { SeoHead } from '../components/SeoHead'
 
 const scrollPositions: Record<string, number> = {}
@@ -39,9 +43,15 @@ export function Home() {
       <SeoHead title={t('meta.homeTitle')} description={t('meta.homeDescription')} />
       <PointsToShapes />
 
-      <section id="sedes" className="scroll-mt-16">
-        <MapSection />
-      </section>
+      <AboutSection />
+
+      <InscripcionSection />
+
+      <SedeSection />
+
+      <ParticipantesSection />
+
+      <ProgramaSection />
     </main>
   )
 }

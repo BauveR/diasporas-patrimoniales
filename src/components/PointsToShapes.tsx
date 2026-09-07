@@ -548,12 +548,27 @@ export default function PointsToShapes() {
     // reference site (casberry.in) uses for its hero canvas.
     <section
       ref={sectionRef}
+      // `min-h-[100svh] lg:h-[100svh]`: below `lg`, content stacks in normal
+      // flow (see the mobile/tablet block near the end of this section) and
+      // needs however much height it actually takes — `min-h` is a floor,
+      // not a ceiling, so a short viewport still gets a full-bleed hero but
+      // taller content isn't clipped. At `lg` and up the overlay goes back
+      // to `position: absolute`, which needs the section's own height fixed
+      // again (an absolutely positioned child contributes nothing to its
+      // parent's auto height).
+      className="min-h-[100svh] lg:h-[100svh]"
       style={{
         position: 'relative',
-        height: '100svh',
         background: GRADIENT_DOMINANT,
       }}
     >
+      {/* Canvas wrapped in its own `absolute inset-0` div rather than relying
+          on R3F's default 100%/100% sizing directly against the section: the
+          section's height is no longer unconditionally fixed (see above), so
+          the canvas needs an explicit positioned box to fill regardless of
+          what determines the section's actual height at a given breakpoint —
+          the mobile stacked content below, or the fixed `lg:h-[100svh]`. */}
+      <div className="absolute inset-0">
       <Canvas
         orthographic
         // An orthographic camera's projection is linear (world unit = `zoom`
@@ -598,15 +613,21 @@ export default function PointsToShapes() {
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />
         </Effects>
       </Canvas>
+      </div>
 
-      {/* Content overlay on top of the full-bleed Canvas. Only enabled from
-          `lg` up: below that, the particle shape's on-screen footprint
-          (fixed in 3D world units, so it covers proportionally more of a
-          narrower canvas) collided with the wordmark, since neither respects
-          the other's actual rendered bounds — a dedicated stacked
-          mobile/tablet treatment is the deferred "adjust responsive screens
-          later" pass. */}
-      <div className="pointer-events-none absolute inset-0 z-10 hidden lg:flex lg:items-center">
+      {/* Content overlay on top of the full-bleed Canvas — desktop/large-
+          screen version. Conditionally rendered (not just CSS-hidden) on
+          `isLargeScreen`, mutually exclusive with the mobile/tablet block
+          further down: both versions mounting at once would double up
+          HeroWordmark's halo DOM cloning/animation work and every
+          SlideInText/framer-motion instance for content only one of them
+          ever shows. The particle shape's on-screen footprint (fixed in 3D
+          world units, so it covers proportionally more of a narrower canvas)
+          only fits alongside this layout from `lg` up — hence gating on the
+          same breakpoint (`isLargeScreen`, see LARGE_SCREEN_QUERY) that
+          already drives the camera pan. */}
+      {isLargeScreen && (
+      <div className="pointer-events-none absolute inset-0 z-10 flex items-center">
         {/* `railMaxWidthRem` starts at 80rem — the same content rail
             Footer.tsx uses (`mx-auto max-w-7xl ... px-6 sm:px-8 lg:px-10`),
             here as a live-tunable value instead of a fixed Tailwind class
@@ -632,7 +653,22 @@ export default function PointsToShapes() {
               `clamp()` is the single knob that scales the whole block
               together as the viewport changes, with the two children split
               by percentage of it. */}
-          <div className="flex items-start gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
+          {/* `grid grid-cols-[64fr_36fr]`, not `flex` + `w-[64%]`/`w-[36%]`:
+              with flex, percentage widths are computed against the full
+              container width, but `gap` is added *on top* of that — 64% +
+              36% + gap overflows by exactly the gap amount. Flex resolves
+              that by shrinking whichever item doesn't have `shrink-0`, so
+              the text column was silently narrower than its stated 36% (by
+              the gap width) — which combined with "SIMPOSIO INTERNACIONAL"
+              forced to one line via `whitespace-nowrap` (since removed
+              below) risked real overflow near the low end of `lg`, ~1024px,
+              where the gap eats a larger fraction of a narrower row. `fr`
+              tracks in Grid divide the space *remaining after* gaps are
+              subtracted, so 64fr/36fr always add up to exactly the
+              container width regardless of gap size — a real fix for the
+              first issue, but not a substitute for letting long strings wrap
+              instead of forcing a single line. */}
+          <div className="grid grid-cols-[64fr_36fr] items-start gap-8 xl:gap-12" style={{ width: 'clamp(40rem, 62vw, 68rem)' }}>
             {/* Headline now lives under the wordmark instead of in the text
                 column to its right — it used to run there via SlideInText,
                 but reads as a caption to the mark itself, not as an intro to
@@ -647,7 +683,7 @@ export default function PointsToShapes() {
                 what made the SVG and the text column drift out of vertical
                 sync. Top-anchoring both means growth only ever extends a
                 column downward. */}
-            <div className="mt-8 flex w-[64%] shrink-0 flex-col gap-6">
+            <div className="mt-8 flex min-w-0 flex-col gap-6">
               <HeroWordmark className="h-auto w-full" />
               <SlideInText
                 text={t('hero.headline')}
@@ -667,9 +703,9 @@ export default function PointsToShapes() {
               </div>
             </div>
 
-            <div className="pointer-events-auto mt-14 flex w-[36%] min-w-0 flex-col items-start gap-5 text-white">
+            <div className="pointer-events-auto mt-14 flex min-w-0 flex-col items-start gap-5 text-white">
               <div>
-                <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase whitespace-nowrap md:text-lg">
+                <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
                   {t('hero.simposio')}
                 </p>
                 <p className="text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
@@ -686,17 +722,95 @@ export default function PointsToShapes() {
                   {t('hero.description')}
                 </p>
               </div>
-              <a
-                href={sedesHref}
-                className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
-                style={{ backgroundColor: '#f04f23' }}
-              >
-                {t('hero.cta')}
-              </a>
+              <div className="flex flex-wrap items-center gap-4">
+                <a
+                  href={sedesHref}
+                  className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+                  style={{ backgroundColor: '#f04f23' }}
+                >
+                  {t('hero.cta')}
+                </a>
+                <a
+                  href={sedesHref}
+                  className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
+                >
+                  {t('nav.programa')}
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      )}
+
+      {/* Mobile/tablet version, below `lg` — stacked instead of the
+          desktop's side-by-side split, since there's no room to run the
+          particle shape and this much text next to each other under
+          ~1024px. Normal document flow (not `position: absolute`), which is
+          what lets the section grow past `100svh` if this content needs
+          more room than one screen (see the section's `min-h-[100svh]`
+          above) — the canvas still shows full-bleed behind it via its own
+          `absolute inset-0` wrapper, so it's not competing for layout space,
+          only for visual space, which is fine since text sits on top with
+          `relative z-10`. Same i18n content/order as the desktop version,
+          just centered and without the `whitespace-nowrap` risk the desktop
+          fix above removed — wrapping is always safe here since nothing
+          shares a row with it. */}
+      {!isLargeScreen && (
+      <div className="relative z-10 flex flex-col items-center gap-10 px-6 py-20 text-center text-white sm:gap-12 sm:px-10 sm:py-24">
+        <HeroWordmark className="h-auto w-56 sm:w-72" />
+        <SlideInText
+          text={t('hero.headline')}
+          delayStep={0.15}
+          startDelay={HEADLINE_START_DELAY}
+          className="font-mattone text-sm leading-snug font-normal uppercase sm:text-base"
+        />
+        <div>
+          <p className="font-mattone text-base leading-snug font-bold tracking-widest uppercase sm:text-lg">
+            {t('hero.simposio')}
+          </p>
+          <p className="text-base leading-snug font-bold tracking-widest uppercase sm:text-lg">
+            {t('hero.dateLine')}
+            <br />
+            {t('hero.location')}
+          </p>
+          <img
+            src={logoPatrimonioCultural}
+            alt="Patrimonio Cultural de Canarias"
+            className="mx-auto mt-4 h-14 w-auto object-contain"
+          />
+          <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+            {t('hero.description')}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <a
+            href={sedesHref}
+            className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+            style={{ backgroundColor: '#f04f23' }}
+          >
+            {t('hero.cta')}
+          </a>
+          <a
+            href={sedesHref}
+            className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
+          >
+            {t('nav.programa')}
+          </a>
+        </div>
+
+        {/* Colaboradores/patrocinadores — tamaños escalados hacia abajo
+            proporcionalmente respecto a la fila de escritorio, no valores
+            independientes. */}
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          <img src={logoGobCan} alt="Gobierno de Canarias" className="h-14 w-auto object-contain" />
+          <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-11 w-auto object-contain" />
+          <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-10 w-auto object-contain" />
+          <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-7 w-auto object-contain" />
+        </div>
+      </div>
+      )}
+
       {HeroTuningPanel && (
         <Suspense fallback={null}>
           <HeroTuningPanel onChange={setTuning} />

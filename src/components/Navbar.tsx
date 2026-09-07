@@ -127,8 +127,12 @@ export function Navbar() {
       className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10"
       style={{ backgroundColor: NAVBAR_BG }}
     >
-      {/* Barra principal */}
-      <div className="flex items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-16">
+      {/* Barra principal — `mx-auto max-w-7xl`: mismo rail de contenido que
+          Footer.tsx, InscripcionSection.tsx y SedeSection.tsx, para que en
+          pantallas muy anchas el logo y los links no queden separados por un
+          vacío creciente. El `header` en sí sigue ocupando el 100% del ancho
+          (fondo edge-to-edge, la convención estándar de un navbar). */}
+      <div className="mx-auto flex max-w-7xl items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-16">
 
         {/* Logo */}
         <Link to={prefix || '/'} className="shrink-0">

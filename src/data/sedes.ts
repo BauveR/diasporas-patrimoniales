@@ -23,7 +23,7 @@ export const SEDES: Sede[] = [
     // según el navegador; w_900 evita servir el original de 1280px cuando la
     // tarjeta nunca lo muestra a más de unos cientos de px de ancho.
     imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_900/v1786964737/1280px-TEA.Tenerife.jpg',
-    descripcion: 'El TEA Tenerife Espacio de las Artes es el centro de arte contemporáneo de Santa Cruz de Tenerife, diseñado por Herzog & de Meuron junto a Virgilio Gutiérrez. Acoge el Instituto Óscar Domínguez de Arte y Cultura Contemporánea, la Biblioteca Insular y espacios expositivos dedicados a la creación actual.',
+    descripcion: 'TEA Tenerife Espacio de las Artes será la sede de las sesiones académicas. El edificio, diseñado por Herzog & de Meuron junto a Virgilio Gutiérrez, se encuentra en el centro de Santa Cruz de Tenerife, a pocos pasos del MUNA. La tarde del 12 de noviembre el programa continuará en el Museo de la Naturaleza y Arqueología con una breve visita opcional para los invitados y la recepción cultural.',
     actividadIds: [1, 2, 9, 19, 21],
     lat: 28.4636,
     lng: -16.2492,

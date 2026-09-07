@@ -22,6 +22,30 @@
     "location": "TEA, Santa Cruz de Tenerife",
     "cta": "Sign me up"
   },
+  "sobreEncuentro": {
+    "titulo": "About the gathering",
+    "parrafo1": "Since the 18th century, archaeological objects and Indigenous human remains from the Canary Islands have been incorporated into collections in mainland Spain and abroad. Some cases are well documented; others are only beginning to be reconstructed.",
+    "parrafo2": "Diásporas Patrimoniales grows out of the work the Government of the Canary Islands has been carrying out around the Legado Canario Disperso (Dispersed Canarian Legacy). The symposium will bring together professionals who hold Canarian collections outside the islands, specialists who have worked on restitution processes, and institutions currently reviewing the history of their own holdings.",
+    "parrafo3": "The gathering will conclude with the Declaration of Santa Cruz de Tenerife, conceived as a starting point for keeping these conversations open beyond November."
+  },
+  "inscripcion": {
+    "titulo": "Registration",
+    "parrafo": "The academic sessions are in person and require prior registration until capacity is reached. You can reserve a place for one day or for both. After completing the form, you will receive confirmation by email."
+  },
+  "sedeSection": {
+    "titulo": "Venue"
+  },
+  "participantes": {
+    "titulo": "Participants",
+    "parrafo1": "The symposium brings together 24 guests linked to museums, universities, heritage administrations and international organizations. Each profile will show the role confirmed by the person themselves, a short biography and the title of their talk."
+  },
+  "programa": {
+    "titulo": "Programme",
+    "parrafo": "Talks will run for 10 minutes each. Each panel will then set aside time for conversation among the participants and questions from the audience.",
+    "dia1": "Day 1 — November 12",
+    "dia2": "Day 2 — November 13",
+    "moderador": "Moderator:"
+  },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. All rights reserved.",
     "legal": "This website is subject to Spanish legislation and the specific regulations of the Autonomous Community of the Canary Islands.",

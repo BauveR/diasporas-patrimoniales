@@ -22,6 +22,30 @@
     "location": "TEA, Santa Cruz de Tenerife",
     "cta": "Inscrever-me"
   },
+  "sobreEncuentro": {
+    "titulo": "Sobre o encontro",
+    "parrafo1": "Desde o século XVIII, objetos arqueológicos e restos humanos indígenas das Canárias foram sendo incorporados a coleções da Península e do estrangeiro. Alguns casos são bem conhecidos; outros apenas começam a ser reconstruídos.",
+    "parrafo2": "Diásporas Patrimoniales nasce do trabalho que o Governo das Canárias vem desenvolvendo em torno do Legado Canario Disperso (Legado Canário Disperso). O simpósio reunirá profissionais que custodiam coleções canárias fora das ilhas, especialistas que trabalharam em processos de restituição e instituições que estão a rever a história dos seus próprios acervos.",
+    "parrafo3": "O encontro concluirá com a Declaração de Santa Cruz de Tenerife, concebida como ponto de partida para manter abertas estas conversas depois de novembro."
+  },
+  "inscripcion": {
+    "titulo": "Inscrição",
+    "parrafo": "As sessões académicas são presenciais e requerem inscrição prévia até ao limite de lugares. Pode reservar vaga para um dos dias ou para os dois. Após concluir o formulário, receberá a confirmação por e-mail."
+  },
+  "sedeSection": {
+    "titulo": "Sede"
+  },
+  "participantes": {
+    "titulo": "Participantes",
+    "parrafo1": "O simpósio reúne 24 convidados e convidadas ligados a museus, universidades, administrações patrimoniais e organismos internacionais. Cada ficha mostrará o cargo confirmado pela própria pessoa, uma breve biografia e o título da sua intervenção."
+  },
+  "programa": {
+    "titulo": "Programa",
+    "parrafo": "As intervenções terão 10 minutos cada. Cada painel reservará depois tempo para a conversa entre os participantes e as perguntas do público.",
+    "dia1": "Dia 1 — 12 de novembro",
+    "dia2": "Dia 2 — 13 de novembro",
+    "moderador": "Moderador(a):"
+  },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Todos os direitos reservados.",
     "legal": "Este sítio está sujeito à legislação espanhola e à regulamentação específica da Comunidade Autónoma das Canárias.",
