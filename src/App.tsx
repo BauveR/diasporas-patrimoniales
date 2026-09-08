@@ -17,6 +17,7 @@ import { getLocaleFromPathname } from './i18n/routing'
 import { LOCALE_TAGS } from './i18n/config'
 import './App.css'
 
+const Intro          = lazy(() => import('./pages/Intro').then(m          => ({ default: m.Intro          })))
 const ActividadPage  = lazy(() => import('./pages/ActividadPage').then(m  => ({ default: m.ActividadPage  })))
 const ProfilePage    = lazy(() => import('./pages/ProfilePage').then(m    => ({ default: m.ProfilePage    })))
 const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ default: m.AdminPage      })))
@@ -63,6 +64,26 @@ export default function App() {
     if (i18n.language !== urlLocale) i18n.changeLanguage(urlLocale)
     document.documentElement.lang = LOCALE_TAGS[urlLocale]
   }, [urlLocale, i18n])
+
+  // /intro is a full-screen route that opts out of the site chrome entirely
+  // (no Navbar, no page-transition wrapper, no Footer/CookieBanner). Branching
+  // on the pathname here keeps the normal branch byte-identical to before, so
+  // every other page renders exactly as it did.
+  if (location.pathname === '/intro') {
+    return (
+      <ErrorBoundary>
+      <AuthProvider>
+        <DataProvider>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/intro" element={<Intro />} />
+            </Routes>
+          </Suspense>
+        </DataProvider>
+      </AuthProvider>
+      </ErrorBoundary>
+    )
+  }
 
   return (
     <ErrorBoundary>

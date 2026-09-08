@@ -210,7 +210,7 @@ function CameraRig({ targetX }: { targetX: number }) {
   return null
 }
 
-function ParticleSwarm() {
+export function ParticleSwarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
@@ -447,7 +447,7 @@ function ParticleSwarm() {
 // first rendered instead of removing it.
 const WARMUP_FRAMES = 3
 
-function WarmupGate({ onReady }: { onReady: () => void }) {
+export function WarmupGate({ onReady }: { onReady: () => void }) {
   const framesRendered = useRef(0)
   const firedRef = useRef(false)
 
