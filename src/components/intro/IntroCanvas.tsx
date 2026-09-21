@@ -4,14 +4,18 @@ import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
 import { GrainientBackground } from '../GrainientBackground'
-import { ParticleSwarm, WarmupGate } from '../PointsToShapes'
+import { WarmupGate } from '../PointsToShapes'
+import { IntroParticleSwarm } from './IntroParticleSwarm'
 
-// The /intro page's full-bleed background: the same particle swarm + grainient
-// shader + bloom the Home hero uses (ParticleSwarm/WarmupGate are imported
-// from PointsToShapes — reused as-is while the shape and params stay
-// identical), minus the Home-only camera pan (CameraRig), overlay split,
+// The /intro page's full-bleed background: the same grainient shader + bloom
+// the Home hero uses (WarmupGate is imported from PointsToShapes — reused
+// as-is), minus the Home-only camera pan (CameraRig), overlay split,
 // tuning-panel wiring and off-screen frameloop freeze. On /intro the canvas is
 // the whole page, so it's always visible and the camera sits centered.
+// The particle swarm itself is IntroParticleSwarm — a fork of
+// PointsToShapes' ParticleSwarm (same shape/params) that loops its
+// form/float/un-form cycle to match `cycleDuration` instead of forming once
+// and staying formed forever.
 const GRADIENT_ACCENT = '#9b2923'
 const GRADIENT_DOMINANT = '#000000'
 const GRADIENT_THIRD = '#000000'
@@ -64,7 +68,7 @@ function useIntroZoom() {
   return zoom
 }
 
-export function IntroCanvas() {
+export function IntroCanvas({ cycleDuration }: { cycleDuration?: number }) {
   const zoom = useIntroZoom()
   const [ready, setReady] = useState(false)
 
@@ -83,7 +87,7 @@ export function IntroCanvas() {
           contrast={1}
           saturation={1}
         />
-        <ParticleSwarm />
+        <IntroParticleSwarm cycleDuration={cycleDuration} />
         {!ready && <WarmupGate onReady={() => setReady(true)} />}
         <Effects disableGamma>
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />
