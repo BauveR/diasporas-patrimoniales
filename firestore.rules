@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Cross-user read, only to check role — the one place these rules look
+    // outside the document being evaluated.
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      // A new account creates its own doc, always as role 'user' — role
+      // escalation happens by hand in the console (or a future admin UI),
+      // never from the client that owns the doc.
+      allow create: if isOwner(uid) && request.resource.data.role == 'user';
+
+      // Owner can update their own doc (e.g. telefono) but not touch `role`;
+      // an admin can update anything, including promoting another user.
+      allow update: if isAdmin() ||
+        (isOwner(uid) && request.resource.data.role == resource.data.role);
+
+      allow delete: if isAdmin();
+    }
+
+    match /sedes/{sedeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /actividades/{actividadId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+
+      // A signed-in user may only nudge plazasDisponibles by exactly one per
+      // write — their own inscribirse()/liberarPlaza() transaction. Every
+      // other field, and any other kind of change to this one, stays
+      // admin-only (title, fecha, cancelada, etc. can't be touched this way).
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plazasDisponibles']) &&
+        (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles - 1 ||
+         request.resource.data.plazasDisponibles == resource.data.plazasDisponibles + 1)
+      );
+
+      match /inscritos/{uid} {
+        allow read: if isOwner(uid) || isAdmin();
+
+        allow create: if isOwner(uid) &&
+          request.resource.data.uid == uid &&
+          request.resource.data.acreditado == false;
+
+        // Only acreditar() (the door scanner) updates an inscripción after
+        // it's created — always admin, never the attendee themselves.
+        allow update: if isAdmin();
+
+        allow delete: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

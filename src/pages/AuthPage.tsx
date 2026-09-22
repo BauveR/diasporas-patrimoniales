@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { mockSendPasswordReset } from '../lib/mockAuth'
+import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { isValidEmail } from '../utils/validators'
 
@@ -84,7 +84,7 @@ export function AuthPage({ isModal = false }: Props) {
     setError('')
     setBusy(true)
     try {
-      await mockSendPasswordReset(email)
+      await sendPasswordReset(email)
       setResetSent(true)
     } catch (err) {
       const code = (err as { code?: string }).code ?? ''

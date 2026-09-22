@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { MockUser } from '../lib/mockAuth'
+import type { AppUser } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
 import { liberarPlaza, YaLiberadaError } from '../lib/db'
@@ -14,7 +14,7 @@ const today = new Date().toISOString().split('T')[0]
 
 type Tab = 'todas' | 'proximas' | 'pasadas'
 
-function getInitials(user: MockUser): string {
+function getInitials(user: AppUser): string {
   if (user.displayName) {
     return user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }

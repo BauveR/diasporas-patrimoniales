@@ -35,7 +35,7 @@ export type Participante = {
 // URL exacta hasta que se las "engaña" con un parámetro distinto. Subir
 // este número (v=2, v=3...) cada vez que se reemplacen fotos manteniendo el
 // nombre fuerza a traer la versión nueva de las 25 de una sola vez.
-const IK_CACHE_BUST = 'v=4'
+const IK_CACHE_BUST = 'v=5'
 
 // Miniatura para la grilla (ParticipanteCard): solo ancho (256px — 2x del
 // tamaño real que se muestra, 112-128px, para que se vea nítido en retina),

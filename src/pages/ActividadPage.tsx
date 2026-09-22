@@ -446,21 +446,31 @@ export function ActividadPage() {
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
   const [showQR, setShowQR] = useState(false)
+  const [miToken, setMiToken] = useState<string | null>(null)
 
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
-  // getTelefonoForUser is a synchronous in-memory lookup (the real Firestore
-  // read it replaces was async), so the setState is deferred a tick — keeps
-  // it out of the synchronous render/effect cycle rather than settling
-  // immediately, same as the original network read would.
   useEffect(() => {
     if (!user) return
     const uid = user.uid
-    Promise.resolve().then(() => {
-      const guardado = getTelefonoForUser(uid)
-      if (guardado) setTelefono(guardado)
+    let cancelled = false
+    getTelefonoForUser(uid).then(guardado => {
+      if (!cancelled && guardado) setTelefono(guardado)
     })
+    return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid])
+
+  // El token del QR (para la vista fromPerfil) — una lectura propia, no
+  // derivable de `inscripcionIds` (que solo trae los ids de actividad).
+  useEffect(() => {
+    if (!user || !actividad || !fromPerfil) return
+    let cancelled = false
+    getMiToken(actividad.id, user.uid).then(token => {
+      if (!cancelled) setMiToken(token ?? null)
+    })
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, actividad?.id, fromPerfil])
 
   const today = new Date().toISOString().split('T')[0]
   const esPasada    = actividad ? actividad.fecha < today : false
@@ -572,11 +582,10 @@ export function ActividadPage() {
 
   // ── Vista fromPerfil (modal estrecho) ───────────────────────────────────────
   if (fromPerfil && isModal) {
-    const token = user ? getMiToken(actividad.id, user.uid) : null
     return (
       <div className="flex flex-col" style={labelStyle}>
-        {showQR && token && (
-          <MiQRModal token={token} titulo={actividad.titulo} onClose={() => setShowQR(false)} />
+        {showQR && miToken && (
+          <MiQRModal token={miToken} titulo={actividad.titulo} onClose={() => setShowQR(false)} />
         )}
 
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
