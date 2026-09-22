@@ -1,38 +1,376 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PARTICIPANTES, type Participante } from '../data/participantes'
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion'
+import { PARTICIPANTES, type Participante, fotoThumbnail, fotoCompleta } from '../data/participantes'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
+import { useIsDesktop } from '../hooks/useIsDesktop'
+import type { Locale } from '../i18n/config'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
-function ParticipanteCard({ nombre, cargo, foto }: Pick<Participante, 'nombre' | 'cargo' | 'foto'>) {
+// La grilla de participantes solo es de 5 columnas desde md: (768px, ver el
+// className del grid en ParticipantesSection) — entre 640 y 767px sigue
+// siendo de 3 (useIsDesktop ya da true ahí). El panel expandido que fusiona
+// 2 columnas (ParticipanteExpandido) solo tiene sentido con 5 columnas
+// reales; en el rango de 3 se sigue usando el modal centrado de siempre.
+const FIVE_COL_BREAKPOINT = '(min-width: 768px)'
+function useIsFiveColumns() {
+  const [isFiveCol, setIsFiveCol] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(FIVE_COL_BREAKPOINT).matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(FIVE_COL_BREAKPOINT)
+    const handler = (e: MediaQueryListEvent) => setIsFiveCol(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isFiveCol
+}
+
+function FotoPlaceholder() {
   return (
-    <div className="group flex flex-col items-center text-center">
-      <div className="mb-4 h-28 w-28 overflow-hidden rounded-full border border-transparent bg-stone-100 transition-colors duration-300 group-hover:border-[#9b2923] sm:h-32 sm:w-32">
-        {foto ? (
-          <img src={foto} alt={nombre} className="h-full w-full object-cover" />
-        ) : (
-          // Placeholder genérico — sin foto real todavía (ver participantes.ts).
-          <div className="flex h-full w-full items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="h-12 w-12 text-stone-300">
-              <circle cx="12" cy="8" r="3.2" />
-              <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
-            </svg>
-          </div>
-        )}
-      </div>
-      <h3 className="mb-1 text-sm font-semibold text-stone-800 transition-colors duration-300 group-hover:text-[#9b2923]" style={labelStyle}>
-        {nombre}
-      </h3>
-      <span className="text-xs text-stone-400" style={labelStyle}>
-        {cargo}
-      </span>
+    <div className="flex h-full w-full items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="h-12 w-12 text-stone-300">
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
+      </svg>
     </div>
   )
 }
 
-export function ParticipantesSection() {
+function ParticipanteCard({
+  nombre,
+  cargo,
+  foto,
+  onFotoClick,
+}: Pick<Participante, 'nombre' | 'foto'> & { cargo: string; onFotoClick: () => void }) {
+  return (
+    // Toda la tarjeta es un solo botón (antes solo la foto lo era) — así se
+    // puede abrir el popup haciendo clic en cualquier parte, incluida la
+    // placa. `group` deja que la foto reaccione al hover del botón entero,
+    // no solo al propio (ver group-hover más abajo). Sin ancho fijo: ocupa
+    // el ancho real de su celda en la grilla.
+    <button type="button" onClick={onFotoClick} aria-label={nombre} className="group flex w-full flex-col text-left">
+      {/* Cuadrado, más chico que el ancho de la celda (w-[75%], centrado) y
+          sin fondo propio (fondo transparente real del PNG) —
+          object-contain en vez de cover, a tono con "que no se corten" del
+          popup. relative z-0 + group-hover (en vez de hover propio, ahora
+          que el click está en el botón padre): el `transform` del scale le
+          abre su propio stacking context, así que sin z-index explícito acá
+          y z-10 en la placa, al crecer se pintaba por encima de la placa. */}
+      <div className="relative z-0 mx-auto aspect-square w-[75%] overflow-hidden transition-transform duration-300 group-hover:scale-105">
+        {foto ? (
+          <img src={foto} alt={nombre} loading="lazy" decoding="async" className="h-full w-full object-contain" />
+        ) : (
+          <FotoPlaceholder />
+        )}
+      </div>
+      {/* Placa pegada directo a la foto (sin gap), mismo ancho que la
+          celda — al ser más angosta que la foto queda como una base
+          ligeramente más ancha asomando debajo.
+
+          Patrón de grilla de speakers/equipo de la industria (SU.org y
+          similares, revisado antes en esta conversación): la tarjeta de la
+          grilla NUNCA muestra la bio completa, muestra nombre + una
+          descripción corta truncada, y el texto completo vive en el
+          detalle al hacer clic — que acá ya existe (ParticipanteModal/
+          ParticipanteSheet). Por eso el cargo va con line-clamp (3 líneas)
+          en vez de intentar que quepa completo — eso era lo que obligaba a
+          una placa gigante para calzar con la persona de cargo más largo,
+          dejando hueco vacío en las otras 24. Con el texto acotado,
+          min-h-32 (128px) alcanza para nombre (hasta 2 líneas) + cargo
+          (hasta 3) + separador + padding, y las 25 quedan parejas de
+          verdad, sin ese hueco.
+
+          Formación editorial: el nombre vive en una zona de alto fijo
+          (min-h-10 = 40px, lo que ocupan 2 líneas de text-sm) en vez de
+          fluir pegado al cargo — así el cargo siempre arranca en el mismo
+          punto Y sea cual sea el nombre. Dentro de esa zona, flex +
+          items-center centra el nombre verticalmente. La línea fina debajo
+          (el separador) marca ese límite fijo, como en un créditos/masthead
+          editorial.
+
+          Color: arranca en el rojo teja de marca (#9b2923, el mismo del
+          navbar/footer) y pasa a negro cuando la tarjeta entra en viewport
+          (whileInView, una sola vez) — el mismo momento en que RevealItem
+          la hace aparecer (fade + slide), pero animando el color por su
+          cuenta en vez de sumarlo a esas variants compartidas (que las usan
+          también otras secciones del sitio; tocarlas ahí las afectaría a
+          todas). */}
+      <motion.div
+        className="relative z-10 flex min-h-32 flex-col justify-start rounded-2xl px-4 py-3 text-center"
+        initial={{ backgroundColor: '#9b2923' }}
+        whileInView={{ backgroundColor: '#000000' }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+      >
+        <div className="flex min-h-10 flex-col items-center justify-center">
+          <h3 className="line-clamp-2 font-mattone text-sm font-normal text-white">{nombre}</h3>
+        </div>
+        <div className="mx-auto my-2 h-px w-8 bg-white/30" />
+        <span className="line-clamp-3 text-xs text-white" style={labelStyle}>
+          {cargo}
+        </span>
+      </motion.div>
+    </button>
+  )
+}
+
+// Bloque de nombre/cargo/título/bio — el único pedazo que de verdad comparten
+// el sheet mobile (columna, centrado) y el modal desktop/tablet (fila,
+// alineado a la izquierda); cada uno decide layout y tamaño de foto por su
+// lado en vez de forzar un solo componente a las dos formas.
+function ParticipanteTextos({
+  participante,
+  className = '',
+  dark = false,
+}: {
+  participante: Participante
+  className?: string
+  // El panel expandido en la grilla (ParticipanteExpandido) va sobre fondo
+  // negro; sheet/modal van sobre blanco — mismo componente, paleta de texto
+  // distinta según el fondo en vez de forzar un solo esquema de color.
+  dark?: boolean
+}) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language as Locale
+  return (
+    <div className={`flex flex-col gap-3 ${className}`}>
+      <div>
+        <h3 className={`font-mattone text-lg font-bold ${dark ? 'text-white' : 'text-stone-900'}`} style={labelStyle}>
+          {participante.nombre}
+        </h3>
+        <p className={`text-sm ${dark ? 'text-white/60' : 'text-stone-400'}`} style={labelStyle}>
+          {participante.cargo[locale] || t('participantes.cargoPendiente')}
+        </p>
+      </div>
+      {participante.tituloIntervencion && (
+        <p className={`text-sm font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-[#9b2923]'}`} style={labelStyle}>
+          {participante.tituloIntervencion}
+        </p>
+      )}
+      <p className={`text-sm leading-relaxed ${dark ? 'text-white/80' : 'text-stone-600'}`} style={labelStyle}>
+        {participante.bio[locale] || t('participantes.bioPendiente')}
+      </p>
+    </div>
+  )
+}
+
+function ParticipanteFoto({
+  participante,
+  className,
+  circular = true,
+}: {
+  participante: Participante
+  className: string
+  // Experimento a pedido: en los popups (sheet/modal) probar sin el círculo,
+  // ya que las fotos son PNG y forzarlas a un círculo recorta contenido que
+  // un recuadro completo (object-contain, sin crop) no recortaría. La
+  // tarjeta de la grilla (ParticipanteCard) no usa este componente, así que
+  // no se toca.
+  circular?: boolean
+}) {
+  return (
+    <div
+      className={`shrink-0 overflow-hidden ${circular ? 'rounded-full border border-stone-100 bg-stone-100' : 'bg-stone-100'} ${className}`}
+    >
+      {participante.foto ? (
+        <img
+          src={fotoCompleta(participante)}
+          alt={participante.nombre}
+          className={`h-full w-full ${circular ? 'object-cover' : 'object-contain'}`}
+        />
+      ) : (
+        <FotoPlaceholder />
+      )}
+    </div>
+  )
+}
+
+function CerrarButton({ onClose, className }: { onClose: () => void; className: string }) {
   const { t } = useTranslation()
+  return (
+    <button type="button" onClick={onClose} aria-label={t('participantes.cerrar')} className={className}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </button>
+  )
+}
+
+// Tarjeta tipo iOS que sube desde abajo — mobile (< 640px, ver
+// ParticipantesSection). `drag="y"` + dragConstraints/dragElastic dejan
+// arrastrarla hacia abajo para cerrarla, además del backdrop y el botón X.
+function ParticipanteSheet({ participante, onClose }: { participante: Participante; onClose: () => void }) {
+  const handleDragEnd = (_e: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
+    if (info.offset.y > 120 || info.velocity.y > 500) onClose()
+  }
+
+  return (
+    <>
+      <motion.div
+        className="fixed inset-0 z-[1500] bg-black/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white shadow-xl"
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.6 }}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-1.5 w-10 rounded-full bg-stone-300" />
+        </div>
+        <CerrarButton
+          onClose={onClose}
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
+        />
+        <div className="flex flex-col items-center gap-4 px-8 pt-4 pb-8 text-center">
+          <ParticipanteFoto participante={participante} className="h-28 w-28" circular={false} />
+          <ParticipanteTextos participante={participante} className="items-center text-center" />
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// Modal centrado — desktop/tablet (≥ 640px, `useIsDesktop`). Mismo lenguaje
+// visual que ActividadModal/AuthModal (backdrop + scale-in) en vez del sheet
+// que sube desde abajo, que en pantallas anchas no tiene el mismo sentido
+// "tipo iOS" (no hay borde inferior de pantalla al que anclarse).
+// Foto a la izquierda / texto a la derecha. Ancho/alto ajustados a pedido en
+// pasos sucesivos desde la versión centrada original (24rem): +60% ancho,
+// luego +50% más (38.4rem→57.6rem); alto +30% y luego -10% (35rem→31.5rem).
+// El padding es asimétrico (pl-28 > pr-14), no `justify-center`, para
+// correr la foto hacia la derecha en vez de dejarla pegada al borde
+// izquierdo. Foto +20% (16rem→19.2rem); texto en `max-w-sm` (más ancho que
+// el `max-w-xs` anterior) para aprovechar el espacio ganado.
+function ParticipanteModal({ participante, onClose }: { participante: Participante; onClose: () => void }) {
+  return (
+    <>
+      <motion.div
+        className="fixed inset-0 z-[1500] bg-black/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="fixed inset-0 z-[1600] flex items-center justify-center p-6 pointer-events-none"
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
+        <div
+          className="relative w-full max-w-[57.6rem] min-h-[31.5rem] max-h-[85vh] overflow-y-auto rounded-3xl bg-white shadow-xl pointer-events-auto"
+          onClick={e => e.stopPropagation()}
+        >
+          <CerrarButton
+            onClose={onClose}
+            className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
+          />
+          <div className="flex h-full min-h-[31.5rem] items-center gap-10 py-10 pr-14 pl-28">
+            <ParticipanteFoto participante={participante} className="h-[19.2rem] w-[19.2rem]" circular={false} />
+            <ParticipanteTextos participante={participante} className="max-w-sm text-left" />
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// Panel que "nace" en el lugar donde estaba la tarjeta clickeada, ocupando
+// 3 columnas de la grilla (foto izquierda, texto completo a la derecha) —
+// alternativa a reflowar el grid de verdad: es un elemento `position:
+// absolute` ubicado por líneas de grid (`gridColumn`/`gridRow` inline), así
+// no contribuye al alto de esa fila ni corre a las otras tarjetas (los 25
+// siguen en su lugar normal de siempre; este panel las tapa visualmente
+// nada más). `overflow-y-auto` en el texto es la red de seguridad si algún
+// bio puntual no entra en el alto de una fila.
+//
+// SPAN=3 centrado en la tarjeta clickeada cuando hay lugar a ambos lados
+// (come un vecino de cada lado, no dos del mismo): columna ideal de inicio
+// = posición-1 (así la clickeada queda en el medio de las 3), recortada a
+// [1, columnas-SPAN+1] para no salirse de la fila de 5. Con eso: posición 1
+// y 2 arrancan en la columna 1 (comen a la derecha, no hay a la izquierda);
+// posición 3 queda perfectamente centrada (columnas 2-4); posición 4 y 5
+// arrancan en la columna 3 (comen a la izquierda, no hay a la derecha).
+const EXPANDED_SPAN = 3
+const COLUMNS_PER_ROW = 5
+function ParticipanteExpandido({
+  participante,
+  index,
+  onClose,
+}: {
+  participante: Participante
+  index: number
+  onClose: () => void
+}) {
+  const row = Math.floor(index / COLUMNS_PER_ROW) + 1
+  const colInRow = (index % COLUMNS_PER_ROW) + 1
+  const idealStart = colInRow - 1
+  const maxStart = COLUMNS_PER_ROW - EXPANDED_SPAN + 1
+  const startCol = Math.min(Math.max(idealStart, 1), maxStart)
+  return (
+    <motion.div
+      style={{ gridColumn: `${startCol} / span ${EXPANDED_SPAN}`, gridRow: `${row} / span 1` }}
+      // bg-stone-100: mismo gris que el fondo de toda la sección (antes
+      // bg-black) — con las dos columnas ahora del mismo color que lo que
+      // hay detrás, el border + shadow-xl son lo que le da separación
+      // visual al panel, no el contraste de color.
+      className="absolute inset-0 z-20 flex overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-xl"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      {/* Columna de foto un 30% más chica que antes (2/5 = 40% → 28%) —
+          object-contain (no cover) para que el fondo gris se note alrededor
+          de la foto en vez de quedar tapado por un recorte a pantalla
+          completa. La columna de texto gana lo que la foto cede. */}
+      <div className="h-full w-[28%] shrink-0">
+        {participante.foto ? (
+          <img
+            src={fotoCompleta(participante)}
+            alt={participante.nombre}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <FotoPlaceholder />
+        )}
+      </div>
+      <div className="flex w-[72%] flex-col justify-center gap-3 overflow-y-auto px-6 py-6 text-left">
+        {/* Sin `dark`: paleta gris de siempre (stone-900/400/600), pensada
+            para fondo claro — el panel ya no es negro. */}
+        <ParticipanteTextos participante={participante} />
+      </div>
+      <CerrarButton
+        onClose={onClose}
+        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-stone-600 transition-colors hover:bg-black/10"
+      />
+    </motion.div>
+  )
+}
+
+export function ParticipantesSection() {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language as Locale
+  const isDesktop = useIsDesktop()
+  const isFiveCol = useIsFiveColumns()
+  const [selected, setSelected] = useState<Participante | null>(null)
+  const selectedIndex = selected ? PARTICIPANTES.findIndex(p => p.id === selected.id) : -1
 
   return (
     <section id="participantes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
@@ -50,24 +388,54 @@ export function ParticipantesSection() {
           </RevealOnScroll>
         </div>
 
-        {/* 24 entra parejo en 2/3/4/6 columnas — a diferencia de la
-            plantilla de referencia (11 miembros), no hace falta el
-            col-span/col-start manual que usaba para centrar una última fila
-            incompleta. staggerChildren bajo (0.06) porque son 24 tarjetas:
-            con el 0.12 por defecto la última no arrancaría hasta ~2.8s
-            después de la primera; a 0.06 el total baja a ~1.4s. */}
+        {/* 25 ponentes → grilla de 5 columnas (5×5 en desktop), sin el
+            col-span/col-start manual que usaba la plantilla de referencia
+            (11 miembros) para centrar una última fila incompleta: 25 entra
+            parejo en 5. staggerChildren bajo (0.06) porque son 25 tarjetas:
+            con el 0.12 por defecto la última no arrancaría hasta ~3s después
+            de la primera; a 0.06 el total baja a ~1.5s. */}
         <RevealGroup
-          className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+          className="relative grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 md:grid-cols-5"
           amount={0.05}
           staggerChildren={0.06}
         >
           {PARTICIPANTES.map(p => (
             <RevealItem key={p.id}>
-              <ParticipanteCard nombre={p.nombre} cargo={p.cargo} foto={p.foto} />
+              <ParticipanteCard
+                nombre={p.nombre}
+                cargo={p.cargo[locale] || t('participantes.cargoPendiente')}
+                foto={fotoThumbnail(p)}
+                onFotoClick={() => setSelected(p)}
+              />
             </RevealItem>
           ))}
+
+          {/* Solo con 5 columnas reales (ver useIsFiveColumns) — ahí es
+              donde la cuenta fila/columna de ParticipanteExpandido tiene
+              sentido. En 3 o 2 columnas (tablet/mobile) se sigue usando el
+              modal/sheet de siempre, más abajo. */}
+          <AnimatePresence>
+            {selected && isFiveCol && selectedIndex >= 0 && (
+              <ParticipanteExpandido
+                key={selected.id}
+                participante={selected}
+                index={selectedIndex}
+                onClose={() => setSelected(null)}
+              />
+            )}
+          </AnimatePresence>
         </RevealGroup>
       </div>
+
+      <AnimatePresence>
+        {selected &&
+          !isFiveCol &&
+          (isDesktop ? (
+            <ParticipanteModal participante={selected} onClose={() => setSelected(null)} />
+          ) : (
+            <ParticipanteSheet participante={selected} onClose={() => setSelected(null)} />
+          ))}
+      </AnimatePresence>
     </section>
   )
 }

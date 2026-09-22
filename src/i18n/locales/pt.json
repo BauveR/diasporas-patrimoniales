@@ -16,42 +16,76 @@
     "cerrarSesion": "Terminar sessão"
   },
   "hero": {
-    "headline": "Um olhar a partir das Canárias sobre a dispersão e a restituição dos legados arqueológicos",    "description": "Parte do património arqueológico canário conserva-se hoje fora do arquipélago. Nos dias 12 e 13 de novembro, Tenerife reunirá responsáveis de museus e especialistas da Europa, África e América para seguir a história dessas coleções e discutir que relações podem construir-se hoje com os lugares de onde provêm.",
+    "headline": "Um olhar a partir das Canárias sobre a dispersão e a restituição dos legados arqueológicos",
+    "description": "Parte do património arqueológico das Ilhas Canárias encontra-se hoje conservada fora do arquipélago. Nos dias 12 e 13 de novembro, Tenerife reunirá profissionais de museus e especialistas da Europa, África e Américas para reconstruir a história dessas coleções e discutir as relações que hoje podem ser estabelecidas com os territórios de onde procedem.",
     "simposio": "Simpósio Internacional",
-    "dateLine": "12 e 13 de novembro de 2026",
+    "dateLine": "12–13 de novembro de 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Inscrever-me"
+    "cta": "Inscrever-me",
+    "programCta": "Consultar o programa"
   },
   "sobreEncuentro": {
-    "titulo": "Sobre o encontro",
-    "parrafo1": "Desde o século XVIII, objetos arqueológicos e restos humanos indígenas das Canárias foram sendo incorporados a coleções da Península e do estrangeiro. Alguns casos são bem conhecidos; outros apenas começam a ser reconstruídos.",
-    "parrafo2": "Diásporas Patrimoniales nasce do trabalho que o Governo das Canárias vem desenvolvendo em torno do Legado Canario Disperso (Legado Canário Disperso). O simpósio reunirá profissionais que custodiam coleções canárias fora das ilhas, especialistas que trabalharam em processos de restituição e instituições que estão a rever a história dos seus próprios acervos.",
-    "parrafo3": "O encontro concluirá com a Declaração de Santa Cruz de Tenerife, concebida como ponto de partida para manter abertas estas conversas depois de novembro."
+    "titulo": "Sobre o simpósio",
+    "parrafo1": "A partir do século XVIII, objetos arqueológicos e restos humanos indígenas das Ilhas Canárias passaram a integrar coleções em Espanha continental e no estrangeiro. Alguns destes percursos são bem conhecidos; outros estão apenas agora a ser reconstruídos.",
+    "parrafo2": "Diásporas Patrimoniales nasce do trabalho desenvolvido pelo Governo das Ilhas Canárias através do programa Legado Canario Disperso. O simpósio reunirá profissionais responsáveis por coleções canárias conservadas fora das ilhas, especialistas envolvidos em processos de restituição e instituições que estão a rever a história das suas próprias coleções.",
+    "parrafo3": "O encontro terminará com a Declaração de Santa Cruz de Tenerife, concebida como um ponto de partida para dar continuidade a estas conversas depois de novembro."
   },
   "inscripcion": {
     "titulo": "Inscrição",
-    "parrafo": "As sessões académicas são presenciais e requerem inscrição prévia até ao limite de lugares. Pode reservar vaga para um dos dias ou para os dois. Após concluir o formulário, receberá a confirmação por e-mail."
+    "parrafo": "As sessões científicas serão presenciais e requerem inscrição prévia, até ao limite da capacidade disponível. É possível inscrever-se num dos dias ou em ambos. Depois de preencher o formulário, receberá a confirmação por email.",
+    "encabezado": "2 dias",
+    "jornada1": "Dia 1 — 12 de novembro",
+    "jornada2": "Dia 2 — 13 de novembro"
   },
   "sedeSection": {
-    "titulo": "Sede"
+    "titulo": "Local",
+    "descripcion": "O TEA Tenerife Espacio de las Artes acolherá as sessões científicas. Projetado por Herzog & de Meuron em colaboração com Virgilio Gutiérrez, o edifício situa-se no centro de Santa Cruz de Tenerife, a poucos minutos a pé do MUNA. Na tarde de 12 de novembro, o programa continuará no Museu da Natureza e Arqueologia com uma breve visita opcional para os convidados, seguida da receção cultural."
   },
   "participantes": {
     "titulo": "Participantes",
-    "parrafo1": "O simpósio reúne 24 convidados e convidadas ligados a museus, universidades, administrações patrimoniais e organismos internacionais."
+    "parrafo1": "O simpósio reunirá 25 convidados ligados a museus, universidades, administrações patrimoniais e organizações internacionais.",
+    "cargoPendiente": "Cargo a confirmar",
+    "bioPendiente": "Biografia a confirmar",
+    "cerrar": "Fechar"
   },
   "programa": {
     "titulo": "Programa",
-    "parrafo": "As intervenções terão 10 minutos cada. Cada painel reservará depois tempo para a conversa entre os participantes e as perguntas do público.",
+    "parrafo": "Cada participante terá 10 minutos de intervenção. Em seguida, cada painel reservará um período amplo para a conversa entre os participantes e as perguntas do público.",
     "dia1": "Dia 1 — 12 de novembro",
     "dia2": "Dia 2 — 13 de novembro",
-    "moderador": "Moderador(a):"
+    "moderador": "Moderador:"
+  },
+  "programaItems": {
+    "d1-1": { "hora": "08h45–09h30", "titulo": "Receção e credenciação" },
+    "d1-2": { "hora": "09h30–10h15", "titulo": "Sessão de abertura. Apresentação e inauguração oficial" },
+    "d1-3": { "hora": "10h15–10h45", "titulo": "Pausa para café" },
+    "d1-4": { "hora": "10h45–12h00", "titulo": "Painel I. Colecionismo desigual e museus: histórias e práticas de apropriação" },
+    "d1-5": { "hora": "12h00–12h15", "titulo": "Pausa técnica e mudança de painel" },
+    "d1-6": { "hora": "12h15–13h30", "titulo": "Painel II. Cooperação e restituição: políticas e enquadramentos de atuação" },
+    "d1-7": { "hora": "13h30–15h30", "titulo": "Pausa para almoço" },
+    "d1-8": { "hora": "15h30–16h45", "titulo": "Painel III. Experiências internacionais: Europa, África e América Latina" },
+    "d1-9": { "hora": "16h45–17h15", "titulo": "Encerramento da jornada e deslocação para o MUNA" },
+    "d1-10": { "hora": "17h15–17h45", "titulo": "Visita opcional à Secção de Bioantropologia do MUNA (convidados)" },
+    "d1-11": { "hora": "17h15", "titulo": "Abertura do cocktail de boas-vindas e da receção institucional no pátio do MUNA" },
+    "d1-12": { "hora": "17h45–20h00", "titulo": "Evento cultural e receção institucional · MUNA" },
+    "d2-1": { "hora": "09h30–10h45", "titulo": "Painel IV. As Ilhas Canárias como estudo de caso: deslocalizações, parcerias e expectativas de retorno" },
+    "d2-2": { "hora": "10h45–11h15", "titulo": "Pausa para café" },
+    "d2-3": { "hora": "11h15–12h30", "titulo": "Painel V. Trajetórias-chave e debates singulares" },
+    "d2-4": { "hora": "12h30–14h30", "titulo": "Pausa para almoço" },
+    "d2-5": { "hora": "14h30–15h45", "titulo": "Painel VI. Restos humanos e ética: ciência, sensibilidade e responsabilidade pública" },
+    "d2-6": { "hora": "15h45–16h15", "titulo": "Pausa para café" },
+    "d2-7": { "hora": "16h15–17h00", "titulo": "Sessão de encerramento · Leitura da Declaração de Santa Cruz de Tenerife e encerramento institucional" }
+  },
+  "contacto": {
+    "titulo": "Contacto",
+    "parrafo": "Para qualquer questão sobre o simpósio ou a inscrição, escreva-nos para diasporaspatrimoniales@gmail.com."
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Todos os direitos reservados.",
     "legal": "Este sítio está sujeito à legislação espanhola e à regulamentação específica da Comunidade Autónoma das Canárias.",
     "privacyLink": "Política de privacidade e cookies",
     "legalPending": "[Aviso legal pendente]",
-  "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 novembro 2026"
+    "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 de novembro de 2026"
   },
   "sedes": {
     "eventosProximos_one": "{{count}} evento próximo",
@@ -66,7 +100,7 @@
   "actividadCard": {
     "verDetalle": "Ver detalhe",
     "cancelado": "Cancelado",
-    "agotada": "Esgotado",
+    "agotada": "Lotação esgotada",
     "finalizada": "Terminado",
     "abreEl": "Abre a {{fecha}}",
     "inscripcionesDesde": "Inscrições a partir de {{fecha}}",

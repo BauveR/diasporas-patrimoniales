@@ -63,6 +63,13 @@ const TimelineRow = memo(function TimelineRow({
   isLast: boolean
   moderadorLabel: string
 }) {
+  const { t } = useTranslation()
+  // La hora y el título vienen de programaItems.<id> en cada locale.json (el
+  // documento fuente trae texto propio por idioma, incluido el formato de
+  // hora: "08:45" en ES/EN, "08h45" en FR/PT) — item.hora/item.titulo de
+  // programa.ts quedan solo como defaultValue por si falta la clave.
+  const hora = t(`programaItems.${item.id}.hora`, { defaultValue: item.hora })
+  const titulo = t(`programaItems.${item.id}.titulo`, { defaultValue: item.titulo })
   const expandable = Boolean(item.moderador || item.participantes?.length)
   const headerId = `programa-header-${item.id}`
   const contentId = `programa-content-${item.id}`
@@ -84,13 +91,13 @@ const TimelineRow = memo(function TimelineRow({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] tracking-widest text-stone-400 uppercase" style={labelStyle}>
-                  {item.hora}
+                  {hora}
                 </p>
                 <h4
                   className="mt-1 text-sm leading-snug font-semibold text-stone-800 transition-colors group-hover:text-[#9b2923]"
                   style={labelStyle}
                 >
-                  {item.titulo}
+                  {titulo}
                 </h4>
                 {item.moderador && (
                   <p className="mt-1 text-xs text-stone-500" style={labelStyle}>
@@ -111,10 +118,10 @@ const TimelineRow = memo(function TimelineRow({
         ) : (
           <div>
             <p className="text-[11px] tracking-widest text-stone-400 uppercase" style={labelStyle}>
-              {item.hora}
+              {hora}
             </p>
             <p className="mt-1 text-sm text-stone-600" style={labelStyle}>
-              {item.titulo}
+              {titulo}
             </p>
           </div>
         )}

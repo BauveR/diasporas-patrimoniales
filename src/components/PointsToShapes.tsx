@@ -468,6 +468,7 @@ export default function PointsToShapes() {
   const location = useLocation()
   const locale = getLocaleFromPathname(location.pathname)
   const sedesHref = locale === DEFAULT_LOCALE ? '#sedes' : `/${locale}#sedes`
+  const programaHref = locale === DEFAULT_LOCALE ? '#programa' : `/${locale}#programa`
   const isLargeScreen = useIsLargeScreen()
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
@@ -731,10 +732,10 @@ export default function PointsToShapes() {
                   {t('hero.cta')}
                 </a>
                 <a
-                  href={sedesHref}
+                  href={programaHref}
                   className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
                 >
-                  {t('nav.programa')}
+                  {t('hero.programCta')}
                 </a>
               </div>
             </div>
@@ -792,10 +793,10 @@ export default function PointsToShapes() {
             {t('hero.cta')}
           </a>
           <a
-            href={sedesHref}
+            href={programaHref}
             className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
           >
-            {t('nav.programa')}
+            {t('hero.programCta')}
           </a>
         </div>
 

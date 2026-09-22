@@ -6,8 +6,8 @@
   "nav": {
     "inicio": "Home",
     "registro": "Registration",
-    "participantes": "Participants",
-    "programa": "Program",
+    "participantes": "Speakers",
+    "programa": "Programme",
     "contacto": "Contact",
     "login": "Login / My Account",
     "miCuenta": "My account",
@@ -16,42 +16,76 @@
     "cerrarSesion": "Sign out"
   },
   "hero": {
-    "headline": "A Canarian perspective on the dispersal and restitution of archaeological heritage",    "description": "A portion of the Canary Islands' archaeological heritage is held today outside the archipelago. On November 12 and 13, Tenerife will bring together museum directors and specialists from Europe, Africa, and the Americas to trace the history of these collections and discuss what relationships can be built today with the places they come from.",
+    "headline": "A view from the Canary Islands on the dispersal and restitution of archaeological legacies",
+    "description": "Part of the archaeological heritage of the Canary Islands is now held outside the archipelago. On 12 and 13 November, Tenerife will bring together museum professionals and specialists from Europe, Africa and the Americas to trace the histories of these collections and discuss the relationships that can be built today with the places from which they came.",
     "simposio": "International Symposium",
-    "dateLine": "November 12–13, 2026",
+    "dateLine": "12–13 November 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Sign me up"
+    "cta": "Register",
+    "programCta": "View programme"
   },
   "sobreEncuentro": {
-    "titulo": "About the gathering",
-    "parrafo1": "Since the 18th century, archaeological objects and Indigenous human remains from the Canary Islands have been incorporated into collections in mainland Spain and abroad. Some cases are well documented; others are only beginning to be reconstructed.",
-    "parrafo2": "Diásporas Patrimoniales grows out of the work the Government of the Canary Islands has been carrying out around the Legado Canario Disperso (Dispersed Canarian Legacy). The symposium will bring together professionals who hold Canarian collections outside the islands, specialists who have worked on restitution processes, and institutions currently reviewing the history of their own holdings.",
-    "parrafo3": "The gathering will conclude with the Declaration of Santa Cruz de Tenerife, conceived as a starting point for keeping these conversations open beyond November."
+    "titulo": "About the symposium",
+    "parrafo1": "From the eighteenth century onwards, archaeological objects and Indigenous human remains from the Canary Islands entered collections in mainland Spain and abroad. Some of these histories are well known; others are only beginning to be reconstructed.",
+    "parrafo2": "Diásporas Patrimoniales grows out of the work developed by the Government of the Canary Islands through the Legado Canario Disperso programme. The symposium will bring together professionals responsible for Canarian collections abroad, specialists involved in restitution processes, and institutions reassessing the histories of their own collections.",
+    "parrafo3": "The meeting will conclude with the Santa Cruz de Tenerife Declaration, conceived as a starting point for continuing these conversations beyond November."
   },
   "inscripcion": {
     "titulo": "Registration",
-    "parrafo": "The academic sessions are in person and require prior registration until capacity is reached. You can reserve a place for one day or for both. After completing the form, you will receive confirmation by email."
+    "parrafo": "The academic sessions will take place in person and require advance registration, subject to venue capacity. You may register for either day or for both. A confirmation email will be sent once the form has been completed.",
+    "encabezado": "2 days",
+    "jornada1": "Day 1 — 12 November",
+    "jornada2": "Day 2 — 13 November"
   },
   "sedeSection": {
-    "titulo": "Venue"
+    "titulo": "Venue",
+    "descripcion": "TEA Tenerife Espacio de las Artes will host the academic sessions. Designed by Herzog & de Meuron together with Virgilio Gutiérrez, the building is located in central Santa Cruz de Tenerife, a short walk from MUNA. On the afternoon of 12 November, the programme will continue at the Museum of Nature and Archaeology with a short optional visit for invited participants followed by the cultural reception."
   },
   "participantes": {
-    "titulo": "Participants",
-    "parrafo1": "The symposium brings together 24 guests linked to museums, universities, heritage administrations and international organizations."
+    "titulo": "Speakers",
+    "parrafo1": "The symposium brings together 25 invited participants from museums, universities, heritage administrations and international organisations.",
+    "cargoPendiente": "Position to be confirmed",
+    "bioPendiente": "Biography to be confirmed",
+    "cerrar": "Close"
   },
   "programa": {
     "titulo": "Programme",
-    "parrafo": "Talks will run for 10 minutes each. Each panel will then set aside time for conversation among the participants and questions from the audience.",
-    "dia1": "Day 1 — November 12",
-    "dia2": "Day 2 — November 13",
+    "parrafo": "Each speaker will have 10 minutes. Every panel will then leave substantial time for discussion among participants and questions from the audience.",
+    "dia1": "Day 1 — 12 November",
+    "dia2": "Day 2 — 13 November",
     "moderador": "Moderator:"
+  },
+  "programaItems": {
+    "d1-1": { "hora": "08:45–09:30", "titulo": "Welcome and registration" },
+    "d1-2": { "hora": "09:30–10:15", "titulo": "Opening session. Welcome and official opening" },
+    "d1-3": { "hora": "10:15–10:45", "titulo": "Coffee break" },
+    "d1-4": { "hora": "10:45–12:00", "titulo": "Panel I. Unequal collecting and museums: histories and practices of appropriation" },
+    "d1-5": { "hora": "12:00–12:15", "titulo": "Technical break and panel changeover" },
+    "d1-6": { "hora": "12:15–13:30", "titulo": "Panel II. Cooperation and restitution: policies and frameworks for action" },
+    "d1-7": { "hora": "13:30–15:30", "titulo": "Lunch break" },
+    "d1-8": { "hora": "15:30–16:45", "titulo": "Panel III. International experiences: Europe, Africa and Latin America" },
+    "d1-9": { "hora": "16:45–17:15", "titulo": "End-of-day transition and transfer to MUNA" },
+    "d1-10": { "hora": "17:15–17:45", "titulo": "Optional visit to the Bioanthropology Section at MUNA (invited participants)" },
+    "d1-11": { "hora": "17:15", "titulo": "Welcome cocktail and institutional reception opens in the MUNA courtyard" },
+    "d1-12": { "hora": "17:45–20:00", "titulo": "Cultural event and institutional reception · MUNA" },
+    "d2-1": { "hora": "09:30–10:45", "titulo": "Panel IV. The Canary Islands as a case study: displacement, partnerships and expectations of return" },
+    "d2-2": { "hora": "10:45–11:15", "titulo": "Coffee break" },
+    "d2-3": { "hora": "11:15–12:30", "titulo": "Panel V. Key trajectories and distinctive debates" },
+    "d2-4": { "hora": "12:30–14:30", "titulo": "Lunch break" },
+    "d2-5": { "hora": "14:30–15:45", "titulo": "Panel VI. Human remains and ethics: science, sensitivity and public responsibility" },
+    "d2-6": { "hora": "15:45–16:15", "titulo": "Coffee break" },
+    "d2-7": { "hora": "16:15–17:00", "titulo": "Closing session · Reading of the Santa Cruz de Tenerife Declaration and institutional closing" }
+  },
+  "contacto": {
+    "titulo": "Contact",
+    "parrafo": "For questions about the symposium or registration, please write to diasporaspatrimoniales@gmail.com."
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. All rights reserved.",
     "legal": "This website is subject to Spanish legislation and the specific regulations of the Autonomous Community of the Canary Islands.",
     "privacyLink": "Privacy and cookies policy",
     "legalPending": "[Legal notice pending]",
-  "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 November 2026"
+    "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 November 2026"
   },
   "sedes": {
     "eventosProximos_one": "{{count}} upcoming event",
@@ -66,7 +100,7 @@
   "actividadCard": {
     "verDetalle": "View details",
     "cancelado": "Cancelled",
-    "agotada": "Sold out",
+    "agotada": "Fully booked",
     "finalizada": "Finished",
     "abreEl": "Opens on {{fecha}}",
     "inscripcionesDesde": "Registration opens {{fecha}}",

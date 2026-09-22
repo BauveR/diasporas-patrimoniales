@@ -22,6 +22,12 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
     day: 'numeric',
     month: 'short',
   })
+  // actividad.titulo vive hardcodeado en español en actividades.ts (id 1/2 son
+  // las únicas dos jornadas del evento) — acá se traduce solo lo que se
+  // muestra en esta tarjeta, sin tocar el dato en sí (lo usan también
+  // ActividadPage, AdminPage, el <title> del documento, etc.).
+  const tituloTraducido =
+    actividad.id === 1 ? t('inscripcion.jornada1') : actividad.id === 2 ? t('inscripcion.jornada2') : actividad.titulo
   const plazasPct = actividad.plazas === 0 ? null : actividad.plazasDisponibles / actividad.plazas
   const showPlazasBadge = plazasPct !== null && (plazasPct <= 0.10 || plazasPct < 0.40 || plazasPct >= 0.60)
   const today = new Date().toISOString().slice(0, 10)
@@ -40,7 +46,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
         <img
           src={actividad.imagen}
-          alt={actividad.titulo}
+          alt={tituloTraducido}
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />
         {/* Overlay inactiva */}
@@ -82,7 +88,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
           className="text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors"
           style={labelStyle}
         >
-          {actividad.titulo}
+          {tituloTraducido}
         </h3>
 
         {sede && (

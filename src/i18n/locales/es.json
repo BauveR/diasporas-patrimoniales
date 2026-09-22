@@ -21,7 +21,8 @@
     "simposio": "Simposio Internacional",
     "dateLine": "12 y 13 de noviembre de 2026",
     "location": "TEA, Santa Cruz de Tenerife",
-    "cta": "Inscribirme"
+    "cta": "Inscribirme",
+    "programCta": "Consultar programa"
   },
   "sobreEncuentro": {
     "titulo": "Sobre el encuentro",
@@ -31,28 +32,60 @@
   },
   "inscripcion": {
     "titulo": "Inscripción",
-    "parrafo": "Las sesiones académicas son presenciales y requieren inscripción previa hasta completar el aforo. Puedes reservar plaza para una de las jornadas o para las dos. Tras completar el formulario recibirás la confirmación por correo electrónico."
+    "parrafo": "Las sesiones académicas son presenciales y requieren inscripción previa hasta completar el aforo. Puedes reservar plaza para una de las jornadas o para las dos. Tras completar el formulario recibirás la confirmación por correo electrónico.",
+    "encabezado": "2 jornadas",
+    "jornada1": "Jornada 1 — 12 de noviembre",
+    "jornada2": "Jornada 2 — 13 de noviembre"
   },
   "sedeSection": {
-    "titulo": "Sede"
+    "titulo": "Sede",
+    "descripcion": "TEA Tenerife Espacio de las Artes será la sede de las sesiones académicas. El edificio, diseñado por Herzog & de Meuron junto a Virgilio Gutiérrez, se encuentra en el centro de Santa Cruz de Tenerife, a pocos pasos del MUNA. La tarde del 12 de noviembre el programa continuará en el Museo de la Naturaleza y Arqueología con una breve visita opcional para los invitados y la recepción cultural."
   },
   "participantes": {
     "titulo": "Participantes",
-    "parrafo1": "El simposio reúne a 24 invitados e invitadas vinculados a museos, universidades, administraciones patrimoniales y organismos internacionales."
+    "parrafo1": "El simposio reúne a 25 invitados e invitadas vinculados a museos, universidades, administraciones patrimoniales y organismos internacionales.",
+    "cargoPendiente": "Cargo por confirmar",
+    "bioPendiente": "Biografía por confirmar",
+    "cerrar": "Cerrar"
   },
   "programa": {
     "titulo": "Programa",
     "parrafo": "Las intervenciones serán de 10 minutos. Cada panel reservará después tiempo para la conversación entre los participantes y las preguntas del público.",
     "dia1": "Día 1 — 12 de noviembre",
     "dia2": "Día 2 — 13 de noviembre",
-    "moderador": "Moderador/a:"
+    "moderador": "Moderador:"
+  },
+  "programaItems": {
+    "d1-1": { "hora": "08:45–09:30", "titulo": "Recepción y acreditaciones" },
+    "d1-2": { "hora": "09:30–10:15", "titulo": "Acto de apertura. Presentación e inauguración" },
+    "d1-3": { "hora": "10:15–10:45", "titulo": "Pausa café" },
+    "d1-4": { "hora": "10:45–12:00", "titulo": "Panel I. Coleccionismo desigual y museos: historias y gestos de apropiación" },
+    "d1-5": { "hora": "12:00–12:15", "titulo": "Pausa técnica y cambio de panel" },
+    "d1-6": { "hora": "12:15–13:30", "titulo": "Panel II. Cooperación y restitución: políticas y marcos de actuación" },
+    "d1-7": { "hora": "13:30–15:30", "titulo": "Pausa para el almuerzo" },
+    "d1-8": { "hora": "15:30–16:45", "titulo": "Panel III. Experiencias internacionales: Europa, África y América Latina" },
+    "d1-9": { "hora": "16:45–17:15", "titulo": "Cierre de la jornada y transición al MUNA" },
+    "d1-10": { "hora": "17:15–17:45", "titulo": "Visita opcional a la Sección de Bioantropología del MUNA (invitados/as)" },
+    "d1-11": { "hora": "17:15", "titulo": "Apertura del cóctel de bienvenida y recepción institucional en el patio del MUNA" },
+    "d1-12": { "hora": "17:45–20:00", "titulo": "Evento cultural y recepción institucional · MUNA" },
+    "d2-1": { "hora": "09:30–10:45", "titulo": "Panel IV. Canarias como estudio de caso: deslocalizaciones, partenariados y expectativas de retorno" },
+    "d2-2": { "hora": "10:45–11:15", "titulo": "Pausa café" },
+    "d2-3": { "hora": "11:15–12:30", "titulo": "Panel V. Trayectorias clave y debates singulares" },
+    "d2-4": { "hora": "12:30–14:30", "titulo": "Pausa para el almuerzo" },
+    "d2-5": { "hora": "14:30–15:45", "titulo": "Panel VI. Restos humanos y ética: ciencia, sensibilidad y responsabilidad pública" },
+    "d2-6": { "hora": "15:45–16:15", "titulo": "Pausa café" },
+    "d2-7": { "hora": "16:15–17:00", "titulo": "Acto de clausura · Lectura de la Declaración de Santa Cruz de Tenerife y clausura institucional" }
+  },
+  "contacto": {
+    "titulo": "Contacto",
+    "parrafo": "Para cualquier duda sobre el simposio o la inscripción, puedes escribirnos a diasporaspatrimoniales@gmail.com."
   },
   "footer": {
     "rights": "© {{year}} Diásporas Patrimoniales. Todos los derechos reservados.",
     "legal": "Sitio web sujeto a la legislación española y a la normativa específica de la Comunidad Autónoma de Canarias.",
     "privacyLink": "Política de privacidad y cookies",
     "legalPending": "[Aviso legal pendiente]",
-  "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 noviembre 2026"
+    "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 noviembre 2026"
   },
   "sedes": {
     "eventosProximos_one": "{{count}} evento próximo",
@@ -67,7 +100,7 @@
   "actividadCard": {
     "verDetalle": "Ver detalle",
     "cancelado": "Cancelado",
-    "agotada": "Agotada",
+    "agotada": "Aforo completo",
     "finalizada": "Finalizada",
     "abreEl": "Abre el {{fecha}}",
     "inscripcionesDesde": "Inscripciones desde el {{fecha}}",

@@ -47,12 +47,20 @@ export function InscripcionSection() {
           // machinery is built for more items than the two fixed sessions
           // (Día 1 / Día 2) this event actually has, so these render
           // directly instead of through it.
-          <RevealGroup className="flex flex-wrap gap-8">
-            {sesiones.map(a => (
-              <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-[28rem]">
-                <ActividadCard actividad={a} />
-              </RevealItem>
-            ))}
+          <RevealGroup className="flex flex-col gap-4">
+            <span
+              className="text-xs font-bold tracking-widest text-stone-400 uppercase"
+              style={labelStyle}
+            >
+              {t('inscripcion.encabezado')}
+            </span>
+            <div className="flex flex-wrap gap-8">
+              {sesiones.map(a => (
+                <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-[28rem]">
+                  <ActividadCard actividad={a} />
+                </RevealItem>
+              ))}
+            </div>
           </RevealGroup>
         )}
       </div>

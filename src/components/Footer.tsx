@@ -11,12 +11,18 @@ import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arq
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
+const CONTACT_EMAIL = 'diasporaspatrimoniales@gmail.com'
+
 export function Footer() {
   const year = new Date().getFullYear()
   const { t } = useTranslation()
   const location = useLocation()
   const locale = getLocaleFromPathname(location.pathname)
   const privacyPath = locale === DEFAULT_LOCALE ? '/privacidad' : `/${locale}/privacidad`
+  // contacto.parrafo trae el email incrustado en la oración (así lo pide el
+  // documento en las 4 lenguas) — se parte por ese string para que siga
+  // siendo un mailto clicable en vez de mostrarlo dos veces.
+  const [contactoAntes, contactoDespues] = t('contacto.parrafo').split(CONTACT_EMAIL)
 
   return (
     <footer id="footer" className="scroll-mt-16" style={{ backgroundColor: '#9b2923' }}>
@@ -44,9 +50,13 @@ export function Footer() {
               <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-[3.375rem] w-auto object-contain" />
             </div>
             <div className="flex flex-col gap-1 text-sm text-white/80" style={labelStyle}>
-              <a href="mailto:diasporaspatrimoniales@gmail.com" className="transition-colors hover:text-white">
-                diasporaspatrimoniales@gmail.com
-              </a>
+              <p>
+                {contactoAntes}
+                <a href={`mailto:${CONTACT_EMAIL}`} className="transition-colors hover:text-white">
+                  {CONTACT_EMAIL}
+                </a>
+                {contactoDespues}
+              </p>
               <p>{t('footer.eventLine')}</p>
             </div>
           </div>
