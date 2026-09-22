@@ -6,9 +6,13 @@ import { isValidEmail } from '../utils/validators'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
+// user-not-found and wrong-password map to the same message on purpose —
+// distinguishing them tells an attacker which emails have accounts
+// (enumeration). handleReset() below already avoids this same trap for the
+// password-reset flow; this keeps login consistent with it.
 const AUTH_ERRORS: Record<string, string> = {
-  'auth/user-not-found':        'Usuario no encontrado',
-  'auth/wrong-password':        'Contraseña incorrecta',
+  'auth/user-not-found':        'Email o contraseña incorrectos',
+  'auth/wrong-password':        'Email o contraseña incorrectos',
   'auth/invalid-credential':    'Email o contraseña incorrectos',
   'auth/email-already-in-use':  'Este email ya está registrado',
   'auth/weak-password':         'La contraseña debe tener al menos 8 caracteres',

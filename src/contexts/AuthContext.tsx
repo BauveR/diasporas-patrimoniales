@@ -51,15 +51,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsub = subscribeAuthState(async authUser => {
       setUser(prev => mergeAuthUser(prev, authUser))
-      setLoading(false)
       if (!authUser) {
         setUserRole(null)
+        setLoading(false)
         return
       }
       // Firestore read, not derived from the auth user itself — role must
-      // never be something the client can assign to its own account.
+      // never be something the client can assign to its own account. Loading
+      // only clears once this resolves — ProtectedRoute's admin check reads
+      // userRole the instant loading flips false, so setting that too early
+      // (while userRole is still last-run's or null) bounces an admin back
+      // to /perfil for a frame before the real role lands.
       const role = await getUserRole(authUser.uid).catch(() => 'user' as UserRole)
       setUserRole(role)
+      setLoading(false)
     })
     return unsub
   }, [])

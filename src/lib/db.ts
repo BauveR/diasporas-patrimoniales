@@ -1,6 +1,6 @@
 // Real Firestore backend — the swap-in for the old in-memory mock, replacing
 // every export it had one-for-one so DataContext/AuthContext/AdminPage/
-// ActividadPage didn't need structural changes, just an async getMiToken /
+// ActividadPage didn't need structural changes, just an async
 // getTelefonoForUser (a real read can't be synchronous like the mock's map
 // lookup was — see ActividadPage.tsx for the small effect that adapts to it).
 import {
@@ -29,11 +29,6 @@ export type InscritoData = {
   displayName: string
   telefono: string
   inscritoEn: Date | null
-  // Acreditación en el evento (check-in por QR) — ver la sección "Acreditación"
-  // más abajo.
-  token: string
-  acreditado: boolean
-  acreditadoEn: Date | null
 }
 
 type Unsubscribe = () => void
@@ -74,17 +69,6 @@ export async function getTelefonoForUser(uid: string): Promise<string | undefine
   return (snap.data()?.telefono as string | undefined) || undefined
 }
 
-/**
- * A user's own accreditation token for one actividad — for showing them
- * their QR. Scoped to a single (actividadId, uid) pair rather than exposing
- * `getInscritos`' full attendee list: the Security Rules let a user read
- * only their own inscripción doc, never the whole subcollection.
- */
-export async function getMiToken(actividadId: number, uid: string): Promise<string | undefined> {
-  const snap = await getDoc(doc(db, 'actividades', String(actividadId), 'inscritos', uid))
-  return snap.data()?.token as string | undefined
-}
-
 // ── Inscription ───────────────────────────────────────────────────────────────
 
 export class SinPlazasError extends Error {
@@ -112,11 +96,6 @@ export function assertInscribible(actividad: Pick<Actividad, 'cancelada' | 'plaz
   if (apertura && apertura > today) throw new InscripcionNoAbiertaError()
 }
 
-function randomToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16)) // 128 bits de entropía
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
-}
-
 export async function inscribirse(
   actividadId: number,
   uid: string,
@@ -137,11 +116,9 @@ export async function inscribirse(
     const today = new Date().toISOString().slice(0, 10)
     assertInscribible(actividad, today)
 
-    const token = randomToken()
     tx.set(inscritoRef, {
       uid, email, displayName, telefono,
       inscritoEn: serverTimestamp(),
-      token, acreditado: false, acreditadoEn: null,
     })
     tx.update(actividadRef, { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
     tx.set(userRef, { telefono }, { merge: true })
@@ -162,63 +139,6 @@ export async function liberarPlaza(actividadId: number, uid: string): Promise<vo
       tx.update(actividadRef, {
         plazasDisponibles: Math.min((actividad.plazasDisponibles ?? 0) + 1, actividad.plazas),
       })
-    }
-  })
-}
-
-// ── Acreditación (check-in por QR) ──────────────────────────────────────────────
-// El QR de cada inscrito codifica únicamente `token` — un valor aleatorio
-// opaco, no un cálculo/firma sobre actividadId+uid. Con un secreto de firma
-// no habría dónde guardarlo con seguridad en una app 100% cliente (quedaría
-// expuesto en el JS del navegador, anulando la protección), y como acreditar
-// igual requiere una escritura en la base, la ventaja de "validar sin ir a
-// la base" de un token firmado no se aprovecha acá. Random + búsqueda directa
-// por token (collection group query) es el patrón estándar en ticketing.
-
-export class TokenInvalidoError extends Error {
-  constructor() { super('TOKEN_INVALIDO') }
-}
-
-export type AcreditarResult = {
-  displayName: string
-  actividadId: number
-  // true si el token ya estaba acreditado antes de este escaneo — permite
-  // que la UI del escáner muestre "ya acreditado" en vez de tratarlo como
-  // error cuando dos dispositivos (o el mismo, dos veces) escanean el mismo
-  // QR casi al mismo tiempo.
-  yaAcreditado: boolean
-  // Momento del primer escaneo válido. Con `yaAcreditado`, le permite al
-  // escáner mostrar "denegado, ya usado a las HH:MM" en un reescaneo —
-  // la señal que necesita quien acredita en persona para no dejar pasar a
-  // una segunda persona con el mismo QR compartido.
-  acreditadoEn: Date
-}
-
-export async function acreditar(token: string): Promise<AcreditarResult> {
-  const q = query(collectionGroup(db, 'inscritos'), where('token', '==', token))
-  const matches = await getDocs(q)
-  const match = matches.docs[0]
-  if (!match) throw new TokenInvalidoError()
-
-  const actividadId = Number(match.ref.parent.parent?.id)
-  const inscritoRef = match.ref
-  const scanTime = new Date() // reloj del cliente — un solo dispositivo escanea en la puerta, no hace falta serverTimestamp()
-
-  return runTransaction(db, async tx => {
-    const snap = await tx.get(inscritoRef)
-    if (!snap.exists()) throw new TokenInvalidoError()
-
-    const data = snap.data()
-    const yaAcreditado = !!data.acreditado
-    if (!yaAcreditado) {
-      tx.update(inscritoRef, { acreditado: true, acreditadoEn: scanTime })
-    }
-
-    return {
-      displayName: data.displayName as string,
-      actividadId,
-      yaAcreditado,
-      acreditadoEn: yaAcreditado ? (data.acreditadoEn as Timestamp).toDate() : scanTime,
     }
   })
 }
@@ -267,9 +187,6 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
       displayName: data.displayName as string,
       telefono: data.telefono as string,
       inscritoEn: data.inscritoEn ? (data.inscritoEn as Timestamp).toDate() : null,
-      token: data.token as string,
-      acreditado: !!data.acreditado,
-      acreditadoEn: data.acreditadoEn ? (data.acreditadoEn as Timestamp).toDate() : null,
     }
   })
 }

@@ -6,9 +6,8 @@ import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, getMiToken, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
+import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
-import { MiQRModal } from '../components/profile/MiQRModal'
 import { SITE_URL } from '../components/SeoHead'
 import type { Actividad } from '../data/actividades'
 
@@ -113,7 +112,6 @@ type BookingWidgetProps = {
   telefonoError: string
   onConfirmarInscripcion: () => void
   onCancelarTelefono: () => void
-  onVerQR?: () => void
   compact?: boolean
 }
 
@@ -126,7 +124,6 @@ export function BookingWidget({
   mostrandoTelefono, setMostrandoTelefono,
   telefono, onTelefonoChange, telefonoError,
   onConfirmarInscripcion, onCancelarTelefono,
-  onVerQR,
   compact = false,
 }: BookingWidgetProps) {
 
@@ -195,14 +192,6 @@ export function BookingWidget({
                 >
                   Ya inscrito ✓
                 </button>
-                {onVerQR && (
-                  <button
-                    onClick={onVerQR}
-                    className="w-full py-2.5 rounded-xl bg-stone-100 text-stone-600 text-[10px] tracking-widest uppercase hover:bg-stone-200 transition-colors cursor-pointer"
-                  >
-                    Ver QR
-                  </button>
-                )}
                 <button
                   onClick={() => setConfirmando(true)}
                   className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
@@ -445,8 +434,6 @@ export function ActividadPage() {
   const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
-  const [showQR, setShowQR] = useState(false)
-  const [miToken, setMiToken] = useState<string | null>(null)
 
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
   useEffect(() => {
@@ -459,18 +446,6 @@ export function ActividadPage() {
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid])
-
-  // El token del QR (para la vista fromPerfil) — una lectura propia, no
-  // derivable de `inscripcionIds` (que solo trae los ids de actividad).
-  useEffect(() => {
-    if (!user || !actividad || !fromPerfil) return
-    let cancelled = false
-    getMiToken(actividad.id, user.uid).then(token => {
-      if (!cancelled) setMiToken(token ?? null)
-    })
-    return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, actividad?.id, fromPerfil])
 
   const today = new Date().toISOString().split('T')[0]
   const esPasada    = actividad ? actividad.fecha < today : false
@@ -577,17 +552,12 @@ export function ActividadPage() {
     telefonoError,
     onConfirmarInscripcion: handleConfirmarInscripcion,
     onCancelarTelefono: handleCancelarTelefono,
-    onVerQR: fromPerfil ? () => setShowQR(true) : undefined,
   }
 
   // ── Vista fromPerfil (modal estrecho) ───────────────────────────────────────
   if (fromPerfil && isModal) {
     return (
       <div className="flex flex-col" style={labelStyle}>
-        {showQR && miToken && (
-          <MiQRModal token={miToken} titulo={actividad.titulo} onClose={() => setShowQR(false)} />
-        )}
-
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
           <span
             className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"

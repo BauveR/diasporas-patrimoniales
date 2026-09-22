@@ -33,7 +33,6 @@ import { useDataContext } from '../contexts/DataContext'
 import { isValidTelefono } from '../utils/validators'
 import { downloadCsv, toTsv } from '../utils/csv'
 import { formatMes } from '../utils/formatMes'
-import { AcreditarScanner } from '../components/admin/AcreditarScanner'
 import {
   updateActividad, cancelActividad, reactivarActividad, eliminarActividad,
   updateSede,
@@ -45,7 +44,7 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 const ACCENT = '#cd6a26'
 
-type AdminSection = 'sedes' | 'asistentes' | 'acreditar'
+type AdminSection = 'sedes' | 'asistentes'
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 
@@ -67,19 +66,9 @@ function IconUsers() {
   )
 }
 
-function IconQr() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />
-      <path d="M14 14h3v3h-3zM14 20h1M20 14v1M20 20h1v-3" />
-    </svg>
-  )
-}
-
 const NAV_ITEMS: NavItem[] = [
   { key: 'sedes',  label: 'Sede',        sublabel: 'Ver y editar',   Icon: IconBuilding     },
   { key: 'asistentes', label: 'Eventos',             sublabel: 'Asistentes',     Icon: IconUsers        },
-  { key: 'acreditar',  label: 'Acreditar',   sublabel: 'Escanear QR',   Icon: IconQr           },
 ]
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -1396,7 +1385,6 @@ export function AdminPage() {
 
           {section === 'sedes'  && <GestionSedes sedes={sedes} />}
           {section === 'asistentes' && <ControlAsistentes actividades={actividades} sedes={sedes} />}
-          {section === 'acreditar'  && <AcreditarScanner />}
 
         </div>
       </div>
