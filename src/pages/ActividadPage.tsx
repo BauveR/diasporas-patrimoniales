@@ -487,29 +487,15 @@ export function ActividadPage() {
       await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       setMostrandoTelefono(false)
       setShowSuccessPopup(true)
-      // Fire-and-forget: enviar email de confirmación
+      // Fire-and-forget: enviar email de confirmación. El servidor recalcula
+      // todo el contenido desde Firestore a partir de actividadId — no manda
+      // texto libre, así el endpoint no puede usarse para emails con datos
+      // arbitrarios (ver api/send-email.ts).
       user.getIdToken().then(idToken => {
-        const sede = sedes.find(c => c.id === actividad.sedeId)
-        const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-        })
         fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idToken,
-            email: user.email ?? '',
-            nombre: user.displayName ?? 'participante',
-            titulo: actividad.titulo,
-            fecha: fechaStr,
-            hora: actividad.hora,
-            duracion: actividad.duracion,
-            puntoEncuentro: actividad.puntoEncuentro,
-            organizador: actividad.organizador,
-            contacto: actividad.contacto,
-            sedeNombre: sede?.nombre,
-            sedeIsla: sede?.isla,
-          }),
+          body: JSON.stringify({ idToken, actividadId: actividad.id }),
         }).catch(() => { /* silencioso — inscripción ya completada */ })
       }).catch(() => { /* silencioso */ })
     } catch (err) {
