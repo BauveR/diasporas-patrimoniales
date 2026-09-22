@@ -195,7 +195,7 @@ export function ProfilePage() {
               <p className="text-sm text-stone-400 max-w-xs">Aún no te has inscrito en ninguna actividad</p>
             </div>
             <Link
-              to="/#actividades"
+              to="/#sedes"
               className="mt-2 px-6 py-2.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors"
             >
               Explorar actividades

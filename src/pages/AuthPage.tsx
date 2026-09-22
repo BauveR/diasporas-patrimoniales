@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { mockSendPasswordReset } from '../lib/mockAuth'
 import { useAuth } from '../contexts/AuthContext'
+import { isValidEmail } from '../utils/validators'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
@@ -54,6 +55,10 @@ export function AuthPage({ isModal = false }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!isValidEmail(email)) {
+      setError('Introduce un email válido (revisa que el dominio esté bien escrito)')
+      return
+    }
     if (view === 'register' && password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres')
       return
@@ -210,7 +215,7 @@ export function AuthPage({ isModal = false }: Props) {
         <p className="text-xs text-stone-400 tracking-wide">
           {view === 'login'
             ? 'Accede para inscribirte en actividades'
-            : 'Únete a los sedes históricas de Canarias'}
+            : 'Únete al simposio Diásporas Patrimoniales'}
         </p>
       </div>
 

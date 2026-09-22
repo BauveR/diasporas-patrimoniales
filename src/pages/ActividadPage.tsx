@@ -9,6 +9,7 @@ import { useDataContext } from '../contexts/DataContext'
 import { inscribirse, liberarPlaza, getTelefonoForUser, getMiToken, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import { MiQRModal } from '../components/profile/MiQRModal'
+import { SITE_URL } from '../components/SeoHead'
 import type { Actividad } from '../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -43,7 +44,7 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
           className="text-[10px] tracking-[0.25em] uppercase text-center"
           style={{ ...labelStyle, color: 'rgba(255,255,255,0.55)' }}
         >
-          Sedes Históricas de Canarias
+          Diásporas Patrimoniales
         </span>
 
         <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
@@ -430,7 +431,7 @@ export function ActividadPage() {
   useEffect(() => {
     if (!actividad) return
     const prevTitle = document.title
-    document.title = `${actividad.titulo} · Sedes Históricas de Canarias`
+    document.title = `${actividad.titulo} · Diásporas Patrimoniales`
     return () => { document.title = prevTitle }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actividad?.titulo])
@@ -695,7 +696,7 @@ export function ActividadPage() {
                   {actividad.tematica}
                 </span>
                 <ShareButton
-                  url={`https://sedeshistoricosdecanarias.com/actividades/${actividad.id}`}
+                  url={`${SITE_URL}/actividades/${actividad.id}`}
                   title={actividad.titulo}
                   text={`${fecha}${sede ? ` · ${sede.nombre}, ${sede.isla}` : ''}`}
                 />

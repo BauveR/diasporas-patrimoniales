@@ -1,5 +1,6 @@
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
+const CONTACT_EMAIL = 'diasporaspatrimoniales@gmail.com'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -30,10 +31,10 @@ export function PrivacidadPage() {
         <Section title="1. Responsable del tratamiento">
           <p>
             El responsable del tratamiento de los datos personales recogidos a través de esta plataforma es
-            la entidad gestora de <strong>Sedes Históricas de Canarias</strong>.
+            la entidad gestora de <strong>Diásporas Patrimoniales</strong>.
             Para cualquier consulta relacionada con la privacidad puede contactar en:{' '}
-            <a href="mailto:info@sedeshistoricosdecanarias.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
-              info@sedeshistoricosdecanarias.com
+            <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-2 hover:text-stone-700 transition-colors">
+              {CONTACT_EMAIL}
             </a>
           </p>
         </Section>
@@ -102,8 +103,8 @@ export function PrivacidadPage() {
           </ul>
           <p>
             Para ejercer cualquiera de estos derechos, contacta en{' '}
-            <a href="mailto:info@sedeshistoricosdecanarias.com" className="underline underline-offset-2 hover:text-stone-700 transition-colors">
-              info@sedeshistoricosdecanarias.com
+            <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-2 hover:text-stone-700 transition-colors">
+              {CONTACT_EMAIL}
             </a>.
             También tienes derecho a presentar una reclamación ante la{' '}
             <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">

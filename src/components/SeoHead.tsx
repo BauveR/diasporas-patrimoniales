@@ -3,8 +3,9 @@ import { ALL_LOCALES, DEFAULT_LOCALE, LOCALE_TAGS } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 
 // TODO: swap in the real production domain once it's live — needed for
-// absolute hreflang/canonical URLs to be meaningful to crawlers.
-const SITE_URL = 'https://diasporas-patrimoniales.example'
+// absolute hreflang/canonical URLs to be meaningful to crawlers. Exported so
+// other absolute-URL use sites (e.g. ShareButton links) stay in sync with it.
+export const SITE_URL = 'https://diasporas-patrimoniales.example'
 
 type Props = { title: string; description: string }
 
