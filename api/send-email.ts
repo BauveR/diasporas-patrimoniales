@@ -96,6 +96,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { error } = await resend.emails.send({ from, to: tokenEmail, subject, html, text })
   if (error) {
+    // No se expone al cliente (podría filtrar detalles del proveedor), pero
+    // sin esto el 502 queda sin ninguna pista en los Runtime Logs.
+    console.error('resend.emails.send failed:', error)
     return res.status(502).json({ error: 'email_send_failed' })
   }
 
