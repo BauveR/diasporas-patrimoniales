@@ -12,6 +12,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
+  "overrides": {
+    "jwks-rsa": "3.2.2"
+  },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.7",
