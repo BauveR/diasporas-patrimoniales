@@ -39,7 +39,7 @@
   },
   "sedeSection": {
     "titulo": "Lieu",
-    "descripcion": "TEA Tenerife Espacio de las Artes accueillera les sessions scientifiques. Conçu par Herzog & de Meuron avec Virgilio Gutiérrez, le bâtiment se situe au centre de Santa Cruz de Tenerife, à quelques minutes à pied du MUNA. Dans l'après-midi du 12 novembre, le programme se poursuivra au Musée de la Nature et de l'Archéologie avec une courte visite facultative destinée aux invités, suivie de la réception culturelle."
+    "descripcion": "TEA Tenerife Espacio de las Artes accueillera les sessions scientifiques. Conçu par Herzog & de Meuron avec Virgilio Gutiérrez, le bâtiment se situe au centre de Santa Cruz de Tenerife, à quelques minutes à pied du MUNA."
   },
   "participantes": {
     "titulo": "Intervenants",
@@ -56,25 +56,66 @@
     "moderador": "Modérateur :"
   },
   "programaItems": {
-    "d1-1": { "hora": "08h45–09h30", "titulo": "Accueil et accréditations" },
-    "d1-2": { "hora": "09h30–10h15", "titulo": "Session d'ouverture. Présentation et inauguration officielle" },
-    "d1-3": { "hora": "10h15–10h45", "titulo": "Pause café" },
-    "d1-4": { "hora": "10h45–12h00", "titulo": "Panel I. Collectionnisme inégal et musées : histoires et pratiques d'appropriation" },
-    "d1-5": { "hora": "12h00–12h15", "titulo": "Pause technique et changement de panel" },
-    "d1-6": { "hora": "12h15–13h30", "titulo": "Panel II. Coopération et restitution : politiques et cadres d'action" },
-    "d1-7": { "hora": "13h30–15h30", "titulo": "Pause déjeuner" },
-    "d1-8": { "hora": "15h30–16h45", "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine" },
-    "d1-9": { "hora": "16h45–17h15", "titulo": "Fin de la journée et transfert vers le MUNA" },
-    "d1-10": { "hora": "17h15–17h45", "titulo": "Visite facultative de la section de Bioanthropologie du MUNA (invités)" },
-    "d1-11": { "hora": "17h15", "titulo": "Ouverture du cocktail de bienvenue et de la réception institutionnelle dans la cour du MUNA" },
-    "d1-12": { "hora": "17h45–20h00", "titulo": "Événement culturel et réception institutionnelle · MUNA" },
-    "d2-1": { "hora": "09h30–10h45", "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, partenariats et perspectives de retour" },
-    "d2-2": { "hora": "10h45–11h15", "titulo": "Pause café" },
-    "d2-3": { "hora": "11h15–12h30", "titulo": "Panel V. Trajectoires clés et débats singuliers" },
-    "d2-4": { "hora": "12h30–14h30", "titulo": "Pause déjeuner" },
-    "d2-5": { "hora": "14h30–15h45", "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique" },
-    "d2-6": { "hora": "15h45–16h15", "titulo": "Pause café" },
-    "d2-7": { "hora": "16h15–17h00", "titulo": "Session de clôture · Lecture de la Déclaration de Santa Cruz de Tenerife et clôture institutionnelle" }
+    "d1-1": {
+      "hora": "08h45–09h30",
+      "titulo": "Accueil et accréditations"
+    },
+    "d1-2": {
+      "hora": "09h30–10h15",
+      "titulo": "Séance d'ouverture. Présentation et inauguration"
+    },
+    "d1-3": {
+      "hora": "10h15–10h45",
+      "titulo": "Pause café"
+    },
+    "d1-4": {
+      "hora": "10h45–12h00",
+      "titulo": "Panel I. Collectionnisme inégal et musées : histoires et pratiques d'appropriation"
+    },
+    "d1-5": {
+      "hora": "12h00–12h15",
+      "titulo": "Pause"
+    },
+    "d1-6": {
+      "hora": "12h15–13h30",
+      "titulo": "Panel II. Coopération et restitution : politiques et cadres d'action"
+    },
+    "d1-7": {
+      "hora": "13h30–15h30",
+      "titulo": "Pause déjeuner"
+    },
+    "d1-8": {
+      "hora": "15h30–16h45",
+      "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine"
+    },
+    "d2-1": {
+      "hora": "10h30–11h45",
+      "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, collaborations et perspectives de restitution"
+    },
+    "d2-2": {
+      "hora": "11h45–12h15",
+      "titulo": "Pause café"
+    },
+    "d2-3": {
+      "hora": "12h15–13h30",
+      "titulo": "Panel V. Trajectoires clés et débats singuliers"
+    },
+    "d2-4": {
+      "hora": "13h30–15h30",
+      "titulo": "Pause déjeuner"
+    },
+    "d2-5": {
+      "hora": "15h30–16h45",
+      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique"
+    },
+    "d2-6": {
+      "hora": "16h45–17h15",
+      "titulo": "Pause café"
+    },
+    "d2-7": {
+      "hora": "17h15–18h00",
+      "titulo": "Séance de clôture · Lecture de la « Déclaration de Santa Cruz de Tenerife » et clôture institutionnelle"
+    }
   },
   "contacto": {
     "titulo": "Contact",
