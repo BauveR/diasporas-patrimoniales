@@ -12,6 +12,7 @@ import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
 import { HERO_TUNING_DEFAULTS } from '../lib/heroTuning'
+import { useBreakpoint, type BreakpointBucket } from '../hooks/useBreakpoint'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
 import { SlideInText } from './SlideInText'
@@ -119,10 +120,10 @@ const FORMED_SCALE = 0.9
 // formed, it never changes, so there's no per-frame interpolation to do.
 const COLOR_PARTICLE = new THREE.Color(0xffffff)
 
-// Matches Tailwind's `lg` breakpoint — the wordmark column below only shows
-// from `lg` up, so the camera only needs to shift left to make room for it
-// there too.
-const LARGE_SCREEN_QUERY = '(min-width: 1024px)'
+// The wordmark/text column only shows from `lg` up — these are the buckets
+// (see useBreakpoint) where that desktop layout, rather than the stacked
+// mobile/tablet one, is what's on screen.
+const LARGE_BUCKETS = new Set<BreakpointBucket>(['lg', 'xl', '2xl'])
 
 // An orthographic camera's `zoom` maps 1 world unit to exactly `zoom` CSS
 // pixels — unlike R3F's default `zoom: 1` (1 world unit = 1 raw pixel, which
@@ -174,28 +175,16 @@ function useViewportZoom(shapeGrowth: number) {
   return zoom
 }
 
-function useIsLargeScreen() {
-  const [matches, setMatches] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(LARGE_SCREEN_QUERY).matches,
-  )
-  useEffect(() => {
-    const mq = window.matchMedia(LARGE_SCREEN_QUERY)
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return matches
-}
-
-// `cameraX` flips instantly whenever `isLargeScreen`'s matchMedia listener
-// fires — not just on an actual window resize, but on anything that changes
-// the layout viewport width, including a scrollbar appearing once the page
-// finishes laying out (common right around the FORM_START–FORM_DURATION
-// window, as sections below the hero mount in). R3F re-applies the `camera`
-// prop's position as a hard set whenever that object's identity changes, so
-// without this, a breakpoint flip mid-formation reads as the whole swarm
-// snapping sideways. Gliding position.x toward the target every frame turns
-// that hard cut into a pan, regardless of what triggers the flip.
+// `cameraX`/`cameraY` flip instantly whenever the active bucket (see
+// useBreakpoint) changes — not just on an actual window resize, but on
+// anything that changes the layout viewport width, including a scrollbar
+// appearing once the page finishes laying out (common right around the
+// FORM_START–FORM_DURATION window, as sections below the hero mount in).
+// R3F re-applies the `camera` prop's position as a hard set whenever that
+// object's identity changes, so without this, a breakpoint flip mid-
+// formation reads as the whole swarm snapping sideways. Gliding
+// position.x toward the target every frame turns that hard cut into a
+// pan, regardless of what triggers the flip.
 function CameraRig({ targetX, targetY }: { targetX: number; targetY: number }) {
   const { camera } = useThree()
   useFrame((_state, delta) => {
@@ -470,18 +459,13 @@ export default function PointsToShapes() {
   const locale = getLocaleFromPathname(location.pathname)
   const sedesHref = locale === DEFAULT_LOCALE ? '#sedes' : `/${locale}#sedes`
   const programaHref = locale === DEFAULT_LOCALE ? '#programa' : `/${locale}#programa`
-  const isLargeScreen = useIsLargeScreen()
+  const bucket = useBreakpoint()
+  const isLargeScreen = LARGE_BUCKETS.has(bucket)
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const {
-    shapeGrowth,
-    largeScreenShiftWorldX,
-    heroOverlayShiftPx,
-    railMaxWidthRem,
-    smallScreenShiftWorldX,
-    smallScreenShiftWorldY,
-  } = tuning
+  const { heroOverlayShiftPx, railMaxWidthRem, orb } = tuning
+  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = orb[bucket]
   const zoom = useViewportZoom(shapeGrowth)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -516,29 +500,22 @@ export default function PointsToShapes() {
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
-  // Shifted left only from `lg` up, matching the wordmark column below that
-  // only appears at that breakpoint. Below `lg`, the shape used to be hard-
-  // centered (`cameraX = 0`, no knob at all) since the stacked mobile/tablet
-  // layout has no side-by-side text column to make room for — but centered
-  // still means it can land squarely behind/through the stacked text above
-  // it, which is the "desacomodado" mobile look this pair exists to fix.
-  // smallScreenShiftWorldX/Y (0/0 by default, live-tunable via
-  // HeroTuningPanel) let that position move independently of the desktop
-  // pan. Done via camera position, not a CSS transform on the canvas:
-  // translating the canvas element would reveal a sliver of the section's
-  // raw CSS background on the opposite edge, which doesn't quite match the
-  // bloom pass's post-processed render of the "same" color — invisible
-  // before because the canvas always covered the section edge-to-edge.
-  // Panning the camera instead keeps the canvas full-bleed, so no gap is
-  // ever exposed. `rotation: [0, 0, 0]` stops R3F's default auto-
+  // `cameraX`/`cameraY` above come straight from `orb[bucket]` — one
+  // independent {shiftX, shiftY, scale} per breakpoint (base/sm/md/lg/xl/
+  // 2xl, see useBreakpoint and HeroTuningPanel), live-tunable in dev instead
+  // of a hardcoded center with no knob. Done via camera position, not a CSS
+  // transform on the canvas: translating the canvas element would reveal a
+  // sliver of the section's raw CSS background on the opposite edge, which
+  // doesn't quite match the bloom pass's post-processed render of the "same"
+  // color — invisible before because the canvas always covered the section
+  // edge-to-edge. Panning the camera instead keeps the canvas full-bleed, so
+  // no gap is ever exposed. `rotation: [0, 0, 0]` stops R3F's default auto-
   // `lookAt(0,0,0)` for an off-axis camera, which would otherwise rotate to
   // face the origin and skew the shape instead of giving a clean parallel
   // shift. Fixed world-unit constants (not divided by zoom): the shape
   // itself is fixed in world units, so this pans onto screen by the same
   // zoom factor the shape scales by, staying in proportion to it at every
   // viewport height.
-  const cameraX = isLargeScreen ? largeScreenShiftWorldX : smallScreenShiftWorldX
-  const cameraY = isLargeScreen ? 0 : smallScreenShiftWorldY
 
   // Frozen on purpose: R3F re-applies the `camera` prop with a hard
   // `position.set(...)` (no interpolation) whenever the values inside it
@@ -641,8 +618,8 @@ export default function PointsToShapes() {
           ever shows. The particle shape's on-screen footprint (fixed in 3D
           world units, so it covers proportionally more of a narrower canvas)
           only fits alongside this layout from `lg` up — hence gating on the
-          same breakpoint (`isLargeScreen`, see LARGE_SCREEN_QUERY) that
-          already drives the camera pan. */}
+          same breakpoint (`isLargeScreen`, derived from useBreakpoint via
+          LARGE_BUCKETS) that already drives the camera pan. */}
       {isLargeScreen && (
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center">
         {/* `railMaxWidthRem` starts at 80rem — the same content rail
@@ -656,7 +633,7 @@ export default function PointsToShapes() {
             ActividadesSection/Navbar).
             `justify-end` pins the content block to this rail's right edge,
             leaving the left area free for the orbit shape, which lands there
-            via the camera pan (largeScreenShiftWorldX, from `tuning` state)
+            via the camera pan (orb[bucket].shiftX, from `tuning` state)
             rather than a layout track — heroOverlayShiftPx nudges this whole
             overlay to approximate the same leftward shift in CSS pixels,
             unrelated to the scaling change below. */}
