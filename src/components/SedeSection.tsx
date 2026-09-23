@@ -29,7 +29,7 @@ export function SedeSection() {
         <SlideInText
           text={t('sedeSection.titulo')}
           revealOnScroll
-          className="font-mattone text-3xl font-bold tracking-tight text-[#9b2923] uppercase md:text-4xl lg:text-5xl"
+          className="font-mattone text-3xl font-bold tracking-tight text-brand-red uppercase md:text-4xl lg:text-5xl"
         />
         {/* Sin tope propio (`max-w-*`): ocupa el ancho completo del rail
             `max-w-7xl` de la sección, hasta los gutters. */}
