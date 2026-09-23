@@ -25,7 +25,7 @@ export function Footer() {
   const [contactoAntes, contactoDespues] = t('contacto.parrafo').split(CONTACT_EMAIL)
 
   return (
-    <footer id="footer" className="scroll-mt-16" style={{ backgroundColor: '#9b2923' }}>
+    <footer id="footer" className="scroll-mt-16 bg-brand-red">
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 sm:px-8 lg:px-10">
 
         {/* Marca propia + contacto + colaboradores */}
