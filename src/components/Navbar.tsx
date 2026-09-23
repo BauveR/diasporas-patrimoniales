@@ -143,7 +143,11 @@ export function Navbar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10"
+      // pt-[env(...)] pushes the actual bar down below a notch/status bar in
+      // portrait on a phone that has one — the header's own background
+      // still fills that padding, so there's no gap, just brand-red instead
+      // of page content showing through up there.
+      className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 pt-[env(safe-area-inset-top,0px)]"
       style={{ backgroundColor: NAVBAR_BG }}
     >
       {/* Barra principal — `mx-auto max-w-7xl`: mismo rail de contenido que

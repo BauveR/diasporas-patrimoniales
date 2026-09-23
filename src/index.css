@@ -34,6 +34,14 @@
      3xl/5xl already used, so no section's title changes size at its
      current narrowest/widest — only what happens between them does. */
   --text-fluid-title: clamp(1.875rem, 1.58rem + 1.48vw, 3rem);
+
+  /* Real total height of the fixed Navbar (its own 4rem/h-16 bar, plus the
+     safe-area padding it adds on a notched phone in portrait) — every page
+     that offsets its content below the fixed navbar uses `pt-navbar`/
+     `top-navbar` instead of a hardcoded `pt-16`, so they stay correct on
+     those devices instead of hiding a strip of content under a navbar that
+     grew taller than 4rem. */
+  --spacing-navbar: calc(4rem + env(safe-area-inset-top, 0px));
 }
 
 body {
