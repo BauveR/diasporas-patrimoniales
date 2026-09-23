@@ -222,7 +222,7 @@ function ParticipanteSheet({ participante, onClose }: { participante: Participan
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-white shadow-xl"
+        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-white shadow-xl pb-[env(safe-area-inset-bottom,0px)]"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
