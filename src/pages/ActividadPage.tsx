@@ -27,6 +27,9 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
       <style>{`
         @keyframes chc-circle { to { stroke-dashoffset: 0; } }
         @keyframes chc-check  { to { stroke-dashoffset: 0; } }
+        @media (prefers-reduced-motion: reduce) {
+          .chc-circle-progress, .chc-check-path { animation: none !important; stroke-dashoffset: 0 !important; }
+        }
       `}</style>
       <motion.div
         initial={{ scale: 0.88, opacity: 0 }}
@@ -47,6 +50,7 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
         <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
           <circle cx="48" cy="48" r="44" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
           <circle
+            className="chc-circle-progress"
             cx="48" cy="48" r="44"
             stroke="white" strokeWidth="2" strokeLinecap="round"
             strokeDasharray="277" strokeDashoffset="277"
@@ -54,6 +58,7 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
             style={{ animation: 'chc-circle 0.65s ease forwards' }}
           />
           <path
+            className="chc-check-path"
             d="M28 48 L42 62 L70 30"
             stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
             strokeDasharray="65" strokeDashoffset="65"

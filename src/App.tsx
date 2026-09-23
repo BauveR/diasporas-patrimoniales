@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation, useMatch, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
@@ -88,6 +88,11 @@ export default function App() {
   if (location.pathname === '/intro') {
     return (
       <ErrorBoundary>
+      {/* reducedMotion="user" reads prefers-reduced-motion once, here, and
+          applies it to every motion.* component in the tree below —
+          transform/layout animations simplify or drop automatically
+          instead of each of them needing its own check. */}
+      <MotionConfig reducedMotion="user">
       <AuthProvider>
         <DataProvider>
           <Suspense fallback={null}>
@@ -97,12 +102,14 @@ export default function App() {
           </Suspense>
         </DataProvider>
       </AuthProvider>
+      </MotionConfig>
       </ErrorBoundary>
     )
   }
 
   return (
     <ErrorBoundary>
+    <MotionConfig reducedMotion="user">
     <AuthProvider>
       <DataProvider>
         <Navbar />
@@ -143,6 +150,7 @@ export default function App() {
         <CookieBanner />
       </DataProvider>
     </AuthProvider>
+    </MotionConfig>
     </ErrorBoundary>
   )
 }
