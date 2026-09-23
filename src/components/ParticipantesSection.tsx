@@ -384,7 +384,7 @@ export function ParticipantesSection() {
           <SlideInText
             text={t('participantes.titulo')}
             revealOnScroll
-            className="font-mattone text-3xl font-bold tracking-tight text-brand-red uppercase md:text-4xl lg:text-5xl"
+            className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
           />
           <RevealOnScroll>
             <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
