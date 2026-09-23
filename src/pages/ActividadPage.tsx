@@ -236,7 +236,7 @@ export function ActividadPage() {
         />
       )}
     </AnimatePresence>
-    <main className={`${isModal ? 'pt-6' : 'pt-16 min-h-screen'} bg-white`}>
+    <main className={`${isModal ? 'pt-6' : 'pt-navbar min-h-screen'} bg-white`}>
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
 
         {!isModal && (
@@ -283,7 +283,7 @@ export function ActividadPage() {
           </div>
 
           {/* Right */}
-          <div className={`${!isModal ? 'lg:sticky lg:top-24' : ''} self-start flex flex-col gap-4`}>
+          <div className={`${!isModal ? 'lg:sticky lg:top-[calc(var(--spacing-navbar)+2rem)]' : ''} self-start flex flex-col gap-4`}>
             <BookingWidget {...widgetProps} />
 
             {sede && (
