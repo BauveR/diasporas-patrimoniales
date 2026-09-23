@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <main className="min-h-screen bg-white pt-16 flex items-center justify-center px-6">
+        <main className="min-h-screen bg-white pt-navbar flex items-center justify-center px-6">
           <div className="flex flex-col items-center gap-5 text-center max-w-sm" style={labelStyle}>
             <p className="text-xs tracking-widest uppercase text-stone-400">Algo ha salido mal</p>
             <p className="text-sm text-stone-500 leading-relaxed">
