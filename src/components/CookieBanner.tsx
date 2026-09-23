@@ -16,7 +16,7 @@ export function CookieBanner() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-stone-100 shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-stone-100 shadow-lg pb-[env(safe-area-inset-bottom,0px)]"
       role="dialog"
       aria-label="Aviso de cookies"
       style={labelStyle}
