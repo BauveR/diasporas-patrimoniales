@@ -5,6 +5,7 @@ import { PARTICIPANTES, type Participante, fotoThumbnail, fotoCompleta } from '.
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { useIsDesktop } from '../hooks/useIsDesktop'
+import { mq } from '../lib/breakpoints'
 import type { Locale } from '../i18n/config'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -14,16 +15,15 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 // siendo de 3 (useIsDesktop ya da true ahí). El panel expandido que fusiona
 // 2 columnas (ParticipanteExpandido) solo tiene sentido con 5 columnas
 // reales; en el rango de 3 se sigue usando el modal centrado de siempre.
-const FIVE_COL_BREAKPOINT = '(min-width: 768px)'
 function useIsFiveColumns() {
   const [isFiveCol, setIsFiveCol] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(FIVE_COL_BREAKPOINT).matches,
+    () => typeof window !== 'undefined' && window.matchMedia(mq('md')).matches,
   )
   useEffect(() => {
-    const mq = window.matchMedia(FIVE_COL_BREAKPOINT)
+    const mql = window.matchMedia(mq('md'))
     const handler = (e: MediaQueryListEvent) => setIsFiveCol(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
   }, [])
   return isFiveCol
 }
