@@ -5,9 +5,9 @@ import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 
 // Adaptado del componente "ProfessionalTimeline" que pasó el usuario:
 // - Sin dark mode (el sitio no lo tiene) y paleta slate-* → stone-*/rojo
-//   institucional (#9b2923) para el contenido de cada fila. Solo el
-//   encabezado de jornada ("Día 1"/"Día 2") usa el naranja del botón
-//   "Inscribirme" (#f04f23), como acento puntual.
+//   institucional (brand-red, token de @theme) para el contenido de cada
+//   fila. Solo el encabezado de jornada ("Día 1"/"Día 2") usa el naranja
+//   del botón "Inscribirme" (brand-orange), como acento puntual.
 // - Sin el par icono+badge "type/duration" del original (pensado para un CV):
 //   acá la hora ES el dato principal, así que va donde antes iban esos
 //   badges.
@@ -94,7 +94,7 @@ const TimelineRow = memo(function TimelineRow({
                   {hora}
                 </p>
                 <h4
-                  className="mt-1 text-sm leading-snug font-semibold text-stone-800 transition-colors group-hover:text-[#9b2923]"
+                  className="mt-1 text-sm leading-snug font-semibold text-stone-800 transition-colors group-hover:text-brand-red"
                   style={labelStyle}
                 >
                   {titulo}
@@ -149,7 +149,7 @@ export function ProgramaTimeline({ dia, items }: { dia: string; items: ProgramaI
           renders an <h2>, which would break the h2 (section title) → h3
           (day header) heading hierarchy the rest of the page follows. */}
       <RevealOnScroll>
-        <h3 className="font-mattone mb-6 text-lg font-bold tracking-tight text-[#f04f23] uppercase">{dia}</h3>
+        <h3 className="font-mattone mb-6 text-lg font-bold tracking-tight text-brand-orange uppercase">{dia}</h3>
       </RevealOnScroll>
       <RevealGroup amount={0.05} staggerChildren={0.08}>
         {items.map((item, i) => (
