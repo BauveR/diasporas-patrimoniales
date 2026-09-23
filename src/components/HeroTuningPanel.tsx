@@ -29,6 +29,18 @@ export default function HeroTuningPanel({ onChange }: { onChange: (tuning: HeroT
       max: 160,
       step: 1,
     },
+    smallScreenShiftWorldX: {
+      value: HERO_TUNING_DEFAULTS.smallScreenShiftWorldX,
+      min: -80,
+      max: 80,
+      step: 1,
+    },
+    smallScreenShiftWorldY: {
+      value: HERO_TUNING_DEFAULTS.smallScreenShiftWorldY,
+      min: -80,
+      max: 80,
+      step: 1,
+    },
   })
 
   useEffect(() => {

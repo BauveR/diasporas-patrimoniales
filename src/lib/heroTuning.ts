@@ -8,6 +8,8 @@ export interface HeroTuning {
   largeScreenShiftWorldX: number
   heroOverlayShiftPx: number
   railMaxWidthRem: number
+  smallScreenShiftWorldX: number
+  smallScreenShiftWorldY: number
 }
 
 // Final values landed on via the live HeroTuningPanel sliders, after several
@@ -20,4 +22,10 @@ export const HERO_TUNING_DEFAULTS: HeroTuning = {
   largeScreenShiftWorldX: 62,
   heroOverlayShiftPx: 42,
   railMaxWidthRem: 116,
+  // 0/0 reproduces today's mobile/tablet behavior exactly (shape dead-center
+  // behind the stacked text) — these exist so that centering can actually be
+  // tuned away live instead of being a hardcoded `cameraX = 0` with no knob
+  // at all, the way it was before this pair was added.
+  smallScreenShiftWorldX: 0,
+  smallScreenShiftWorldY: 0,
 }

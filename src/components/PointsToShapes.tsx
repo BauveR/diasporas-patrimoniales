@@ -196,7 +196,7 @@ function useIsLargeScreen() {
 // without this, a breakpoint flip mid-formation reads as the whole swarm
 // snapping sideways. Gliding position.x toward the target every frame turns
 // that hard cut into a pan, regardless of what triggers the flip.
-function CameraRig({ targetX }: { targetX: number }) {
+function CameraRig({ targetX, targetY }: { targetX: number; targetY: number }) {
   const { camera } = useThree()
   useFrame((_state, delta) => {
     const clampedDelta = Math.min(delta, 1 / 20)
@@ -206,6 +206,7 @@ function CameraRig({ targetX }: { targetX: number }) {
     // pattern; the lint rule can't tell the two apart.
     // eslint-disable-next-line react-hooks/immutability
     camera.position.x += (targetX - camera.position.x) * smoothing
+    camera.position.y += (targetY - camera.position.y) * smoothing
   })
   return null
 }
@@ -473,7 +474,14 @@ export default function PointsToShapes() {
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const { shapeGrowth, largeScreenShiftWorldX, heroOverlayShiftPx, railMaxWidthRem } = tuning
+  const {
+    shapeGrowth,
+    largeScreenShiftWorldX,
+    heroOverlayShiftPx,
+    railMaxWidthRem,
+    smallScreenShiftWorldX,
+    smallScreenShiftWorldY,
+  } = tuning
   const zoom = useViewportZoom(shapeGrowth)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -509,33 +517,41 @@ export default function PointsToShapes() {
     return () => observer.disconnect()
   }, [])
   // Shifted left only from `lg` up, matching the wordmark column below that
-  // only appears at that breakpoint — on mobile/tablet the particle shape is
-  // the only content, so it stays centered there. Done via camera position,
-  // not a CSS transform on the canvas: translating the canvas element would
-  // reveal a sliver of the section's raw CSS background on the opposite
-  // edge, which doesn't quite match the bloom pass's post-processed render
-  // of the "same" color — invisible before because the canvas always
-  // covered the section edge-to-edge. Panning the camera instead keeps the
-  // canvas full-bleed, so no gap is ever exposed. `rotation: [0, 0, 0]`
-  // stops R3F's default auto-`lookAt(0,0,0)` for an off-axis camera, which
-  // would otherwise rotate to face the origin and skew the shape instead of
-  // giving a clean parallel shift. A fixed world-unit constant (not divided
-  // by zoom): the shape itself is fixed in world units, so this pans onto
-  // screen by the same zoom factor the shape scales by, staying in
-  // proportion to it at every viewport height.
-  const cameraX = isLargeScreen ? largeScreenShiftWorldX : 0
+  // only appears at that breakpoint. Below `lg`, the shape used to be hard-
+  // centered (`cameraX = 0`, no knob at all) since the stacked mobile/tablet
+  // layout has no side-by-side text column to make room for — but centered
+  // still means it can land squarely behind/through the stacked text above
+  // it, which is the "desacomodado" mobile look this pair exists to fix.
+  // smallScreenShiftWorldX/Y (0/0 by default, live-tunable via
+  // HeroTuningPanel) let that position move independently of the desktop
+  // pan. Done via camera position, not a CSS transform on the canvas:
+  // translating the canvas element would reveal a sliver of the section's
+  // raw CSS background on the opposite edge, which doesn't quite match the
+  // bloom pass's post-processed render of the "same" color — invisible
+  // before because the canvas always covered the section edge-to-edge.
+  // Panning the camera instead keeps the canvas full-bleed, so no gap is
+  // ever exposed. `rotation: [0, 0, 0]` stops R3F's default auto-
+  // `lookAt(0,0,0)` for an off-axis camera, which would otherwise rotate to
+  // face the origin and skew the shape instead of giving a clean parallel
+  // shift. Fixed world-unit constants (not divided by zoom): the shape
+  // itself is fixed in world units, so this pans onto screen by the same
+  // zoom factor the shape scales by, staying in proportion to it at every
+  // viewport height.
+  const cameraX = isLargeScreen ? largeScreenShiftWorldX : smallScreenShiftWorldX
+  const cameraY = isLargeScreen ? 0 : smallScreenShiftWorldY
 
   // Frozen on purpose: R3F re-applies the `camera` prop with a hard
   // `position.set(...)` (no interpolation) whenever the values inside it
-  // change, which would undo CameraRig's smoothing the instant `cameraX`
-  // changes — the prop and the rig would be fighting over who sets the
-  // position. Capturing only the first render's value here means the
+  // change, which would undo CameraRig's smoothing the instant `cameraX`/
+  // `cameraY` change — the prop and the rig would be fighting over who sets
+  // the position. Capturing only the first render's value here means the
   // `camera` prop's own array never changes after mount, so R3F never
   // touches position again; CameraRig becomes the sole owner of it from
   // then on, and every change — including this initial one, if a later
-  // breakpoint flip changes `cameraX` before first paint — glides instead
-  // of snapping.
+  // breakpoint flip changes cameraX/cameraY before first paint — glides
+  // instead of snapping.
   const [initialCameraX] = useState(cameraX)
+  const [initialCameraY] = useState(cameraY)
 
   return (
     // A hero section, not a fixed-position overlay: `position: fixed; inset: 0`
@@ -579,7 +595,7 @@ export default function PointsToShapes() {
         // height (see useViewportZoom) so the shape's on-screen size instead
         // tracks height, the same way the rest of the page already scales
         // via CSS `vh`/`clamp()`.
-        camera={{ zoom, position: [initialCameraX, 0, 100], rotation: [0, 0, 0] }}
+        camera={{ zoom, position: [initialCameraX, initialCameraY, 100], rotation: [0, 0, 0] }}
         frameloop={isVisible ? 'always' : 'never'}
         style={{ opacity: canvasReady ? 1 : 0, transition: 'opacity 0.5s ease' }}
         // R3F's default caps device pixel ratio at 2 — full native resolution
@@ -589,7 +605,7 @@ export default function PointsToShapes() {
         // noticeably while still looking sharp for a soft gradient.
         dpr={[1, 1.5]}
       >
-        <CameraRig targetX={cameraX} />
+        <CameraRig targetX={cameraX} targetY={cameraY} />
         {/* contrast=1 / saturation=1 are the identity values for these two
             shader passes ((c-0.5)*contrast+0.5 and mix(luma,c,saturation)) —
             0 would collapse everything to flat gray / grayscale instead.
@@ -697,10 +713,10 @@ export default function PointsToShapes() {
                   en blanco/claro en el propio archivo, así que se apoyan
                   directamente sobre el fondo oscuro sin tratamiento extra. */}
               <div className="flex w-full flex-wrap items-center justify-between gap-6">
-                <img src={logoGobCan} alt="Gobierno de Canarias" className="h-21.75 w-auto object-contain" />
-                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-17.25 w-auto object-contain" />
-                <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-16 w-auto object-contain" />
-                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-10 w-auto object-contain" />
+                <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-21.75 w-auto object-contain" />
+                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-17.25 w-auto object-contain" />
+                <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-16 w-auto object-contain" />
+                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-10 w-auto object-contain" />
               </div>
             </div>
 
@@ -717,6 +733,8 @@ export default function PointsToShapes() {
                 <img
                   src={logoPatrimonioCultural}
                   alt="Patrimonio Cultural de Canarias"
+                  width={700}
+                  height={350}
                   className="mt-4 h-[3.9rem] w-auto object-contain"
                 />
                 <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
@@ -778,6 +796,8 @@ export default function PointsToShapes() {
           <img
             src={logoPatrimonioCultural}
             alt="Patrimonio Cultural de Canarias"
+            width={700}
+            height={350}
             className="mx-auto mt-4 h-14 w-auto object-contain"
           />
           <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
@@ -804,10 +824,10 @@ export default function PointsToShapes() {
             proporcionalmente respecto a la fila de escritorio, no valores
             independientes. */}
         <div className="flex flex-wrap items-center justify-center gap-6">
-          <img src={logoGobCan} alt="Gobierno de Canarias" className="h-14 w-auto object-contain" />
-          <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-11 w-auto object-contain" />
-          <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-10 w-auto object-contain" />
-          <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-7 w-auto object-contain" />
+          <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-14 w-auto object-contain" />
+          <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-11 w-auto object-contain" />
+          <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-10 w-auto object-contain" />
+          <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-7 w-auto object-contain" />
         </div>
       </div>
       )}
