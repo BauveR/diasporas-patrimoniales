@@ -100,6 +100,9 @@ function ParticipanteCard({
           todas). */}
       <motion.div
         className="relative z-10 flex min-h-32 flex-col justify-start rounded-2xl px-4 py-3 text-center"
+        // Literal hex on purpose, not the brand-red @theme token: framer-motion
+        // interpolates this color in JS, and a CSS var() string isn't a color
+        // it can parse/animate between — it needs the real value.
         initial={{ backgroundColor: '#9b2923' }}
         whileInView={{ backgroundColor: '#000000' }}
         viewport={{ once: true, amount: 0.4 }}
@@ -146,7 +149,7 @@ function ParticipanteTextos({
         </p>
       </div>
       {participante.tituloIntervencion && (
-        <p className={`text-sm font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-[#9b2923]'}`} style={labelStyle}>
+        <p className={`text-sm font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-brand-red'}`} style={labelStyle}>
           {participante.tituloIntervencion}
         </p>
       )}
@@ -381,7 +384,7 @@ export function ParticipantesSection() {
           <SlideInText
             text={t('participantes.titulo')}
             revealOnScroll
-            className="font-mattone text-3xl font-bold tracking-tight text-[#9b2923] uppercase md:text-4xl lg:text-5xl"
+            className="font-mattone text-3xl font-bold tracking-tight text-brand-red uppercase md:text-4xl lg:text-5xl"
           />
           <RevealOnScroll>
             <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
