@@ -19,7 +19,7 @@ export function AboutSection() {
         <SlideInText
           text={t('sobreEncuentro.titulo')}
           revealOnScroll
-          className="font-mattone text-3xl font-bold tracking-tight text-brand-red uppercase md:text-4xl lg:text-5xl"
+          className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
         />
         <RevealGroup className="flex flex-col gap-5 text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
           <RevealItem><p>{t('sobreEncuentro.parrafo1')}</p></RevealItem>
