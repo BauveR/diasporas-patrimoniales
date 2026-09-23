@@ -2,8 +2,8 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { BookingWidget } from './ActividadPage'
-import type { Actividad } from '../data/actividades'
+import { BookingWidget } from './BookingWidget'
+import type { Actividad } from '../../data/actividades'
 
 vi.mock('framer-motion', () => ({
   motion: {

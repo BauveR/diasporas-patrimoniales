@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import type { AppUser } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
+import { useOpenActividadId } from '../contexts/ActividadInlineContext'
 import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
+import { ActividadExpandido } from '../components/actividades/ActividadExpandido'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -94,6 +97,8 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 export function ProfilePage() {
   const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
   const { actividades } = useDataContext()
+  const navigate = useNavigate()
+  const openActividadId = useOpenActividadId()
   const [tab, setTab] = useState<Tab>('todas')
 
   const inscritas  = actividades.filter(a => inscripcionIds.includes(a.id))
@@ -102,6 +107,10 @@ export function ProfilePage() {
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
   const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? [...pasadas, ...canceladas] : [...proximas, ...pasadas, ...canceladas]
+  // Solo abre inline si el id pertenece a esta lista (y por lo tanto es
+  // visible en la pestaña actual) — si viene de otra sección, esto no
+  // encuentra nada y la grilla se muestra normal.
+  const abierta = visible.find(a => a.id === openActividadId)
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
@@ -246,16 +255,31 @@ export function ProfilePage() {
                   ))}
                 </div>
 
-                {/* Tablet / Desktop: grid */}
-                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {visible.map(a => (
-                    <GridCardWrapper
-                      key={a.id}
-                      actividadId={a.id}
-                      uid={user!.uid}
-                      inactiva={a.fecha < today || !!a.cancelada}
-                    />
-                  ))}
+                {/* Tablet / Desktop: grid — con una actividad abierta, el
+                    panel horizontal (ActividadExpandido) reemplaza la
+                    grilla en vez de superponerse, igual criterio que
+                    InscripcionSection. */}
+                <div className="hidden sm:block">
+                  <AnimatePresence mode="wait">
+                    {abierta ? (
+                      <ActividadExpandido
+                        key={abierta.id}
+                        actividad={abierta}
+                        onClose={() => navigate(-1)}
+                      />
+                    ) : (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {visible.map(a => (
+                          <GridCardWrapper
+                            key={a.id}
+                            actividadId={a.id}
+                            uid={user!.uid}
+                            inactiva={a.fecha < today || !!a.cancelada}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </>
             )}

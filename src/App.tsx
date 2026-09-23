@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
+import { Routes, Route, useLocation, useMatch, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import { AuthPage } from './pages/AuthPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { DataProvider } from './contexts/DataContext'
 import { AuthProvider } from './contexts/AuthContext'
+import { ActividadInlineProvider } from './contexts/ActividadInlineContext'
 import { pageVariants } from './utils/pageTransition'
 import { getLocaleFromPathname } from './i18n/routing'
 import { LOCALE_TAGS } from './i18n/config'
@@ -53,6 +54,21 @@ export default function App() {
   const isBack = navType === 'POP'
   const background = location.state?.background as Location | undefined
   const { i18n } = useTranslation()
+
+  // El id de la actividad abierta inline (si la URL real apunta a
+  // /actividades/:id mientras el contenido principal se queda "congelado"
+  // en background) — InscripcionSection/ProfilePage lo leen vía
+  // useOpenActividadId() para decidir si tienen que mostrar el panel
+  // ActividadExpandido, sin necesitar acceso a la ubicación real ellos
+  // mismos (ver el comentario en ActividadInlineContext.tsx). Solo importa
+  // cuando hay background — sin él, la URL real y la visible ya coinciden,
+  // así que ActividadPage se renderiza como página completa normal, sin
+  // nada inline que resolver.
+  const matchActividadRoot = useMatch('/actividades/:id')
+  const matchActividadLang = useMatch('/:lang/actividades/:id')
+  const openActividadId = background
+    ? Number((matchActividadRoot ?? matchActividadLang)?.params.id) || null
+    : null
 
   // The URL is the single source of truth for the active language (no
   // prefix = Spanish, /en, /fr, /pt = the rest) — this keeps it in sync
@@ -102,10 +118,12 @@ export default function App() {
             exit="exit"
           >
             <Suspense fallback={null}>
-              <Routes location={background ?? location}>
-                <Route path="/">{pageRoutes()}</Route>
-                <Route path="/:lang">{pageRoutes()}</Route>
-              </Routes>
+              <ActividadInlineProvider value={openActividadId}>
+                <Routes location={background ?? location}>
+                  <Route path="/">{pageRoutes()}</Route>
+                  <Route path="/:lang">{pageRoutes()}</Route>
+                </Routes>
+              </ActividadInlineProvider>
             </Suspense>
           </motion.div>
         </AnimatePresence>

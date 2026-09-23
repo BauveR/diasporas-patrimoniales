@@ -5,8 +5,19 @@ import { ActividadPage } from '../../pages/ActividadPage'
 export function ActividadModal() {
   const navigate = useNavigate()
   const location = useLocation()
-  const fromPerfil = location.state?.from === 'perfil'
+  const from = location.state?.from
   const close = () => navigate(-1)
+
+  // Desktop/tablet ya no pasa por acá: InscripcionSection ('actividades',
+  // el default de ActividadCard) y la grilla de Perfil ('perfil') renderizan
+  // su propio panel inline (ActividadExpandido) dentro de la sección que los
+  // abrió — ver ActividadInlineContext. Este modal de pantalla completa
+  // sigue existiendo solo para la lista compacta de Perfil en mobile
+  // (ProfileCardCompact, 'perfil-mobile'), donde no hay una versión inline
+  // equivalente todavía.
+  if (from === 'actividades' || from === 'perfil') return null
+
+  const fromPerfil = from === 'perfil-mobile'
 
   return (
     <>
@@ -26,12 +37,12 @@ export function ActividadModal() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <div
-          className={`relative w-[92vw] ${fromPerfil ? 'max-w-sm' : 'max-w-4xl'} max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl pointer-events-auto`}
+          className={`relative w-[92vw] ${fromPerfil ? 'max-w-sm' : 'max-w-4xl'} max-h-[90svh] overflow-y-auto bg-white rounded-2xl shadow-xl pointer-events-auto`}
           onClick={e => e.stopPropagation()}
         >
           <button
             onClick={close}
-            className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm cursor-pointer"
+            className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm cursor-pointer"
             aria-label="Cerrar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

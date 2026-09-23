@@ -1,6 +1,10 @@
+import { AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useDataContext } from '../contexts/DataContext'
+import { useOpenActividadId } from '../contexts/ActividadInlineContext'
 import { ActividadCard } from './actividades/ActividadCard'
+import { ActividadExpandido } from './actividades/ActividadExpandido'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 
@@ -15,7 +19,9 @@ const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 // used to sit on.
 export function InscripcionSection() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { sedes, actividades } = useDataContext()
+  const openActividadId = useOpenActividadId()
   const sede = sedes[0]
 
   if (!sede) return null
@@ -24,6 +30,12 @@ export function InscripcionSection() {
   const sesiones = actividades
     .filter(a => a.sedeId === sede.id && !a.cancelada && a.fecha >= today)
     .sort((a, b) => a.fecha.localeCompare(b.fecha))
+
+  // Solo abre inline la que de verdad es una de las sesiones de esta
+  // sección — si el id abierto pertenece a otra sección (ej. la grilla de
+  // Perfil), esto simplemente no encuentra nada y sigue mostrando las
+  // tarjetas normales.
+  const abierta = sesiones.find(a => a.id === openActividadId)
 
   return (
     <section id="sedes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
@@ -42,26 +54,48 @@ export function InscripcionSection() {
         </div>
 
         {sesiones.length > 0 && (
-          // Sized from the old ActividadesSlider card width (sm:w-72
-          // lg:w-80) grown 40% — that slider's own scroll/grid-toggle
-          // machinery is built for more items than the two fixed sessions
-          // (Día 1 / Día 2) this event actually has, so these render
-          // directly instead of through it.
-          <RevealGroup className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <span
               className="text-xs font-bold tracking-widest text-stone-400 uppercase"
               style={labelStyle}
             >
               {t('inscripcion.encabezado')}
             </span>
-            <div className="flex flex-wrap gap-8">
-              {sesiones.map(a => (
-                <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-[28rem]">
-                  <ActividadCard actividad={a} />
-                </RevealItem>
-              ))}
-            </div>
-          </RevealGroup>
+            {/* Con una sesión abierta, el panel horizontal (ActividadExpandido)
+                reemplaza la fila de tarjetas en vez de superponerse encima —
+                usa el ancho total de la sección como lienzo, sin necesidad de
+                anclarse a la celda exacta que se clickeó (a diferencia de
+                ParticipanteExpandido, acá no hay una grilla CSS fija de la que
+                calcular fila/columna).
+
+                RevealGroup vive DENTRO del ternario (no por fuera, envolviendo
+                todo, como antes) a propósito: su trigger de scroll-into-view
+                es `once: true`, guardado en el propio motion.div — si viviera
+                afuera y sobreviviera el swap entre panel/tarjetas, las
+                tarjetas se remontarían dentro de un observer que ya disparó
+                una vez y quedarían congeladas en su estado "hidden" (opacity
+                0) para siempre al volver a mostrarse. Que todo el RevealGroup
+                se desmonte y remonte junto con las tarjetas es lo que le da
+                un observer nuevo, y por lo tanto una revelación nueva, cada
+                vez que se cierra el panel. */}
+            <AnimatePresence mode="wait">
+              {abierta ? (
+                <ActividadExpandido
+                  key={abierta.id}
+                  actividad={abierta}
+                  onClose={() => navigate(-1)}
+                />
+              ) : (
+                <RevealGroup key="cards" className="flex flex-wrap gap-8" amount={0.05} staggerChildren={0.12}>
+                  {sesiones.map(a => (
+                    <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-[28rem]">
+                      <ActividadCard actividad={a} />
+                    </RevealItem>
+                  ))}
+                </RevealGroup>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </section>
