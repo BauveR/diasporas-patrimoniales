@@ -26,6 +26,14 @@
      time as they're touched. */
   --color-brand-red: #9b2923;
   --color-brand-orange: #f04f23;
+
+  /* Replaces the `text-3xl md:text-4xl lg:text-5xl` section-title jump
+     repeated as one literal block across 6 components — 30px at a 320px
+     viewport, 48px from a 1536px one up, interpolated by vw in between
+     instead of snapping at each breakpoint. Same min/max Tailwind's own
+     3xl/5xl already used, so no section's title changes size at its
+     current narrowest/widest — only what happens between them does. */
+  --text-fluid-title: clamp(1.875rem, 1.58rem + 1.48vw, 3rem);
 }
 
 body {
