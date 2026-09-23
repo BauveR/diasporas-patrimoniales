@@ -398,8 +398,9 @@ function EditActividadDrawer({
             className="
               bg-stone-50 flex flex-col overflow-hidden
               fixed bottom-0 left-0 right-0 rounded-t-3xl max-h-[92svh]
+              pb-[env(safe-area-inset-bottom,0px)]
               sm:top-0 sm:bottom-auto sm:left-auto sm:right-0
-              sm:w-[440px] sm:rounded-none sm:rounded-l-2xl sm:h-full sm:max-h-full
+              sm:w-[440px] sm:rounded-none sm:rounded-l-2xl sm:h-full sm:max-h-full sm:pb-0
             "
             variants={cardVariants}
             initial="initial"
@@ -1256,7 +1257,7 @@ function GestionSedes({ sedes }: { sedes: Sede[] }) {
 function Sidebar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <aside
-      className="hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col sm:w-14 lg:w-55 overflow-hidden"
+      className="hidden sm:flex fixed top-navbar left-0 bottom-0 z-40 flex-col sm:w-14 lg:w-55 overflow-hidden"
       style={{ ...labelStyle, backgroundColor: '#595d8d' }}
     >
       {/* Logo row — lg only */}
@@ -1317,7 +1318,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
 function MobileTabBar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <nav
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/15 flex items-stretch"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/15 flex items-stretch pb-[env(safe-area-inset-bottom,0px)]"
       style={{ ...labelStyle, backgroundColor: '#595d8d' }}
     >
       {NAV_ITEMS.map(({ key, label, Icon }) => {
@@ -1377,7 +1378,7 @@ export function AdminPage() {
       <MobileTabBar section={section} setSection={setSection} />
 
       {/* Content */}
-      <div className="pt-16 sm:pl-14 lg:pl-55 pb-16 sm:pb-0 min-h-screen flex flex-col">
+      <div className="pt-navbar sm:pl-14 lg:pl-55 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] sm:pb-0 min-h-screen flex flex-col">
 
         <ContentHeader item={currentNav} />
 
