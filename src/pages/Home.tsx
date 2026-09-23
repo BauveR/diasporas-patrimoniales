@@ -39,7 +39,7 @@ export function Home() {
   }, [location.key])
 
   return (
-    <main className="pt-16">
+    <main className="pt-navbar">
       <SeoHead title={t('meta.homeTitle')} description={t('meta.homeDescription')} />
       <PointsToShapes />
 
