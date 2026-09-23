@@ -10,7 +10,7 @@ import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-const NAVBAR_BG = '#9b2923'
+const NAVBAR_BG = 'var(--color-brand-red)'
 
 type NavEntry = { label: string; to?: string; href?: string }
 
