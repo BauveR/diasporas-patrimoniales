@@ -18,6 +18,14 @@
 
 @theme {
   --font-mattone: 'Mattone', sans-serif;
+
+  /* Institutional red + CTA orange — used as literal hex (style={{...}},
+     text-[#9b2923]) in ~12 files today; real utilities (bg-brand-red,
+     text-brand-red, etc.) let each of those switch to a single named
+     source of truth instead of repeating the hex, one component at a
+     time as they're touched. */
+  --color-brand-red: #9b2923;
+  --color-brand-orange: #f04f23;
 }
 
 body {
