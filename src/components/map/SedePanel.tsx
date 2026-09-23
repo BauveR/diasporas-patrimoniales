@@ -24,6 +24,7 @@ export function SedePanel({ sede }: Props) {
         <img
           src={sede.imagen}
           alt={sede.nombre}
+          loading="lazy"
           className="w-full h-full object-cover"
         />
       </div>
@@ -59,6 +60,9 @@ export function SedePanel({ sede }: Props) {
         <img
           src={logoTEA}
           alt="Tenerife Espacio de las Artes"
+          width={473}
+          height={237}
+          loading="lazy"
           className="h-14 w-auto object-contain brightness-75"
         />
 

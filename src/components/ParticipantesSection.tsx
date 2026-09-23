@@ -179,6 +179,7 @@ function ParticipanteFoto({
         <img
           src={fotoCompleta(participante)}
           alt={participante.nombre}
+          loading="lazy"
           className={`h-full w-full ${circular ? 'object-cover' : 'object-contain'}`}
         />
       ) : (
@@ -218,7 +219,7 @@ function ParticipanteSheet({ participante, onClose }: { participante: Participan
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white shadow-xl"
+        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-white shadow-xl"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -274,7 +275,7 @@ function ParticipanteModal({ participante, onClose }: { participante: Participan
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <div
-          className="relative w-full max-w-[57.6rem] min-h-[31.5rem] max-h-[85vh] overflow-y-auto rounded-3xl bg-white shadow-xl pointer-events-auto"
+          className="relative w-full max-w-[57.6rem] min-h-[31.5rem] max-h-[85svh] overflow-y-auto rounded-3xl bg-white shadow-xl pointer-events-auto"
           onClick={e => e.stopPropagation()}
         >
           <CerrarButton
@@ -345,6 +346,7 @@ function ParticipanteExpandido({
           <img
             src={fotoCompleta(participante)}
             alt={participante.nombre}
+            loading="lazy"
             className="h-full w-full object-contain"
           />
         ) : (

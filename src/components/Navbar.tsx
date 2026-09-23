@@ -158,6 +158,8 @@ export function Navbar() {
           <img
             src={logoDiasporas}
             alt="Diásporas Patrimoniales"
+            width={300}
+            height={314}
             className="h-10 w-auto object-contain"
           />
         </Link>

@@ -41,12 +41,13 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
       {/* Imagen */}
       <Link
         to={`/actividades/${actividad.id}`}
-        state={{ from: 'perfil', background: location }}
+        state={{ from: 'perfil-mobile', background: location }}
         className="relative shrink-0 w-20 h-20 rounded-2xl overflow-hidden"
       >
         <img
           src={actividad.imagen}
           alt={actividad.titulo}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}
         />
         {(inactiva || actividad.cancelada) && (
@@ -68,7 +69,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
         </span>
         <Link
           to={`/actividades/${actividad.id}`}
-          state={{ from: 'perfil', background: location }}
+          state={{ from: 'perfil-mobile', background: location }}
           className="text-sm text-stone-800 leading-snug line-clamp-2 hover:text-stone-500 transition-colors"
         >
           {actividad.titulo}

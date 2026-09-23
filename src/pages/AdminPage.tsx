@@ -95,7 +95,7 @@ function Input({ value, onChange, type = 'text', placeholder, className = '', er
       onChange={e => onChange(e.target.value)}
       onFocus={selectOnFocus ? e => e.target.select() : undefined}
       placeholder={placeholder}
-      className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-500 ${
+      className={`w-full border rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-500 ${
         error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
       } ${className}`}
     />
@@ -112,7 +112,7 @@ function Select({ value, onChange, children, error = false }: {
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className={`w-full border rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none transition-colors ${
+      className={`w-full border rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none transition-colors ${
         error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
       }`}
     >
@@ -138,7 +138,7 @@ function Textarea({ value, onChange, rows = 3, placeholder }: {
       onChange={e => onChange(e.target.value)}
       rows={rows}
       placeholder={placeholder}
-      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-[#595d8d] transition-colors resize-none"
+      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none focus:border-[#595d8d] transition-colors resize-none"
     />
   )
 }
@@ -480,7 +480,7 @@ function EditActividadDrawer({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="flex flex-col gap-1.5">
                     <FieldLabel>Fecha *</FieldLabel>
                     <Input value={form.fecha} onChange={set('fecha')} type="date" error={!!errors.fecha} />
@@ -977,7 +977,7 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Buscar por título, sede o isla…"
-                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-sm text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
+                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-base text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
               />
               {query && (
                 <button

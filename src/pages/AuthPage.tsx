@@ -176,7 +176,7 @@ export function AuthPage({ isModal = false }: Props) {
                 onChange={e => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
 
@@ -253,7 +253,7 @@ export function AuthPage({ isModal = false }: Props) {
               required
               maxLength={60}
               placeholder="Tu nombre completo"
-              className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+              className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
             />
           </div>
         )}
@@ -266,7 +266,7 @@ export function AuthPage({ isModal = false }: Props) {
             onChange={e => setEmail(e.target.value)}
             required
             placeholder="tu@email.com"
-            className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 
@@ -289,7 +289,7 @@ export function AuthPage({ isModal = false }: Props) {
             onChange={e => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 

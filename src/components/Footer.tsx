@@ -34,20 +34,26 @@ export function Footer() {
             <img
               src={logoDiasporasTea}
               alt="Diásporas Patrimoniales — TEA Tenerife"
+              width={600}
+              height={220}
+              loading="lazy"
               className="h-20 w-auto object-contain"
             />
             <img
               src={logoDiasporasPoster}
               alt="Diásporas Patrimoniales"
+              width={700}
+              height={350}
+              loading="lazy"
               className="ml-8 h-20 w-auto object-contain"
             />
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-              <img src={logoGobCan} alt="Gobierno de Canarias" className="h-[5.25rem] w-auto object-contain" />
-              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" className="h-[4.2rem] w-auto object-contain" />
-              <img src={logoTEA} alt="Tenerife Espacio de las Artes" className="h-[4.2rem] w-auto object-contain" />
-              <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" className="h-[3.375rem] w-auto object-contain" />
+              <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-[5.25rem] w-auto object-contain" />
+              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.2rem] w-auto object-contain" />
+              <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[4.2rem] w-auto object-contain" />
+              <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} loading="lazy" className="h-[3.375rem] w-auto object-contain" />
             </div>
             <div className="flex flex-col gap-1 text-sm text-white/80" style={labelStyle}>
               <p>
