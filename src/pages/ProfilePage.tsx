@@ -131,7 +131,7 @@ export function ProfilePage() {
     <main className="min-h-screen bg-white" style={labelStyle}>
 
       {/* Hero header */}
-      <div className="bg-stone-50 border-b border-stone-100 pt-24 pb-10 px-6 sm:px-8 lg:px-10">
+      <div className="bg-stone-50 border-b border-stone-100 pt-[calc(var(--spacing-navbar)+2rem)] pb-10 px-6 sm:px-8 lg:px-10">
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
