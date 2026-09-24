@@ -518,3 +518,21 @@ export const PARTICIPANTES: Participante[] = [
     foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Daniel%20Pe%CC%81rez%20Este%CC%81vez.png',
   },
 ]
+
+// Enlaza los nombres de moderador/participantes de programa.ts con su ficha
+// acá — por nombre exacto, la única llave que comparten ambos archivos (los
+// ids de programa.ts son de sesión, no de persona). Devuelve undefined para
+// los moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo) que todavía
+// no tienen ficha propia — quien llama a esto debe tratar ese caso como
+// "no hay a dónde llevar", no como un error.
+export function findParticipante(nombre: string): Participante | undefined {
+  return PARTICIPANTES.find(p => p.nombre === nombre)
+}
+
+// Mismo id de anclaje en ambos lados: ParticipantesSection lo usa para
+// etiquetar cada tarjeta, ProgramaTimeline para saber a qué elemento hacer
+// scroll — un solo lugar define el formato en vez de repetir el template
+// string en los dos archivos.
+export function participanteAnchorId(id: number): string {
+  return `participante-${id}`
+}

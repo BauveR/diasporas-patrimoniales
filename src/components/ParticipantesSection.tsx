@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion'
-import { PARTICIPANTES, type Participante, fotoThumbnail, fotoCompleta } from '../data/participantes'
+import { PARTICIPANTES, type Participante, fotoThumbnail, fotoCompleta, participanteAnchorId } from '../data/participantes'
 import { SlideInText } from './SlideInText'
+import { ParticipantesBackground } from './ParticipantesBackground'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { mq } from '../lib/breakpoints'
@@ -40,18 +41,26 @@ function FotoPlaceholder() {
 }
 
 function ParticipanteCard({
+  id,
   nombre,
   cargo,
   foto,
   onFotoClick,
-}: Pick<Participante, 'nombre' | 'foto'> & { cargo: string; onFotoClick: () => void }) {
+}: Pick<Participante, 'id' | 'nombre' | 'foto'> & { cargo: string; onFotoClick: () => void }) {
   return (
     // Toda la tarjeta es un solo botón (antes solo la foto lo era) — así se
     // puede abrir el popup haciendo clic en cualquier parte, incluida la
     // placa. `group` deja que la foto reaccione al hover del botón entero,
     // no solo al propio (ver group-hover más abajo). Sin ancho fijo: ocupa
-    // el ancho real de su celda en la grilla.
-    <button type="button" onClick={onFotoClick} aria-label={nombre} className="group flex w-full flex-col text-left">
+    // el ancho real de su celda en la grilla. `id` (participanteAnchorId):
+    // adónde hace scroll un nombre clickeado en ProgramaTimeline.
+    <button
+      type="button"
+      id={participanteAnchorId(id)}
+      onClick={onFotoClick}
+      aria-label={nombre}
+      className="group flex w-full flex-col scroll-mt-16 rounded-lg text-left transition-shadow duration-300"
+    >
       {/* Cuadrado, más chico que el ancho de la celda (w-[75%], centrado) y
           sin fondo propio (fondo transparente real del PNG) —
           object-contain en vez de cover, a tono con "que no se corten" del
@@ -128,6 +137,7 @@ function ParticipanteTextos({
   participante,
   className = '',
   dark = false,
+  dense = false,
 }: {
   participante: Participante
   className?: string
@@ -135,25 +145,32 @@ function ParticipanteTextos({
   // negro; sheet/modal van sobre blanco — mismo componente, paleta de texto
   // distinta según el fondo en vez de forzar un solo esquema de color.
   dark?: boolean
+  // ParticipanteExpandido: su alto lo fija la fila de la grilla (foto +
+  // nombre de las tarjetas vecinas), no un contenedor con margen de sobra
+  // como sheet/modal — con la bio más larga (449 caracteres, Patricia
+  // Ledesma Bouchán) medido en vivo a 832px de ancho (el peor caso de `lg`):
+  // 320px de contenido contra 242px de fila real, 78px de más. Texto/gaps
+  // más chicos en vez de agregar su propio scroll.
+  dense?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const locale = i18n.language as Locale
   return (
-    <div className={`flex flex-col gap-3 ${className}`}>
+    <div className={`flex flex-col ${dense ? 'gap-1.5' : 'gap-3'} ${className}`}>
       <div>
-        <h3 className={`font-mattone text-lg font-bold ${dark ? 'text-white' : 'text-stone-900'}`} style={labelStyle}>
+        <h3 className={`font-mattone font-bold ${dense ? 'text-base' : 'text-lg'} ${dark ? 'text-white' : 'text-stone-900'}`} style={labelStyle}>
           {participante.nombre}
         </h3>
-        <p className={`text-sm ${dark ? 'text-white/60' : 'text-stone-400'}`} style={labelStyle}>
+        <p className={`${dense ? 'text-xs' : 'text-sm'} ${dark ? 'text-white/60' : 'text-stone-400'}`} style={labelStyle}>
           {participante.cargo[locale] || t('participantes.cargoPendiente')}
         </p>
       </div>
       {participante.tituloIntervencion && (
-        <p className={`text-sm font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-brand-red'}`} style={labelStyle}>
+        <p className={`${dense ? 'text-xs' : 'text-sm'} font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-brand-red'}`} style={labelStyle}>
           {participante.tituloIntervencion}
         </p>
       )}
-      <p className={`text-sm leading-relaxed ${dark ? 'text-white/80' : 'text-stone-600'}`} style={labelStyle}>
+      <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} ${dark ? 'text-white/80' : 'text-stone-600'}`} style={labelStyle}>
         {participante.bio[locale] || t('participantes.bioPendiente')}
       </p>
     </div>
@@ -356,10 +373,12 @@ function ParticipanteExpandido({
           <FotoPlaceholder />
         )}
       </div>
-      <div className="flex w-[72%] flex-col justify-center gap-3 overflow-y-auto px-6 py-6 text-left">
+      <div className="flex w-[72%] flex-col justify-center gap-3 overflow-y-auto px-5 py-2 text-left">
         {/* Sin `dark`: paleta gris de siempre (stone-900/400/600), pensada
-            para fondo claro — el panel ya no es negro. */}
-        <ParticipanteTextos participante={participante} />
+            para fondo claro — el panel ya no es negro. `dense`: ver el
+            comentario en ParticipanteTextos — este alto lo fija la fila de
+            la grilla, no da margen de sobra como sheet/modal. */}
+        <ParticipanteTextos participante={participante} dense />
       </div>
       <CerrarButton
         onClose={onClose}
@@ -378,8 +397,9 @@ export function ParticipantesSection() {
   const selectedIndex = selected ? PARTICIPANTES.findIndex(p => p.id === selected.id) : -1
 
   return (
-    <section id="participantes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
-      <div className="mx-auto flex max-w-7xl flex-col gap-10">
+    <section id="participantes" className="relative w-full overflow-hidden scroll-mt-16 bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+      <ParticipantesBackground />
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10">
         <div className="flex flex-col gap-4">
           <SlideInText
             text={t('participantes.titulo')}
@@ -407,6 +427,7 @@ export function ParticipantesSection() {
           {PARTICIPANTES.map(p => (
             <RevealItem key={p.id}>
               <ParticipanteCard
+                id={p.id}
                 nombre={p.nombre}
                 cargo={p.cargo[locale] || t('participantes.cargoPendiente')}
                 foto={fotoThumbnail(p)}

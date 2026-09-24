@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProgramaItem } from '../data/programa'
+import { findParticipante, participanteAnchorId } from '../data/participantes'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 
 // Adaptado del componente "ProfessionalTimeline" que pasó el usuario:
@@ -34,18 +35,48 @@ const ChevronDown = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
+// Lleva a la ficha del nombre clickeado en la sección Participantes — solo
+// funciona si esa sección está montada en la página actual (Home): hoy este
+// panel también se abre embebido desde Perfil y desde la página completa de
+// una actividad, donde Participantes no existe, así que ahí el clic no
+// encuentra el elemento y no hace nada en silencio. Llevar ese caso a una
+// navegación real de vuelta a Home queda para una iteración aparte.
+function scrollToParticipante(id: number) {
+  const el = document.getElementById(participanteAnchorId(id))
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.classList.add('ring-4', 'ring-brand-red', 'ring-offset-2')
+  window.setTimeout(() => el.classList.remove('ring-4', 'ring-brand-red', 'ring-offset-2'), 1400)
+}
+
 function ParticipantesChips({ participantes }: { participantes: string[] }) {
   return (
     <div className="mt-3 flex flex-wrap gap-2 border-t border-stone-100 pt-3">
-      {participantes.map((nombre) => (
-        <span
-          key={nombre}
-          className="inline-flex items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-700"
-          style={labelStyle}
-        >
-          {nombre}
-        </span>
-      ))}
+      {participantes.map((nombre) => {
+        // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo)
+        // todavía no tienen ficha propia en participantes.ts — sin match,
+        // el nombre queda como texto plano en vez de un link roto.
+        const participante = findParticipante(nombre)
+        return participante ? (
+          <button
+            key={nombre}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); scrollToParticipante(participante.id) }}
+            className="inline-flex cursor-pointer items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-700 underline decoration-dotted underline-offset-2 transition-colors hover:bg-stone-200 hover:text-brand-red"
+            style={labelStyle}
+          >
+            {nombre}
+          </button>
+        ) : (
+          <span
+            key={nombre}
+            className="inline-flex items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-700"
+            style={labelStyle}
+          >
+            {nombre}
+          </span>
+        )
+      })}
     </div>
   )
 }
@@ -56,12 +87,14 @@ const TimelineRow = memo(function TimelineRow({
   onToggle,
   isLast,
   moderadorLabel,
+  dense,
 }: {
   item: ProgramaItem
   expanded: boolean
   onToggle: (id: string) => void
   isLast: boolean
   moderadorLabel: string
+  dense: boolean
 }) {
   const { t } = useTranslation()
   // La hora y el título vienen de programaItems.<id> en cada locale.json (el
@@ -73,17 +106,32 @@ const TimelineRow = memo(function TimelineRow({
   const expandable = Boolean(item.moderador || item.participantes?.length)
   const headerId = `programa-header-${item.id}`
   const contentId = `programa-content-${item.id}`
+  const moderadorParticipante = item.moderador ? findParticipante(item.moderador) : undefined
 
   return (
     <div className="relative">
       {!isLast && <div className="absolute top-5 bottom-0 left-[5px] w-px bg-stone-200" />}
       <div className="absolute top-1.5 left-0 h-[11px] w-[11px] rounded-full border-2 border-stone-300 bg-white" />
 
-      <div className="pb-8 pl-8">
+      <div className={dense ? 'pb-1 pl-8' : 'pb-8 pl-8'}>
         {expandable ? (
-          <button
+          // `role="button"` sobre un `div`, no un `<button>` real: el nombre
+          // del moderador y los chips de participantes de abajo son ahora
+          // ellos mismos botones clickeables (llevan a su ficha en
+          // Participantes) — anidar un <button> real dentro de otro <button>
+          // es HTML inválido. `onKeyDown` recupera la activación por
+          // teclado (Enter/Espacio) que un <button> nativo da gratis.
+          <div
             id={headerId}
+            role="button"
+            tabIndex={0}
             onClick={() => onToggle(item.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onToggle(item.id)
+              }
+            }}
             aria-expanded={expanded}
             aria-controls={contentId}
             className="group w-full cursor-pointer text-left"
@@ -101,7 +149,18 @@ const TimelineRow = memo(function TimelineRow({
                 </h4>
                 {item.moderador && (
                   <p className="mt-1 text-xs text-stone-500" style={labelStyle}>
-                    {moderadorLabel} {item.moderador}
+                    {moderadorLabel}{' '}
+                    {moderadorParticipante ? (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); scrollToParticipante(moderadorParticipante.id) }}
+                        className="cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-red"
+                      >
+                        {item.moderador}
+                      </button>
+                    ) : (
+                      item.moderador
+                    )}
                   </p>
                 )}
               </div>
@@ -114,7 +173,7 @@ const TimelineRow = memo(function TimelineRow({
                 <ParticipantesChips participantes={item.participantes} />
               </div>
             )}
-          </button>
+          </div>
         ) : (
           <div>
             <p className="text-[11px] tracking-widest text-stone-400 uppercase" style={labelStyle}>
@@ -130,7 +189,12 @@ const TimelineRow = memo(function TimelineRow({
   )
 })
 
-export function ProgramaTimeline({ dia, items }: { dia: string; items: ProgramaItem[] }) {
+// `dense`: used by ActividadExpandido (the registration panel) to fit the
+// whole day's agenda without needing its own scroll — half the row spacing
+// (pb-8→pb-4) and a tighter heading margin. Defaults to false so the actual
+// Programa section (ProgramaSection.tsx) keeps its normal, more relaxed
+// spacing; only the embedded copy needs to be tight.
+export function ProgramaTimeline({ dia, items, dense = false }: { dia: string; items: ProgramaItem[]; dense?: boolean }) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
 
@@ -149,7 +213,7 @@ export function ProgramaTimeline({ dia, items }: { dia: string; items: ProgramaI
           renders an <h2>, which would break the h2 (section title) → h3
           (day header) heading hierarchy the rest of the page follows. */}
       <RevealOnScroll>
-        <h3 className="font-mattone mb-6 text-lg font-bold tracking-tight text-brand-orange uppercase">{dia}</h3>
+        <h3 className={`font-mattone text-lg font-bold tracking-tight text-brand-orange uppercase ${dense ? 'mb-3' : 'mb-6'}`}>{dia}</h3>
       </RevealOnScroll>
       <RevealGroup amount={0.05} staggerChildren={0.08}>
         {items.map((item, i) => (
@@ -160,6 +224,7 @@ export function ProgramaTimeline({ dia, items }: { dia: string; items: ProgramaI
               onToggle={onToggle}
               isLast={i === items.length - 1}
               moderadorLabel={t('programa.moderador')}
+              dense={dense}
             />
           </RevealItem>
         ))}

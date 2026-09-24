@@ -55,7 +55,11 @@ function getProgramaDia(actividadId: number) {
 // directo <ProgramaTimeline> con los mismos datos que ya muestra la sección
 // Programa — mismo componente, ya colapsado por defecto, nada duplicado ni
 // desincronizado entre las dos secciones.
-export function ActividadExpandido({ actividad, onClose }: { actividad: Actividad; onClose: () => void }) {
+// `bare`: used by ActividadSheet (mobile bottom sheet, ActividadSheet.tsx) to
+// embed this same content without its own rounded/bordered/shadowed box or
+// close button — the sheet already provides both (drag handle + X), and
+// double framing looked wrong nested inside another rounded container.
+export function ActividadExpandido({ actividad, onClose, bare = false }: { actividad: Actividad; onClose: () => void; bare?: boolean }) {
   const { t } = useTranslation()
   const { sedes } = useDataContext()
   const booking = useActividadBooking(actividad)
@@ -101,15 +105,32 @@ export function ActividadExpandido({ actividad, onClose }: { actividad: Activida
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="relative w-full overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-xl sm:max-h-[75svh]"
+      className={
+        bare
+          ? 'relative w-full'
+          : 'relative w-full overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-xl sm:max-h-[75svh]'
+      }
     >
-      <CerrarButton onClose={onClose} />
+      {!bare && <CerrarButton onClose={onClose} />}
       {/* 60/40 — programa del día a la izquierda, imagen + inscripción a la
           derecha. Cada columna scrollea por su cuenta (`overflow-y-auto`)
           dentro del `max-h` del panel en vez de estirar la sección entera
-          cuando el día tiene muchos paneles. */}
-      <div className="grid grid-cols-1 sm:h-full sm:grid-cols-[6fr_4fr]">
-        <div className="order-2 overflow-y-auto p-6 sm:order-1 sm:p-8">
+          cuando el día tiene muchos paneles — o al menos esa era la
+          intención: `sm:h-full` (height:100%) no confiaba, en la práctica,
+          en el alto ya recortado por el `max-h` del padre (medido en vivo:
+          el padre quedaba en 637px pero este grid seguía midiendo 775px,
+          como si `h-full` nunca hubiera recalculado contra el `max-height`
+          del padre) — así que ninguna columna detectaba que necesitaba
+          scrollear, y el `overflow-hidden` del panel recortaba el resto sin
+          dejar forma de verlo. `sm:max-h-[75svh]` (mismo valor que el panel)
+          + `sm:grid-rows-1` (Tailwind: `grid-template-rows: minmax(0,1fr)`)
+          arregla ambas partes: el propio grid queda con un tope absoluto en
+          vez de depender de un porcentaje, y `minmax(0, ...)` deja que la
+          fila se achique por debajo de su alto de contenido en vez de
+          crecer para acomodarlo — sin eso, un `max-height` en el grid solo
+          movería el mismo recorte un nivel más abajo. */}
+      <div className="grid grid-cols-1 sm:max-h-[75svh] sm:grid-rows-1 sm:grid-cols-[6fr_4fr]">
+        <div className="order-2 overflow-y-auto p-6 sm:order-1 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 sm:hidden">
             <span
               className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
@@ -119,7 +140,12 @@ export function ActividadExpandido({ actividad, onClose }: { actividad: Activida
             </span>
           </div>
           {programaDia ? (
-            <ProgramaTimeline dia={diaLabel} items={programaDia} />
+            // `dense`: this panel has to fit the whole day's agenda in
+            // max-h-[75svh] without its own scroll (see the grid comment
+            // above) — half the row spacing buys back what the narrower `lg`
+            // column costs in extra text-wrapped lines. ProgramaSection.tsx's
+            // own (non-embedded) timeline keeps its relaxed default spacing.
+            <ProgramaTimeline dia={diaLabel} items={programaDia} dense />
           ) : (
             <p className="text-sm text-stone-600 leading-relaxed wrap-break-word whitespace-pre-line" style={labelStyle}>
               {actividad.descripcion}
@@ -127,8 +153,14 @@ export function ActividadExpandido({ actividad, onClose }: { actividad: Activida
           )}
         </div>
 
-        <div className="order-1 flex flex-col gap-5 overflow-y-auto p-4 sm:order-2 sm:border-l sm:border-stone-100 sm:p-6">
-          <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-2xl bg-stone-50 sm:aspect-square">
+        <div className="order-1 flex flex-col gap-3 overflow-y-auto p-4 sm:order-2 sm:border-l sm:border-stone-100 sm:p-4">
+          {/* `sm:aspect-[3/2]`, not `sm:aspect-square`: a square image in
+              this already-narrow right column (worst case ~40% of a `lg`
+              section, well under half the width xl/2xl give it) ate a big
+              share of the shared 75svh budget for its own sake — 3:2 keeps a
+              real photo, just shorter, buying back height for the booking
+              widget below it. */}
+          <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-2xl bg-stone-50 sm:aspect-[3/2]">
             <img
               src={actividad.imagen}
               alt={actividad.titulo}
@@ -137,7 +169,7 @@ export function ActividadExpandido({ actividad, onClose }: { actividad: Activida
             />
           </div>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
             {/* Sin título acá — ya lo muestra el propio encabezado del
                 timeline a la izquierda ("DÍA 1 — 12 DE NOVIEMBRE"),
                 repetirlo era redundante. */}

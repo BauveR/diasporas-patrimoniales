@@ -76,46 +76,53 @@ export function BookingWidget({
 
   if (inscrito && !esPasada) {
     if (compact) {
+      // Padding/gaps más chicos que el resto del modo compact a propósito:
+      // esta rama (ya inscrito) apila header + barra de plazas + 2 botones
+      // en 3 bloques separados por su propio padding — con los valores
+      // "normales" de compact (px-5/py-4/gap-3) medía más alto que la rama
+      // de formulario (un solo bloque) y era la que en la práctica seguía
+      // pidiendo scroll dentro de ActividadExpandido incluso con el resto
+      // ya ajustado.
       return (
-        <div className="flex flex-col gap-3 font-mattone font-normal">
+        <div className="flex flex-col gap-1.5 font-mattone font-normal">
           <div className="rounded-2xl overflow-hidden border border-stone-200">
-            <div className="px-5 py-3 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
+            <div className="px-4 py-1.5 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
               <span className="text-white text-sm leading-none">✓</span>
               <span className="text-[10px] tracking-widest uppercase text-white/80">Inscripción confirmada</span>
             </div>
-            <div className="px-5 pt-4 pb-3">{plazasBar}</div>
+            <div className="px-4 pt-2 pb-1.5">{plazasBar}</div>
             {confirmando ? (
-              <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
+              <div className="px-4 py-2 border-t border-stone-100 flex flex-col gap-1.5">
                 <p className="text-[11px] text-stone-500 text-center">¿Liberar tu plaza?</p>
                 <div className="flex gap-2">
                   <button
                     onClick={onLiberar}
                     disabled={liberando}
-                    className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
+                    className="flex-1 py-2 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                   >
                     {liberando ? '...' : 'Sí, liberar'}
                   </button>
                   <button
                     onClick={() => setConfirmando(false)}
                     disabled={liberando}
-                    className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
+                    className="flex-1 py-2 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
                   >
                     Mantener
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
+              <div className="px-4 py-2 border-t border-stone-100 flex flex-col gap-1.5">
                 <button
                   disabled
-                  className="w-full py-3 rounded-xl text-white text-[11px] tracking-widest uppercase cursor-not-allowed opacity-90"
+                  className="w-full py-1.5 rounded-xl text-white text-[11px] tracking-widest uppercase cursor-not-allowed opacity-90"
                   style={{ backgroundColor: '#50664d' }}
                 >
                   Ya inscrito ✓
                 </button>
                 <button
                   onClick={() => setConfirmando(true)}
-                  className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                  className="w-full py-1.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
                 >
                   Liberar plaza
                 </button>

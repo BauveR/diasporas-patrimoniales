@@ -28,20 +28,31 @@ export interface HeroTuning {
 // railMaxWidthRem started at Tailwind's `max-w-7xl` (80rem, the same content
 // rail Footer.tsx uses) and was widened from there once it turned out to be
 // the actual limit on how far right the text column could go.
+//
+// Retuning process for each bucket (used for `base`, still pending for
+// sm/md/lg/xl/2xl — their values below are untouched pre-fix placeholders,
+// not real tuned positions):
+//   1. Chrome DevTools -> device toolbar (Cmd+Shift+M) -> "Responsive" ->
+//      type an exact width inside that bucket's range (see BREAKPOINTS in
+//      ../hooks/useBreakpoint) and any height.
+//   2. Expand the "Hero tuning" panel (top-right, dev only) -> the matching
+//      "Orb — <bucket>" folder.
+//   3. Drag shiftX/shiftY/scale until it looks right, then report the 3
+//      numbers back to update the matching entry here.
+// Only the bucket matching the current viewport width is visible/live at
+// once (see useBreakpoint), so tune one at a time.
 export const HERO_TUNING_DEFAULTS: HeroTuning = {
   heroOverlayShiftPx: 42,
   railMaxWidthRem: 116,
   orb: {
-    // base/sm/md reproduce the old "small screen" behavior exactly (shape
-    // dead-center behind the stacked text) — these are starting points to
-    // tune away, not a hardcoded center with no knob the way it used to be.
-    base: { shiftX: 0, shiftY: 0, scale: 1 },
-    sm: { shiftX: 0, shiftY: 0, scale: 1 },
-    md: { shiftX: 0, shiftY: 0, scale: 1 },
-    // lg/xl/2xl reproduce the old "large screen" behavior exactly (panned
-    // left to make room for the wordmark/text column).
-    lg: { shiftX: 62, shiftY: 0, scale: 1 },
-    xl: { shiftX: 62, shiftY: 0, scale: 1 },
-    '2xl': { shiftX: 62, shiftY: 0, scale: 1 },
+    // base/sm/md: tuned live via HeroTuningPanel, under the corrected
+    // (non-recentering) camera math above.
+    base: { shiftX: 1, shiftY: -35, scale: 0.7 },
+    sm: { shiftX: 0, shiftY: -37, scale: 0.65 },
+    md: { shiftX: 0, shiftY: -45, scale: 0.6 },
+    // lg/xl/2xl: tuned live via HeroTuningPanel.
+    lg: { shiftX: 75, shiftY: -12, scale: 0.7 },
+    xl: { shiftX: 80, shiftY: 3, scale: 0.8 },
+    '2xl': { shiftX: 75, shiftY: 6, scale: 0.9 },
   },
 }

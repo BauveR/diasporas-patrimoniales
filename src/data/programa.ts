@@ -27,7 +27,7 @@ export const PROGRAMA_DIA_1: ProgramaItem[] = [
     hora: '12:15–13:30',
     titulo: 'Panel II. Cooperación y restitución: políticas y marcos de actuación',
     moderador: 'Isaac Sastre',
-    participantes: ['Claire Chastanier', 'Fátima Faria Roque', 'Hanna Pennock', 'Maria Auxiliadora Llamas Márquez'],
+    participantes: ['Claire Chastanier', 'Fátima Faria Roque', 'Hanna Pennock', 'María Auxiliadora Llamas Márquez'],
   },
   { id: 'd1-7', hora: '13:30–15:30', titulo: 'Pausa almuerzo' },
   {
@@ -35,7 +35,7 @@ export const PROGRAMA_DIA_1: ProgramaItem[] = [
     hora: '15:30–16:45',
     titulo: 'Panel III. Experiencias internacionales: Europa, África y América Latina',
     moderador: 'Isaac Sastre',
-    participantes: ['Mustapha Jlok', 'Patricia Ledesma Bouchán', 'María Miñana', 'Raphael Callou'],
+    participantes: ['Mustapha Jlok', 'Patricia Ledesma Bouchán', 'María José Miñana', 'Raphael Callou'],
   },
 ]
 
@@ -53,7 +53,7 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
     hora: '12:15–13:30',
     titulo: 'Panel V. Trayectorias clave y debates singulares',
     moderador: 'Jared Carballo',
-    participantes: ['Conrado Rodríguez Martín', 'Alejandra Gómez Colorado', 'José Fenoll Cascales', 'Jesús Robles Moreno', 'Said Karboune Rodríguez'],
+    participantes: ['Conrado Rodríguez-Maffiotte Martín', 'Alejandra Gómez Colorado', 'José Fenoll Cascales', 'Jesús Robles Moreno', 'Said Karboune Rodríguez'],
   },
   { id: 'd2-4', hora: '13:30–15:30', titulo: 'Pausa almuerzo' },
   {

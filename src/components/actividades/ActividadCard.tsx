@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import type { Actividad } from '../../data/actividades'
 
 import { DifficultyDots } from './DifficultyDots'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
 import { LOCALE_TAGS, type Locale } from '../../i18n/config'
 
@@ -14,7 +13,6 @@ type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 export function ActividadCard({ actividad, inactiva = false, from = 'actividades' }: Props) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
-  const isDesktop = useIsDesktop()
   const { sedes } = useDataContext()
   const sede = sedes.find(c => c.id === actividad.sedeId)
   const dateTag = LOCALE_TAGS[i18n.language as Locale] ?? LOCALE_TAGS.es
@@ -39,7 +37,13 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
   return (
     <Link
       to={`/actividades/${actividad.id}`}
-      state={isDesktop ? { from, background: location } : { from }}
+      // `background` always set now (not just on desktop): mobile used to
+      // navigate for real to the full ActividadPage, which is exactly the
+      // "looks like a whole page" behavior this was meant to replace with a
+      // bottom sheet (see ActividadModal/ActividadSheet). InscripcionSection
+      // gates its own inline-panel swap on isDesktop separately, so this
+      // doesn't make that panel show up on mobile too.
+      state={{ from, background: location }}
       className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
     >
       {/* Imagen */}

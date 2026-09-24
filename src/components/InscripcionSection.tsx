@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useDataContext } from '../contexts/DataContext'
 import { useOpenActividadId } from '../contexts/ActividadInlineContext'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ActividadCard } from './actividades/ActividadCard'
 import { ActividadExpandido } from './actividades/ActividadExpandido'
 import { SlideInText } from './SlideInText'
@@ -22,6 +23,7 @@ export function InscripcionSection() {
   const navigate = useNavigate()
   const { sedes, actividades } = useDataContext()
   const openActividadId = useOpenActividadId()
+  const isDesktop = useIsDesktop()
   const sede = sedes[0]
 
   if (!sede) return null
@@ -34,8 +36,12 @@ export function InscripcionSection() {
   // Solo abre inline la que de verdad es una de las sesiones de esta
   // sección — si el id abierto pertenece a otra sección (ej. la grilla de
   // Perfil), esto simplemente no encuentra nada y sigue mostrando las
-  // tarjetas normales.
-  const abierta = sesiones.find(a => a.id === openActividadId)
+  // tarjetas normales. Gateado además a `isDesktop`: en mobile, ActividadCard
+  // también manda `background` ahora (antes solo en desktop), así que
+  // openActividadId se resolvería igual ahí — pero mobile usa el sheet que
+  // sube desde abajo (ActividadModal/ActividadSheet) en vez de este panel
+  // ancho, así que las tarjetas deben seguir mostrándose detrás sin cambiar.
+  const abierta = isDesktop ? sesiones.find(a => a.id === openActividadId) : undefined
 
   return (
     <section id="sedes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
@@ -86,9 +92,14 @@ export function InscripcionSection() {
                   onClose={() => navigate(-1)}
                 />
               ) : (
-                <RevealGroup key="cards" className="flex flex-wrap gap-8" amount={0.05} staggerChildren={0.12}>
+                <RevealGroup key="cards" className="flex flex-wrap gap-8 lg:gap-6" amount={0.05} staggerChildren={0.12}>
+                  {/* `lg:w-96` (24rem = 384px), no `lg:w-[28rem]`: en el peor
+                      caso de `lg` (1024px, ~832px de columna tras el
+                      `lg:px-24` de la sección) dos tarjetas de 28rem + el gap
+                      sumaban 928px y se envolvían a una debajo de la otra —
+                      384px×2 + gap-6 (24px) = 792px entra con margen. */}
                   {sesiones.map(a => (
-                    <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-[28rem]">
+                    <RevealItem key={a.id} className="w-full sm:w-[25.2rem] lg:w-96">
                       <ActividadCard actividad={a} />
                     </RevealItem>
                   ))}

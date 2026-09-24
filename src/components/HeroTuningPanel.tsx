@@ -9,9 +9,15 @@ import type { BreakpointBucket } from '../hooks/useBreakpoint'
 // despite being a helper wrapping useControls.
 function useOrbBucketControls(label: string, defaults: HeroOrbTuning): HeroOrbTuning {
   return useControls(label, {
-    shiftX: { value: defaults.shiftX, min: -80, max: 150, step: 1 },
-    shiftY: { value: defaults.shiftY, min: -80, max: 80, step: 1 },
-    scale: { value: defaults.scale, min: 0.1, max: 3, step: 0.05 },
+    // Wide enough to reach past a fully-grown mobile section's height, not
+    // just one screen's worth: CameraRig now anchors the frustum's top to a
+    // fixed viewport-height reference instead of the (possibly much taller,
+    // content-dependent) canvas's own midpoint, so shiftY may need to travel
+    // considerably further than "one screen" to bring the swarm back into
+    // view on a tall stacked-content layout.
+    shiftX: { value: defaults.shiftX, min: -300, max: 300, step: 1 },
+    shiftY: { value: defaults.shiftY, min: -300, max: 300, step: 1 },
+    scale: { value: defaults.scale, min: 0.1, max: 5, step: 0.05 },
   })
 }
 
@@ -21,7 +27,7 @@ function useOrbBucketControls(label: string, defaults: HeroOrbTuning): HeroOrbTu
 // in production. Reports live slider values up to the parent instead of
 // owning them, since the parent (not this dev-only panel) is what needs
 // them for every render, including production ones where this never mounts.
-export default function HeroTuningPanel({ onChange }: { onChange: (tuning: HeroTuning) => void }) {
+export default function HeroTuningPanel({ onChange, bucket }: { onChange: (tuning: HeroTuning) => void; bucket: BreakpointBucket }) {
   const layout = useControls('Hero — layout', {
     heroOverlayShiftPx: { value: HERO_TUNING_DEFAULTS.heroOverlayShiftPx, min: 0, max: 350, step: 1 },
     railMaxWidthRem: { value: HERO_TUNING_DEFAULTS.railMaxWidthRem, min: 60, max: 160, step: 1 },
@@ -44,5 +50,28 @@ export default function HeroTuningPanel({ onChange }: { onChange: (tuning: HeroT
     onChange(tuning)
   }, [tuning, onChange])
 
-  return <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
+  return (
+    <>
+      {/* Every "Orb — <bucket>" folder above is always visible at once,
+          regardless of the real viewport — only the one matching the
+          CURRENT bucket actually affects anything on screen (see
+          PointsToShapes/useBreakpoint). Without this readout it's easy to
+          drag a folder's sliders while the browser is still narrower/wider
+          than that bucket's range and see no effect, and wrongly read that
+          as the controls being broken (happened tuning `sm`). */}
+      <div className="pointer-events-none fixed right-4 bottom-4 z-[10000] rounded-md bg-black/80 px-3 py-1.5 font-mono text-xs text-white">
+        Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
+      </div>
+      <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
+    </>
+  )
+}
+
+const BUCKET_LABELS: Record<BreakpointBucket, string> = {
+  base: 'base (<640)',
+  sm: 'sm (640)',
+  md: 'md (768)',
+  lg: 'lg (1024)',
+  xl: 'xl (1280)',
+  '2xl': '2xl (1536)',
 }
