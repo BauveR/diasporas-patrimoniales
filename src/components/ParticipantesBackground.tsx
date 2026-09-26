@@ -1,188 +1,203 @@
-import { useEffect, useRef } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
+import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
+import { Effects } from '@react-three/drei'
+import { UnrealBloomPass } from 'three-stdlib'
+import * as THREE from 'three'
 
-// Fondo liviano de puntos flotando, sobre canvas 2D (sin WebGL, sin
-// dependencias nuevas) — pensado para vivir detrás de la grilla de
-// Participantes como un detalle sutil, no como protagonista: opacidad baja,
-// deriva lenta. Mismo criterio de performance que el enjambre de partículas
-// del hero (PointsToShapes.tsx): el loop de animación se detiene por
-// completo (no solo deja de dibujar) cuando la sección sale de pantalla, y
-// respeta prefers-reduced-motion dibujando un único frame estático en vez
-// de animar.
-const PARTICLE_COUNT = 900
-// px por frame a ~60fps — deliberadamente muy lento, es un fondo, no debe
-// competir por atención con las tarjetas de encima.
-const SPEED = 0.15
-const ACCENT_ORANGE = '233, 151, 65' // #e99741
-const BRAND_RED = '155, 41, 35' // #9b2923, el mismo rojo teja del navbar
-// Fracción de puntos que usan el rojo institucional en vez del naranja de
-// acento — un segundo color puntual, no una lluvia pareja de los dos.
-const ACCENT_RATIO = 0.12
+// Reemplaza el fondo anterior (puntos flotando en canvas 2D) por un enjambre
+// WebGL — mismo lugar, mismo rol (detrás de la grilla de Participantes),
+// pero un efecto bastante más protagonista, a pedido. Basado en un snippet
+// de una herramienta de live-coding (particles.casberry.in): acá se porta a
+// React Three Fiber, mismo patrón que ya usa el swarm del hero
+// (PointsToShapes.tsx — Canvas + InstancedMesh + Effects/unrealBloomPass),
+// en vez del Three.js imperativo original, y se corrigen 2 bugs reales que
+// traía:
+// - El material no tenía `vertexColors: true`. Sin eso,
+//   InstancedMesh.setColorAt() no tiene nada contra lo que multiplicar y la
+//   escena renderiza blanco liso — el gradiente de color que calcula el
+//   loop de abajo nunca se veía. Mismo fix que ya documenta el geometry de
+//   PointsToShapes.tsx: un atributo de color por vértice neutro (blanco).
+// - `dispose()` no cancelaba el loop de `requestAnimationFrame` — quedaba
+//   corriendo para siempre incluso desmontado, intentando dibujar sobre
+//   geometría ya liberada. R3F resuelve esto solo (el propio <Canvas>
+//   cancela su loop al desmontar), así que ya no hace falta un dispose()
+//   manual.
+extend({ UnrealBloomPass })
 
-// 4 tamaños fijos (no un radio continuo al azar) para que se note la
-// variedad como algo deliberado — más chicos que grandes, como si los
-// grandes estuvieran "más cerca": da una sensación de profundidad sin
-// necesitar perspectiva real. Los pesos suman 1 (cada uno es la probabilidad
-// de que un punto dado caiga en ese tamaño).
-const SIZE_TIERS = [
-  { radius: 1.2, weight: 0.5 },
-  { radius: 2.5, weight: 0.3 },
-  { radius: 4.5, weight: 0.13 },
-  { radius: 7, weight: 0.07 },
-]
-
-function pickSizeTier(): { radius: number; weight: number } {
-  const roll = Math.random()
-  let acc = 0
-  for (const tier of SIZE_TIERS) {
-    acc += tier.weight
-    if (roll <= acc) return tier
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    unrealBloomPass: ThreeElement<typeof UnrealBloomPass>
   }
-  return SIZE_TIERS[SIZE_TIERS.length - 1]
 }
 
-type Particle = {
-  x: number
-  y: number
-  vx: number
-  vy: number
-  radius: number
-  opacity: number
-  accent: boolean
-}
+// El snippet original pedía 20 000 partículas — el propio swarm del hero
+// (protagonista de toda la página, con el mismo bloom) usa ~1270
+// (PointsToShapes.tsx, COUNT). Esta sección no es el hero, así que se
+// mantiene en ese mismo orden de magnitud en vez de 15x más: son 20 000
+// matrices de instancia recalculadas a mano (seno/coseno/raíz, sin shader
+// de cómputo) cada frame, un costo de CPU real en un teléfono.
+const COUNT = 1800
 
-function createParticles(width: number, height: number): Particle[] {
-  const particles: Particle[] = []
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const angle = Math.random() * Math.PI * 2
-    const speed = SPEED * (0.5 + Math.random())
-    const { radius } = pickSizeTier()
-    particles.push({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      radius,
-      // Antes 0.12–0.30 (bastante transparentes) — ahora sensiblemente más
-      // opacos, a pedido: el fondo pasó a negro, así que hay más margen de
-      // contraste antes de competir con la grilla de encima.
-      opacity: 0.28 + Math.random() * 0.32,
-      accent: Math.random() < ACCENT_RATIO,
-    })
-  }
-  return particles
+// Valores efectivos del snippet original: traía un panel de controles en
+// vivo (addControl(id, label, min, max, default)) que en este sitio no
+// existe — cada llamada resolvía contra un objeto PARAMS fijo si la clave
+// estaba presente ahí (y las 7 lo estaban), así que el "default" de cada
+// llamada nunca se usaba en la práctica. Estos son esos valores ya
+// resueltos, no los defaults de cada addControl.
+const SCALE = 196.2
+const FREQ = 6
+const AMP = 20
+const SPEED = 0.76
+const WELLS = 0.76
+const PULL = 20
+const TWIST = 0
+
+function Swarm() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const target = useMemo(() => new THREE.Vector3(), [])
+  const color = useMemo(() => new THREE.Color(), [])
+
+  const [positions] = useState(() => {
+    const arr: THREE.Vector3[] = []
+    for (let i = 0; i < COUNT; i++) {
+      arr.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 100,
+      ))
+    }
+    return arr
+  })
+
+  const material = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+    [],
+  )
+  const geometry = useMemo(() => {
+    const geo = new THREE.TetrahedronGeometry(0.25)
+    const white = new Float32Array(geo.attributes.position.count * 3).fill(1)
+    geo.setAttribute('color', new THREE.BufferAttribute(white, 3))
+    return geo
+  }, [])
+
+  // Tela de espacio-tiempo deformándose bajo 2 pozos de gravedad que orbitan
+  // — cada partícula tiene una posición fija en la "tela" (u, v, un hash
+  // pseudoaleatorio de su índice) y el pozo dobla esa tela en Z según qué
+  // tan cerca esté. Portado 1:1 desde el snippet original, solo con
+  // this.positions/this.dummy/this.mesh reemplazados por los refs de arriba.
+  useFrame((state) => {
+    if (!meshRef.current) return
+    const t = state.clock.getElapsedTime() * SPEED
+
+    for (let i = 0; i < COUNT; i++) {
+      const u = (Math.sin(i * 12.9898) * 43758.5453) % 1.0
+      const v = (Math.sin(i * 78.233) * 12345.6789) % 1.0
+
+      const x = (u * 2.0 - 1.0) * SCALE
+      const y = (v * 2.0 - 1.0) * SCALE
+
+      const wave = Math.sin(x * 0.02 * FREQ + t) + Math.sin(y * 0.02 * FREQ - t * 0.8)
+      let z = wave * AMP
+
+      const w1x = Math.sin(t * 0.3) * SCALE * 0.4
+      const w1y = Math.cos(t * 0.2) * SCALE * 0.4
+      const w2x = Math.sin(t * 0.5 + 2.0) * SCALE * 0.3
+      const w2y = Math.cos(t * 0.4 + 1.0) * SCALE * 0.3
+
+      const dx1 = x - w1x
+      const dy1 = y - w1y
+      const d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1 + 4.0)
+
+      const dx2 = x - w2x
+      const dy2 = y - w2y
+      const d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2 + 4.0)
+
+      const bend1 = -PULL / d1
+      const bend2 = -PULL / d2
+      z += (bend1 + bend2) * (WELLS > 1.0 ? 1.0 : WELLS * 0.5)
+
+      const ang = TWIST * (bend1 - bend2)
+      const cosA = Math.cos(ang)
+      const sinA = Math.sin(ang)
+      const tx = x * cosA - y * sinA
+      const ty = x * sinA + y * cosA
+
+      target.set(tx, ty, z)
+
+      const depth = Math.abs(z) / (AMP + 0.001)
+      const hue = (0.6 - depth * 0.5 + 0.1 * Math.sin(t)) % 1.0
+      const sat = 0.7 + 0.3 * depth
+      const light = 0.2 + 0.6 * (1.0 - depth)
+      color.setHSL(hue, sat, light)
+
+      positions[i].lerp(target, 0.1)
+      dummy.position.copy(positions[i])
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, color)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  })
+
+  return <instancedMesh ref={meshRef} args={[geometry, material, COUNT]} />
 }
 
 export function ParticipantesBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  // Mismo criterio que la versión anterior de este fondo: sin animar si el
+  // sistema pide menos movimiento — acá eso significa congelar el
+  // frameloop de R3F en vez de parar un requestAnimationFrame manual.
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    const parent = canvas?.parentElement
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !parent || !ctx) return
-
-    // Capado a 2x: en una pantalla 3x/4x no aporta nitidez perceptible acá
-    // (son puntos borrosos de pocos px) y sí cuadruplica los píxeles a
-    // limpiar/redibujar en cada frame.
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    let width = 0
-    let height = 0
-    let particles: Particle[] = []
-
-    function resize() {
-      width = parent!.clientWidth
-      height = parent!.clientHeight
-      canvas!.width = width * dpr
-      canvas!.height = height * dpr
-      canvas!.style.width = `${width}px`
-      canvas!.style.height = `${height}px`
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
-      particles = createParticles(width, height)
-    }
-    resize()
-
-    function draw() {
-      ctx!.clearRect(0, 0, width, height)
-      for (const p of particles) {
-        ctx!.beginPath()
-        ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx!.fillStyle = `rgba(${p.accent ? BRAND_RED : ACCENT_ORANGE}, ${p.opacity})`
-        ctx!.fill()
-      }
-    }
-
-    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let reducedMotion = reducedMotionQuery.matches
-    let isVisible = false
-    let frameId: number | null = null
-    let running = false
-
-    function loop() {
-      if (reducedMotion) {
-        draw()
-        running = false
-        frameId = null
-        return
-      }
-      for (const p of particles) {
-        p.x += p.vx
-        p.y += p.vy
-        // Envuelve en los bordes en vez de rebotar — más simple, y a esta
-        // velocidad/opacidad el "salto" al otro lado no se nota.
-        if (p.x < -10) p.x = width + 10
-        else if (p.x > width + 10) p.x = -10
-        if (p.y < -10) p.y = height + 10
-        else if (p.y > height + 10) p.y = -10
-      }
-      draw()
-      frameId = requestAnimationFrame(loop)
-    }
-
-    function startLoop() {
-      if (running) return
-      running = true
-      frameId = requestAnimationFrame(loop)
-    }
-
-    function stopLoop() {
-      running = false
-      if (frameId !== null) cancelAnimationFrame(frameId)
-      frameId = null
-    }
-
-    draw() // primer frame inmediato, sin esperar al observer de visibilidad
-
-    const resizeObserver = new ResizeObserver(() => {
-      resize()
-      draw()
-    })
-    resizeObserver.observe(parent)
-
-    const intersectionObserver = new IntersectionObserver(
-      ([entry]) => {
-        isVisible = entry.isIntersecting
-        if (isVisible && !reducedMotion) startLoop()
-        else stopLoop()
-      },
+    const el = containerRef.current
+    if (!el) return
+    // threshold 0 + freeze total del frameloop (no solo dejar de dibujar)
+    // cuando la sección sale de pantalla — mismo motivo que documenta
+    // PointsToShapes.tsx: sin esto la carga de GPU/CPU sigue mientras se
+    // scrollea el resto de la página, y se nota como un tirón al volver.
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0 },
     )
-    intersectionObserver.observe(canvas)
+    observer.observe(el)
 
-    const handleMotionChange = (e: MediaQueryListEvent) => {
-      reducedMotion = e.matches
-      if (reducedMotion) stopLoop()
-      draw()
-      if (!reducedMotion && isVisible) startLoop()
-    }
-    reducedMotionQuery.addEventListener('change', handleMotionChange)
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    mql.addEventListener('change', handler)
 
     return () => {
-      stopLoop()
-      resizeObserver.disconnect()
-      intersectionObserver.disconnect()
-      reducedMotionQuery.removeEventListener('change', handleMotionChange)
+      observer.disconnect()
+      mql.removeEventListener('change', handler)
     }
   }, [])
 
-  return <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0" />
+  return (
+    <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <Canvas
+        camera={{ fov: 60, position: [0, 0, 100], near: 0.1, far: 2000 }}
+        frameloop={isVisible && !reducedMotion ? 'always' : 'never'}
+        // R3F cubre 2x por defecto; igual que el fog/bloom del hero, se
+        // acota un poco más porque esto corre detrás de contenido real, no
+        // es la única cosa en pantalla.
+        dpr={[1, 1.5]}
+      >
+        <fogExp2 attach="fog" args={[0x000000, 0.01]} />
+        <Swarm />
+        {/* `unrealBloomPass` como hijo directo de `Effects`, no envuelto en
+            un componente propio — ver el comentario largo sobre esto mismo
+            en PointsToShapes.tsx: `Effects` (drei) clona sus children
+            directos para inyectarles `attach="passes-N"`, y ese prop se
+            pierde si el pass no es un hijo literal. */}
+        <Effects disableGamma>
+          <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.8, 0.4, 0]} />
+        </Effects>
+      </Canvas>
+    </div>
+  )
 }
