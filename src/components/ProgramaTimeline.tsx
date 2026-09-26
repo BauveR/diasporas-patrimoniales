@@ -49,18 +49,63 @@ function scrollToParticipante(id: number) {
   window.setTimeout(() => el.classList.remove('ring-4', 'ring-brand-red', 'ring-offset-2'), 1400)
 }
 
-function ParticipantesChips({ participantes, dark, chipsLight }: { participantes: string[]; dark: boolean; chipsLight: boolean }) {
+// `cargos`: solo lo pasa la versión completa (ProgramaSection, !dense) —
+// ahí cada ponente se muestra como nombre + su cargo/afiliación debajo, en
+// vez de la píldora chica de siempre (no entra un cargo de una línea en
+// una píldora). La versión compacta (paneles de inscripción, dense) sigue
+// exactamente igual que antes: solo píldoras con el nombre.
+function ParticipantesChips({ participantes, cargos, dark, chipsLight }: { participantes: string[]; cargos?: string[]; dark: boolean; chipsLight: boolean }) {
+  // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo) todavía
+  // no tienen ficha propia en participantes.ts — sin match, el nombre queda
+  // como texto plano en vez de un link roto.
+  // chipsLight: ProgramaSection pasa esto en su fondo oscuro nuevo — el
+  // texto/las píldoras se quedan con el mismo gris claro sólido de siempre
+  // en vez de pasar al translúcido que sí usa el panel desplegado
+  // (ActividadExpandido/AmbosDiasExpandido, dark sin chipsLight).
+  const borderClass = dark && !chipsLight ? 'border-white/10' : 'border-stone-100'
+
+  if (cargos) {
+    const nameClass = dark && !chipsLight
+      ? 'text-stone-200 hover:text-brand-orange'
+      : 'text-stone-700 hover:text-brand-red'
+    const cargoClass = dark && !chipsLight ? 'text-stone-400' : 'text-stone-500'
+    return (
+      <div className={`mt-3 flex flex-col gap-3 border-t pt-3 ${borderClass}`}>
+        {participantes.map((nombre, i) => {
+          const participante = findParticipante(nombre)
+          const cargo = cargos[i]
+          return (
+            <div key={nombre}>
+              {participante ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); scrollToParticipante(participante.id) }}
+                  className={`cursor-pointer text-xs font-semibold underline decoration-dotted underline-offset-2 transition-colors ${nameClass}`}
+                  style={labelStyle}
+                >
+                  {nombre}
+                </button>
+              ) : (
+                <span className={`text-xs font-semibold ${dark && !chipsLight ? 'text-stone-200' : 'text-stone-700'}`} style={labelStyle}>
+                  {nombre}
+                </span>
+              )}
+              {cargo && (
+                <p className={`mt-0.5 text-[11px] leading-snug ${cargoClass}`} style={labelStyle}>
+                  {cargo}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
-    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${dark && !chipsLight ? 'border-white/10' : 'border-stone-100'}`}>
+    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${borderClass}`}>
       {participantes.map((nombre) => {
-        // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo)
-        // todavía no tienen ficha propia en participantes.ts — sin match,
-        // el nombre queda como texto plano en vez de un link roto.
         const participante = findParticipante(nombre)
-        // chipsLight: ProgramaSection pasa esto en su fondo oscuro nuevo —
-        // los chips se quedan con el mismo gris claro sólido de siempre en
-        // vez de pasar al translúcido que sí usa el panel desplegado
-        // (ActividadExpandido/AmbosDiasExpandido, dark sin chipsLight).
         const chipClass = dark && !chipsLight
           ? 'bg-white/10 text-stone-200 hover:bg-white/15 hover:text-brand-orange'
           : 'bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-brand-red'
@@ -118,6 +163,10 @@ const TimelineRow = memo(function TimelineRow({
   // compacta embebida en el panel de inscripción se queda como estaba,
   // sin descripción, a pedido.
   const descripcion = dense ? undefined : t(`programaItems.${item.id}.descripcion`, { defaultValue: item.descripcion ?? '' }) || undefined
+  // Mismo criterio que `descripcion`: solo en la versión completa.
+  const participantesCargo = dense || !item.participantesCargo
+    ? undefined
+    : t(`programaItems.${item.id}.participantesCargo`, { returnObjects: true, defaultValue: item.participantesCargo }) as string[]
   const expandable = Boolean(item.moderador || item.participantes?.length || descripcion)
   const headerId = `programa-header-${item.id}`
   const contentId = `programa-content-${item.id}`
@@ -194,7 +243,7 @@ const TimelineRow = memo(function TimelineRow({
                   </p>
                 )}
                 {item.participantes && item.participantes.length > 0 && (
-                  <ParticipantesChips participantes={item.participantes} dark={dark} chipsLight={chipsLight} />
+                  <ParticipantesChips participantes={item.participantes} cargos={participantesCargo} dark={dark} chipsLight={chipsLight} />
                 )}
               </div>
             )}

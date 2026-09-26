@@ -74,7 +74,13 @@
     },
     "d1-4": {
       "hora": "10h45–12h00",
-      "titulo": "Panel I. Collectionnisme inégal et musées : histoires et pratiques d'appropriation"
+      "titulo": "Panel I. Collectionnisme inégal et musées : histoires et pratiques d'appropriation",
+      "participantesCargo": [
+        "Ancien directeur du Musée des Civilisations Noires, Sénégal.",
+        "Directrice du Centro Nacional de Arqueologia (CNA), Instituto do Patrimônio Histórico e Artístico Nacional (IPHAN), Brésil.",
+        "Chargé de mission pour la coopération internationale dans le domaine du patrimoine, ministère de l'Europe et des Affaires étrangères, France.",
+        "Directrice du Museo Nacional de Antropología, Espagne."
+      ]
     },
     "d1-5": {
       "hora": "12h00–12h15",
@@ -82,7 +88,13 @@
     },
     "d1-6": {
       "hora": "12h15–13h30",
-      "titulo": "Panel II. Coopération et restitution : politiques et cadres d'action"
+      "titulo": "Panel II. Coopération et restitution : politiques et cadres d'action",
+      "participantesCargo": [
+        "Adjointe au sous-directeur des collections, Service des musées de France, Direction générale des patrimoines et de l'architecture, ministère de la Culture, France.",
+        "Présidente du Conseil intergouvernemental du Programme Ibermuseus et coordinatrice du Réseau portugais des musées, Museus e Monumentos de Portugal, E.P.E., Portugal.",
+        "Senior Advisor, Cultural Heritage Agency of the Netherlands, et co-Chair de l'ICOM Standing Committee on Decolonisation, Pays-Bas.",
+        "Présidente d'ICOM Espagne et conservatrice de musées au Museo de Cádiz, Espagne."
+      ]
     },
     "d1-7": {
       "hora": "13h30–15h30",
@@ -90,15 +102,34 @@
     },
     "d1-8": {
       "hora": "15h30–16h45",
-      "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine"
+      "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine",
+      "participantesCargo": [
+        "Directeur du patrimoine culturel, ministère de la Jeunesse, de la Culture et de la Communication – Département de la Culture, Maroc.",
+        "Directrice de la Zone archéologique et du Musée de site du Templo Mayor, INAH ; enseignante-chercheuse à la Direction des études historiques et à l'ENAH, Mexique.",
+        "Secteur de la culture de l'UNESCO : Convention de 1970, lutte contre le trafic illicite de biens culturels et Musée virtuel, France.",
+        "Directeur général de la Culture de l'OEI, Espagne."
+      ]
     },
     "d2-1": {
       "hora": "09h30–10h45",
-      "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, collaborations et perspectives de restitution"
+      "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, collaborations et perspectives de restitution",
+      "participantesCargo": [
+        "Directeur du Museo Antropológico Montané, Faculté de biologie, Université de La Havane ; chercheur titulaire, Cuba.",
+        "Conservateur général du patrimoine honoraire, Centre Alexandre-Koyré (EHESS–CNRS–MNHN) ; ancien directeur du Musée de l'Homme, France.",
+        "Conservateur de la collection Afrique du Nord, Asie occidentale et centrale et Sibérie, Weltmuseum Wien, Autriche.",
+        "Directeur de la Sociedad Científica El Museo Canario, Espagne."
+      ]
     },
     "d2-2": {
       "hora": "10h45–12h00",
-      "titulo": "Panel V. Trajectoires clés et débats singuliers"
+      "titulo": "Panel V. Trajectoires clés et débats singuliers",
+      "participantesCargo": [
+        "Directeur de l'Institut canarien de bioanthropologie et du Musée archéologique de Tenerife, Museos de Tenerife–Cabildo de Tenerife, Espagne.",
+        "Directrice du Museo Nacional de las Culturas del Mundo, INAH, Mexique.",
+        "Chercheur prédoctoral FPI-UAM, Département de Préhistoire et d'Archéologie, Université autonome de Madrid, Espagne.",
+        "Professeur honoraire, Université autonome de Madrid ; Pausanias. Viajes Arqueológicos y Culturales, Espagne. Coauteur de l'intervention présentée par José Fenoll Cascales.",
+        "Chercheur prédoctoral, Programme DOCTESO, Université de La Laguna, Espagne."
+      ]
     },
     "d2-3": {
       "hora": "12h00–12h30",
@@ -106,7 +137,13 @@
     },
     "d2-4": {
       "hora": "12h30–13h45",
-      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique"
+      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique",
+      "participantesCargo": [
+        "Professeure honoraire, Université de La Laguna, Espagne.",
+        "Directrice du Département de bioarchéologie, ministère du Tourisme et des Antiquités, Égypte.",
+        "Analyste en recherche et analyse bioarchéologiques, Museo Pachacamac, ministère de la Culture du Pérou ; projet « Momies comme microcosmes », Pérou.",
+        "Curator: Bioarchaeology, Department of Egypt and Sudan, The British Museum, Royaume-Uni."
+      ]
     },
     "d2-5": {
       "hora": "13h45–15h45",
