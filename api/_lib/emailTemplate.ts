@@ -163,10 +163,10 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
                 <div style="margin:20px 0 0;background:${GRIS_OSCURO};border-radius:10px;padding:16px 18px 18px;">
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${filasLogisticaHtml}</table>
                   <p style="margin:14px 0 0;font-size:13px;line-height:1.5;font-weight:700;color:#ffffff;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;">Si necesitás liberar tu plaza, podés hacerlo desde tu perfil en el sitio.</p>
-                  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 0;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0;">
                   <tr>
-                    <td style="border-radius:8px;background:${ROJO};">
-                      <a href="${SITE_URL}/perfil" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;border-radius:8px;">Ir a tu perfil</a>
+                    <td style="border-radius:8px;background:${ROJO};text-align:center;">
+                      <a href="${SITE_URL}/perfil" style="display:block;padding:12px 22px;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;text-align:center;border-radius:8px;">Ir a tu perfil</a>
                     </td>
                   </tr>
                   </table>
