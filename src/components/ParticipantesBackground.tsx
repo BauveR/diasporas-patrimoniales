@@ -35,16 +35,24 @@ declare module '@react-three/fiber' {
 // (PointsToShapes.tsx, COUNT). Esta sección no es el hero, así que se
 // mantiene en ese mismo orden de magnitud en vez de 15x más: son 20 000
 // matrices de instancia recalculadas a mano (seno/coseno/raíz, sin shader
-// de cómputo) cada frame, un costo de CPU real en un teléfono.
-const COUNT = 1800
+// de cómputo) cada frame, un costo de CPU real en un teléfono. Subido de
+// 1800 a 2600 tras el primer pase — con el SCALE/cámara/niebla originales
+// la mayoría caía fuera de cuadro o completamente tapada por la niebla, así
+// que "se veían pocas" no era realmente por el conteo.
+const COUNT = 2600
 
 // Valores efectivos del snippet original: traía un panel de controles en
 // vivo (addControl(id, label, min, max, default)) que en este sitio no
 // existe — cada llamada resolvía contra un objeto PARAMS fijo si la clave
 // estaba presente ahí (y las 7 lo estaban), así que el "default" de cada
-// llamada nunca se usaba en la práctica. Estos son esos valores ya
-// resueltos, no los defaults de cada addControl.
-const SCALE = 196.2
+// llamada nunca se usaba en la práctica. Estos eran esos valores ya
+// resueltos. SCALE se recorta de 196.2 a 130: a fov 60 y cámara a z=100, el
+// semiancho visible en el plano de las partículas es de ~58 unidades —
+// con SCALE 196 casi toda la "tela" caía fuera del cuadro sin importar
+// cuántas partículas hubiera. FOV sube a 85 (ver <Canvas> más abajo) en vez
+// de alejar la cámara, para que las partículas visibles no encojan por
+// distancia.
+const SCALE = 130
 const FREQ = 6
 const AMP = 20
 const SPEED = 0.76
@@ -52,11 +60,19 @@ const WELLS = 0.76
 const PULL = 20
 const TWIST = 0
 
+// Los 2 colores pedidos, en vez del degradé HSL arcoíris del snippet
+// original — mismo esquema (color de acento + un rojo institucional en el
+// 12% de las partículas) que ya usaba la versión anterior de este mismo
+// fondo (canvas 2D, ACCENT_ORANGE/BRAND_RED/ACCENT_RATIO), así que el
+// cambio de tecnología no le cambia la paleta a la sección.
+const COLOR_A = new THREE.Color('#e99741')
+const COLOR_B = new THREE.Color('#9a2923')
+const COLOR_B_RATIO = 0.12
+
 function Swarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
-  const color = useMemo(() => new THREE.Color(), [])
 
   const [positions] = useState(() => {
     const arr: THREE.Vector3[] = []
@@ -79,6 +95,20 @@ function Swarm() {
     const white = new Float32Array(geo.attributes.position.count * 3).fill(1)
     geo.setAttribute('color', new THREE.BufferAttribute(white, 3))
     return geo
+  }, [])
+
+  // El color de cada partícula es fijo (COLOR_A la mayoría, COLOR_B en el
+  // 12%) — se resuelve una sola vez acá, no en el loop de useFrame de abajo:
+  // antes se recalculaba un HSL por partícula en cada frame sin necesidad
+  // (el color nunca dependía de nada que cambiara cuadro a cuadro más que
+  // el tiempo, y ya no hace falta ni eso), así que sacarlo del loop también
+  // reduce el trabajo de CPU por frame.
+  useEffect(() => {
+    if (!meshRef.current) return
+    for (let i = 0; i < COUNT; i++) {
+      meshRef.current.setColorAt(i, Math.random() < COLOR_B_RATIO ? COLOR_B : COLOR_A)
+    }
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   }, [])
 
   // Tela de espacio-tiempo deformándose bajo 2 pozos de gravedad que orbitan
@@ -125,20 +155,12 @@ function Swarm() {
 
       target.set(tx, ty, z)
 
-      const depth = Math.abs(z) / (AMP + 0.001)
-      const hue = (0.6 - depth * 0.5 + 0.1 * Math.sin(t)) % 1.0
-      const sat = 0.7 + 0.3 * depth
-      const light = 0.2 + 0.6 * (1.0 - depth)
-      color.setHSL(hue, sat, light)
-
       positions[i].lerp(target, 0.1)
       dummy.position.copy(positions[i])
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, color)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return <instancedMesh ref={meshRef} args={[geometry, material, COUNT]} />
@@ -146,7 +168,14 @@ function Swarm() {
 
 export function ParticipantesBackground() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
+  // Arranca en `true` (no `false` esperando el primer callback del
+  // observer): el callback de IntersectionObserver es siempre asíncrono, y
+  // si tarda en llegar en algún navegador/dispositivo, `frameloop` se
+  // queda en "never" — con eso ni el primer frame se dibuja, así que la
+  // sección se ve vacía hasta que (si) el observer confirma visibilidad.
+  // Arrancar visible y dejar que el observer recién pause cuando de verdad
+  // sale de pantalla es la dirección segura del error.
+  const [isVisible, setIsVisible] = useState(true)
   // Mismo criterio que la versión anterior de este fondo: sin animar si el
   // sistema pide menos movimiento — acá eso significa congelar el
   // frameloop de R3F en vez de parar un requestAnimationFrame manual.
@@ -180,14 +209,24 @@ export function ParticipantesBackground() {
   return (
     <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0">
       <Canvas
-        camera={{ fov: 60, position: [0, 0, 100], near: 0.1, far: 2000 }}
+        // fov 85, no 60: a distancia fija (z=100) un fov más ancho muestra
+        // más del ancho de la "tela" sin achicar las partículas alejando la
+        // cámara. Con SCALE 130 y fov 60 casi toda quedaba fuera de cuadro.
+        camera={{ fov: 85, position: [0, 0, 100], near: 0.1, far: 2000 }}
         frameloop={isVisible && !reducedMotion ? 'always' : 'never'}
         // R3F cubre 2x por defecto; igual que el fog/bloom del hero, se
         // acota un poco más porque esto corre detrás de contenido real, no
         // es la única cosa en pantalla.
         dpr={[1, 1.5]}
       >
-        <fogExp2 attach="fog" args={[0x000000, 0.01]} />
+        {/* Densidad bajada de 0.01 a 0.0035: la niebla es exponencial en la
+            distancia real a la cámara, no en x/y — con SCALE 196 (antes) las
+            partículas a los costados quedaban a >200 unidades de distancia
+            real pese a estar "cerca" en el plano XY, y a densidad 0.01 eso
+            las apagaba casi por completo. Con menos densidad la profundidad
+            sigue notándose (las más lejanas se atenúan) sin comerse la
+            mayoría del campo. */}
+        <fogExp2 attach="fog" args={[0x000000, 0.0035]} />
         <Swarm />
         {/* `unrealBloomPass` como hijo directo de `Effects`, no envuelto en
             un componente propio — ver el comentario largo sobre esto mismo
