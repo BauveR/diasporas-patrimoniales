@@ -91,7 +91,12 @@ function Swarm() {
     [],
   )
   const geometry = useMemo(() => {
-    const geo = new THREE.TetrahedronGeometry(0.25)
+    // Esfera, no tetraedro (el snippet original): ninguna instancia rota —
+    // `dummy` acá abajo solo toca `.position`, nunca `.rotation` — así que
+    // un tetraedro se ve como un triángulo desde un ángulo fijo en vez de
+    // una forma reconocible desde cualquier lado. Una esfera se ve redonda
+    // sin importar la orientación, sin necesidad de billboarding.
+    const geo = new THREE.SphereGeometry(0.25, 8, 8)
     const white = new Float32Array(geo.attributes.position.count * 3).fill(1)
     geo.setAttribute('color', new THREE.BufferAttribute(white, 3))
     return geo
