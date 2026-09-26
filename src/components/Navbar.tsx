@@ -8,8 +8,8 @@ import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ALL_LOCALES, DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const NAVBAR_BG = 'var(--color-brand-red)'
 
 type NavEntry = { label: string; to?: string; href?: string }

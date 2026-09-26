@@ -1,9 +1,8 @@
 import { Component, type ReactNode } from 'react'
+import { labelStyle } from '../lib/styles'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null }

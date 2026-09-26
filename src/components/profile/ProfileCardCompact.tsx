@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = {
   actividad: Actividad

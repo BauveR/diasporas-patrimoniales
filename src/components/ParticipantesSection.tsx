@@ -8,8 +8,7 @@ import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { mq } from '../lib/breakpoints'
 import type { Locale } from '../i18n/config'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
 
 // La grilla de participantes solo es de 5 columnas desde md: (768px, ver el
 // className del grid en ParticipantesSection) — entre 640 y 767px sigue

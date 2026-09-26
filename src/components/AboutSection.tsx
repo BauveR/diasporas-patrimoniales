@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { SlideInText } from './SlideInText'
 import { RevealGroup, RevealItem } from './RevealOnScroll'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
 
 export function AboutSection() {
   const { t } = useTranslation()

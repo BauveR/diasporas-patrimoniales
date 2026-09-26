@@ -3,8 +3,7 @@ import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../data/programa'
 import { ProgramaTimeline } from './ProgramaTimeline'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll } from './RevealOnScroll'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
 
 export function ProgramaSection() {
   const { t } = useTranslation()

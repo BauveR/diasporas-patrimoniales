@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { getPlazasEstado, type Actividad, type PlazasEstado } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 // Cuál de las 2 jornadas es el cuello de botella real de "ambos días": si
 // una está más comprometida que la otra, ese es el estado que importa

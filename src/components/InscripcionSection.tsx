@@ -12,8 +12,7 @@ import { AmbosDiasExpandido } from './actividades/AmbosDiasExpandido'
 import { AmbosDiasSheet } from './actividades/AmbosDiasSheet'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
 
 // `id="sedes"` lives here (not on a wrapping element in Home.tsx) because
 // every existing anchor to it — the navbar's "Registro"/"Participantes"/

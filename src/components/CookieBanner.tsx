@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { labelStyle } from '../lib/styles'
 
 const CONSENT_KEY = 'consent_v1'
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(() => !localStorage.getItem(CONSENT_KEY))

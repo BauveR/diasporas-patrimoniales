@@ -1,4 +1,5 @@
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
+
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 const CONTACT_EMAIL = 'diasporaspatrimoniales@gmail.com'
 

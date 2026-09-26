@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { ProgramaItem } from '../data/programa'
 import { findParticipante, participanteAnchorId } from '../data/participantes'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
+import { labelStyle } from '../lib/styles'
 
 // Adaptado del componente "ProfessionalTimeline" que pasó el usuario:
 // - Sin dark mode (el sitio no lo tiene) y paleta slate-* → stone-*/rojo
@@ -17,8 +18,6 @@ import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 //   ni click, porque no tienen nada que expandir.
 // - Colapsado por defecto (el original expandía todo): con ~12 filas por día
 //   acá, mostrar todo abierto de entrada sería una pared de texto.
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 const ChevronDown = (props: React.SVGProps<SVGSVGElement>) => (
   <svg

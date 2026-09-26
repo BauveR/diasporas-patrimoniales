@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Sede } from '../../data/sedes'
 import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = {
   sede: Sede

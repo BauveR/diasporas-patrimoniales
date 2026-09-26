@@ -4,8 +4,7 @@ import { getPlazasEstado, type Actividad } from '../../data/actividades'
 
 import { useDataContext } from '../../contexts/DataContext'
 import { LOCALE_TAGS, type Locale } from '../../i18n/config'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
