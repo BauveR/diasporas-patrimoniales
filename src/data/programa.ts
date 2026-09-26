@@ -6,13 +6,22 @@ export type ProgramaItem = {
   id: string
   hora: string
   titulo: string
+  // Solo 2 ítems la tienen hoy (la apertura y la clausura, ver comentario
+  // en ProgramaTimeline sobre dónde se muestra) — el resto de las filas no
+  // necesita una descripción propia más allá del título.
+  descripcion?: string
   moderador?: string
   participantes?: string[]
 }
 
 export const PROGRAMA_DIA_1: ProgramaItem[] = [
   { id: 'd1-1', hora: '08:45–09:30', titulo: 'Recepción y acreditaciones' },
-  { id: 'd1-2', hora: '09:30–10:15', titulo: 'Sesión de apertura. Presentación e inauguración' },
+  {
+    id: 'd1-2',
+    hora: '09:30–10:15',
+    titulo: 'Sesión de apertura. Presentación e inauguración',
+    descripcion: 'Participación institucional prevista del Gobierno de Canarias, Cabildo de Tenerife, Organismo Autónomo de Museos y Centros, Museo de la Naturaleza y Arqueología y Dirección científica del simposio.',
+  },
   { id: 'd1-3', hora: '10:15–10:45', titulo: 'Pausa café' },
   {
     id: 'd1-4',
@@ -39,34 +48,38 @@ export const PROGRAMA_DIA_1: ProgramaItem[] = [
   },
 ]
 
+// Reordenado — antes alternaba panel/pausa-café/panel/pausa-café/panel
+// (dos cafés entre los 3 paneles); ahora los paneles IV y V van seguidos,
+// un único café entre V y VI, y el almuerzo se corrió a después de VI, no
+// entre V y VI.
 export const PROGRAMA_DIA_2: ProgramaItem[] = [
   {
     id: 'd2-1',
-    hora: '10:30–11:45',
+    hora: '09:30–10:45',
     titulo: 'Panel IV. Canarias como estudio de caso: deslocalizaciones, colaboraciones y expectativas de restitución',
     moderador: 'Jorge Onrubia',
     participantes: ['Armando Rangel Rivero', 'André Delpuech', 'Tobias Mörike', 'Daniel Pérez Estévez'],
   },
-  { id: 'd2-2', hora: '11:45–12:15', titulo: 'Pausa café' },
   {
-    id: 'd2-3',
-    hora: '12:15–13:30',
+    id: 'd2-2',
+    hora: '10:45–12:00',
     titulo: 'Panel V. Trayectorias clave y debates singulares',
     moderador: 'Jared Carballo',
     participantes: ['Conrado Rodríguez-Maffiotte Martín', 'Alejandra Gómez Colorado', 'José Fenoll Cascales', 'Jesús Robles Moreno', 'Said Karboune Rodríguez'],
   },
-  { id: 'd2-4', hora: '13:30–15:30', titulo: 'Pausa almuerzo' },
+  { id: 'd2-3', hora: '12:00–12:30', titulo: 'Pausa café' },
   {
-    id: 'd2-5',
-    hora: '15:30–16:45',
+    id: 'd2-4',
+    hora: '12:30–13:45',
     titulo: 'Panel VI. Restos humanos y ética: ciencia, sensibilidad y responsabilidad pública',
     moderador: 'Jared Carballo',
     participantes: ['Matilde Arnay de la Rosa', 'Afaf Wahba', 'Sarita Fuentes Villalobos', 'Rebecca Whiting'],
   },
-  { id: 'd2-6', hora: '16:45–17:15', titulo: 'Pausa café' },
+  { id: 'd2-5', hora: '13:45–15:45', titulo: 'Pausa almuerzo' },
   {
-    id: 'd2-7',
-    hora: '17:15–18:00',
-    titulo: 'Sesión de clausura · Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional',
+    id: 'd2-6',
+    hora: '15:45–16:30',
+    titulo: 'Sesión de clausura',
+    descripcion: 'Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional.',
   },
 ]

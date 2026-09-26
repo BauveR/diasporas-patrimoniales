@@ -114,7 +114,11 @@ const TimelineRow = memo(function TimelineRow({
   // programa.ts quedan solo como defaultValue por si falta la clave.
   const hora = t(`programaItems.${item.id}.hora`, { defaultValue: item.hora })
   const titulo = t(`programaItems.${item.id}.titulo`, { defaultValue: item.titulo })
-  const expandable = Boolean(item.moderador || item.participantes?.length)
+  // Solo en la versión completa (ProgramaSection, !dense) — la versión
+  // compacta embebida en el panel de inscripción se queda como estaba,
+  // sin descripción, a pedido.
+  const descripcion = dense ? undefined : t(`programaItems.${item.id}.descripcion`, { defaultValue: item.descripcion ?? '' }) || undefined
+  const expandable = Boolean(item.moderador || item.participantes?.length || descripcion)
   const headerId = `programa-header-${item.id}`
   const contentId = `programa-content-${item.id}`
   const moderadorParticipante = item.moderador ? findParticipante(item.moderador) : undefined
@@ -179,9 +183,19 @@ const TimelineRow = memo(function TimelineRow({
                 className={`mt-1 h-4 w-4 shrink-0 text-stone-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
               />
             </div>
-            {expanded && item.participantes && item.participantes.length > 0 && (
+            {expanded && (descripcion || (item.participantes && item.participantes.length > 0)) && (
               <div id={contentId} role="region" aria-labelledby={headerId}>
-                <ParticipantesChips participantes={item.participantes} dark={dark} chipsLight={chipsLight} />
+                {descripcion && (
+                  <p
+                    className={`mt-3 border-t pt-3 text-xs leading-relaxed ${dark && !chipsLight ? 'border-white/10 text-stone-300' : 'border-stone-100 text-stone-600'}`}
+                    style={labelStyle}
+                  >
+                    {descripcion}
+                  </p>
+                )}
+                {item.participantes && item.participantes.length > 0 && (
+                  <ParticipantesChips participantes={item.participantes} dark={dark} chipsLight={chipsLight} />
+                )}
               </div>
             )}
           </div>

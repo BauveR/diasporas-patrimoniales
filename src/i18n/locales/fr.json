@@ -65,7 +65,8 @@
     },
     "d1-2": {
       "hora": "09h30–10h15",
-      "titulo": "Séance d'ouverture. Présentation et inauguration"
+      "titulo": "Séance d'ouverture. Présentation et inauguration",
+      "descripcion": "Participation institutionnelle prévue du Gouvernement des îles Canaries, du Cabildo de Tenerife, de l'Organismo Autónomo de Museos y Centros, du Musée de la Nature et de l'Archéologie et de la Direction scientifique."
     },
     "d1-3": {
       "hora": "10h15–10h45",
@@ -92,32 +93,29 @@
       "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine"
     },
     "d2-1": {
-      "hora": "10h30–11h45",
+      "hora": "09h30–10h45",
       "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, collaborations et perspectives de restitution"
     },
     "d2-2": {
-      "hora": "11h45–12h15",
-      "titulo": "Pause café"
-    },
-    "d2-3": {
-      "hora": "12h15–13h30",
+      "hora": "10h45–12h00",
       "titulo": "Panel V. Trajectoires clés et débats singuliers"
     },
-    "d2-4": {
-      "hora": "13h30–15h30",
-      "titulo": "Pause déjeuner"
-    },
-    "d2-5": {
-      "hora": "15h30–16h45",
-      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique"
-    },
-    "d2-6": {
-      "hora": "16h45–17h15",
+    "d2-3": {
+      "hora": "12h00–12h30",
       "titulo": "Pause café"
     },
-    "d2-7": {
-      "hora": "17h15–18h00",
-      "titulo": "Séance de clôture · Lecture de la « Déclaration de Santa Cruz de Tenerife » et clôture institutionnelle"
+    "d2-4": {
+      "hora": "12h30–13h45",
+      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique"
+    },
+    "d2-5": {
+      "hora": "13h45–15h45",
+      "titulo": "Pause déjeuner"
+    },
+    "d2-6": {
+      "hora": "15h45–16h30",
+      "titulo": "Séance de clôture",
+      "descripcion": "Lecture de la « Déclaration de Santa Cruz de Tenerife » et clôture institutionnelle."
     }
   },
   "contacto": {
