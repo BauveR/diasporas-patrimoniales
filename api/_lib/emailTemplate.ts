@@ -38,6 +38,9 @@ function escapeHtml(value: string): string {
 const ROJO = '#9b2923'
 const GRIS = '#78716c'
 const NEGRO = '#1c1917'
+// Gris oscuro real (no negro) para el recuadro de sede/contacto — distinto
+// a propósito del NEGRO casi puro que usa el header.
+const GRIS_OSCURO = '#44403c'
 
 // Mismo dominio que SITE_URL en src/components/SeoHead.tsx — se duplica en
 // vez de importarlo para no meter react-router-dom (y el resto de ese
@@ -157,17 +160,17 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
                 <p style="margin:0 0 4px;font-size:15px;line-height:1.5;font-family:'Mattone','Arial Black',Arial,sans-serif;font-weight:700;">Hola ${escapeHtml(data.nombre)},</p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">${intro}</p>
                 ${diasHtml}
-                <div style="margin:20px 0 0;background:${NEGRO};border-radius:10px;padding:16px 18px 18px;">
+                <div style="margin:20px 0 0;background:${GRIS_OSCURO};border-radius:10px;padding:16px 18px 18px;">
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${filasLogisticaHtml}</table>
                   <p style="margin:14px 0 0;font-size:13px;line-height:1.5;font-weight:700;color:#ffffff;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;">Si necesitás liberar tu plaza, podés hacerlo desde tu perfil en el sitio.</p>
-                </div>
-                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 0;">
                   <tr>
                     <td style="border-radius:8px;background:${ROJO};">
                       <a href="${SITE_URL}/perfil" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;border-radius:8px;">Ir a tu perfil</a>
                     </td>
                   </tr>
-                </table>
+                  </table>
+                </div>
               </td>
             </tr>
           </table>
