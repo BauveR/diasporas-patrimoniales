@@ -27,8 +27,15 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
   const estadoLabel = t(`actividadCard.${estado === 'algunas' ? 'algunasPlazas' : estado === 'pocas' ? 'pocasPlazas' : 'plazasDisponibles'}`)
 
   return (
-    <button type="button" onClick={onClick} className="group flex w-full flex-col gap-3 text-left cursor-pointer">
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+    <button
+      type="button"
+      onClick={onClick}
+      // Mismo criterio que ActividadCard: card con fondo propio (bg-white +
+      // sombra) en vez de texto directo sobre la sección — se sigue leyendo
+      // igual sin importar el color de fondo de la sección que la envuelve.
+      className="group flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm cursor-pointer"
+    >
+      <div className="relative aspect-[4/3]">
         <img
           src={dia1.imagen}
           alt={t('inscripcion.ambosDias')}
@@ -45,7 +52,7 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5 px-1">
+      <div className="flex flex-col gap-1.5 p-4">
         <h3 className="font-mattone font-bold text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors">
           {t('inscripcion.ambosDias')}
         </h3>

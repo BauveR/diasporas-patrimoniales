@@ -53,16 +53,16 @@ export function InscripcionSection() {
   const abierta = isDesktop ? sesiones.find(a => a.id === openActividadId) : undefined
 
   return (
-    <section id="sedes" className="scroll-mt-16 w-full bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+    <section id="sedes" className="scroll-mt-16 w-full bg-brand-red px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
         <div className="flex flex-col gap-4">
           <SlideInText
             text={t('inscripcion.titulo')}
             revealOnScroll
-            className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
+            className="font-mattone text-fluid-title font-bold tracking-tight text-white uppercase"
           />
           <RevealOnScroll>
-            <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
+            <p className="max-w-2xl text-base leading-relaxed text-white/85 md:text-lg lg:text-xl" style={labelStyle}>
               {t('inscripcion.parrafo')}
             </p>
           </RevealOnScroll>
@@ -71,7 +71,7 @@ export function InscripcionSection() {
         {sesiones.length > 0 && (
           <div className="flex flex-col gap-4">
             <span
-              className="text-xs font-bold tracking-widest text-stone-400 uppercase"
+              className="text-xs font-bold tracking-widest text-white/60 uppercase"
               style={labelStyle}
             >
               {t('inscripcion.encabezado')}

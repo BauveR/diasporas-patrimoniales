@@ -12,10 +12,10 @@ const PARTICLE_COUNT = 900
 // px por frame a ~60fps — deliberadamente muy lento, es un fondo, no debe
 // competir por atención con las tarjetas de encima.
 const SPEED = 0.15
-const STONE_400 = '168, 162, 158'
-const BRAND_RED = '155, 41, 35'
-// Fracción de puntos que usan el rojo institucional en vez del gris neutro
-// — un acento puntual, no una lluvia de color.
+const ACCENT_ORANGE = '233, 151, 65' // #e99741
+const BRAND_RED = '155, 41, 35' // #9b2923, el mismo rojo teja del navbar
+// Fracción de puntos que usan el rojo institucional en vez del naranja de
+// acento — un segundo color puntual, no una lluvia pareja de los dos.
 const ACCENT_RATIO = 0.12
 
 // 4 tamaños fijos (no un radio continuo al azar) para que se note la
@@ -62,7 +62,10 @@ function createParticles(width: number, height: number): Particle[] {
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
       radius,
-      opacity: 0.12 + Math.random() * 0.18,
+      // Antes 0.12–0.30 (bastante transparentes) — ahora sensiblemente más
+      // opacos, a pedido: el fondo pasó a negro, así que hay más margen de
+      // contraste antes de competir con la grilla de encima.
+      opacity: 0.28 + Math.random() * 0.32,
       accent: Math.random() < ACCENT_RATIO,
     })
   }
@@ -103,7 +106,7 @@ export function ParticipantesBackground() {
       for (const p of particles) {
         ctx!.beginPath()
         ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx!.fillStyle = `rgba(${p.accent ? BRAND_RED : STONE_400}, ${p.opacity})`
+        ctx!.fillStyle = `rgba(${p.accent ? BRAND_RED : ACCENT_ORANGE}, ${p.opacity})`
         ctx!.fill()
       }
     }

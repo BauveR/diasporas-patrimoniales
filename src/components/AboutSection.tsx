@@ -8,7 +8,7 @@ export function AboutSection() {
   const { t } = useTranslation()
 
   return (
-    <section className="w-full bg-white px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+    <section className="w-full bg-black px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       {/* `grid-cols-[30fr_70fr]`, not `w-[30%]`/`w-[70%]` on flex children —
           `fr` tracks divide the space remaining *after* `gap` is subtracted,
           so the split stays exactly 30/70 regardless of gap size (see the
@@ -21,7 +21,7 @@ export function AboutSection() {
           revealOnScroll
           className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
         />
-        <RevealGroup className="flex flex-col gap-5 text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
+        <RevealGroup className="flex flex-col gap-5 text-base leading-relaxed text-stone-300 md:text-lg lg:text-xl" style={labelStyle}>
           <RevealItem><p>{t('sobreEncuentro.parrafo1')}</p></RevealItem>
           <RevealItem><p>{t('sobreEncuentro.parrafo2')}</p></RevealItem>
           <RevealItem><p>{t('sobreEncuentro.parrafo3')}</p></RevealItem>

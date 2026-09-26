@@ -404,7 +404,7 @@ export function ParticipantesSection() {
   const selectedIndex = selected ? PARTICIPANTES.findIndex(p => p.id === selected.id) : -1
 
   return (
-    <section id="participantes" className="relative w-full overflow-hidden scroll-mt-16 bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+    <section id="participantes" className="relative w-full overflow-hidden scroll-mt-16 bg-black px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <ParticipantesBackground />
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10">
         <div className="flex flex-col gap-4">
@@ -414,7 +414,7 @@ export function ParticipantesSection() {
             className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
           />
           <RevealOnScroll>
-            <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
+            <p className="max-w-2xl text-base leading-relaxed text-stone-300 md:text-lg lg:text-xl" style={labelStyle}>
               {t('participantes.parrafo1')}
             </p>
           </RevealOnScroll>

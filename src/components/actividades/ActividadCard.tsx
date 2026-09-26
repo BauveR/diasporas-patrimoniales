@@ -43,10 +43,16 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       // gates its own inline-panel swap on isDesktop separately, so this
       // doesn't make that panel show up on mobile too.
       state={{ from, background: location }}
-      className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
+      // Card propia (fondo claro + sombra) en vez de texto flotando directo
+      // sobre el fondo de la sección que la envuelve — antes asumía que ese
+      // fondo siempre era claro (text-stone-900 sobre la sección), lo que se
+      // rompía en Inscripción al pasar esa sección a rojo teja. Con su
+      // propio bg-white la tarjeta se lee igual sin importar de qué color
+      // sea la sección debajo.
+      className={`group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ${inactiva ? 'opacity-50' : ''}`}
     >
       {/* Imagen */}
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+      <div className="relative aspect-[4/3]">
         <img
           src={actividad.imagen}
           alt={tituloTraducido}
@@ -83,7 +89,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-1.5 px-1">
+      <div className="flex flex-col gap-1.5 p-4">
         <h3 className="font-mattone font-bold text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors">
           {tituloTraducido}
         </h3>
