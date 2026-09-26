@@ -48,10 +48,17 @@ service cloud.firestore {
       // kind of change to this one, stays admin-only (title, fecha,
       // cancelada, etc. can't be touched this way). The ±1 alone used to be
       // enough to pass, letting anyone drain or inflate the counter without
-      // ever registering — existsAfter()/!existsAfter() now requires that
-      // same write to land alongside a real create/delete of the caller's
-      // own inscrito doc, in the same transaction, so the counter can only
-      // move in lockstep with an actual inscribirse()/liberarPlaza().
+      // ever registering. existsAfter()/!existsAfter() alone wasn't enough
+      // either — it only looks at the post-write state, so on a path this
+      // write never touches (no accompanying inscritos/ create or delete)
+      // it just reflects whatever the doc already was, and the check passes
+      // for free (e.g. -1 always "passes" for anyone already registered,
+      // +1 always "passes" for anyone who never registered — no real
+      // transition required). Pairing exists() (pre-write) with
+      // existsAfter() (post-write) forces an actual create/delete of the
+      // caller's own inscrito doc to happen in this same write, so the
+      // counter can only move in lockstep with a real
+      // inscribirse()/liberarPlaza().
       allow update: if isAdmin() || (
         isSignedIn() &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plazasDisponibles']) &&
@@ -59,8 +66,10 @@ service cloud.firestore {
         request.resource.data.plazasDisponibles <= resource.data.plazas &&
         (
           (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles - 1 &&
+           !exists(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)) &&
            existsAfter(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid))) ||
           (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles + 1 &&
+           exists(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)) &&
            !existsAfter(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)))
         )
       );

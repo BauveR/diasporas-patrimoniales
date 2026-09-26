@@ -304,6 +304,22 @@ async function testReglasRechazanTrampa() {
   const final = await leerActividad(ACTIVIDAD_ID)
   check('plazasDisponibles no se movió', final.plazasDisponibles === 10, `quedó en ${final.plazasDisponibles}`)
 
+  // La otra mitad del mismo ataque: en vez de restar sin haberse dado de
+  // baja, INFLAR el contador sin haberse inscrito nunca — con solo
+  // existsAfter()/!existsAfter() (sin el exists() previo) esta rama pasaba
+  // igual, porque para alguien que nunca tuvo un inscritos/{uid} el
+  // "después" es idéntico al "antes": ninguno de los dos existe.
+  let rechazadoInflar = false
+  try {
+    await updateDoc(actividadRef, { plazasDisponibles: 11 })
+  } catch (err) {
+    rechazadoInflar = (err as { code?: string }).code === 'permission-denied'
+  }
+  check('update que INFLA plazasDisponibles sin haberse inscrito nunca es rechazado', rechazadoInflar)
+
+  const finalInflado = await leerActividad(ACTIVIDAD_ID)
+  check('plazasDisponibles sigue en 10, no se infló', finalInflado.plazasDisponibles === 10, `quedó en ${finalInflado.plazasDisponibles}`)
+
   await borrarActividad(ACTIVIDAD_ID)
 }
 
