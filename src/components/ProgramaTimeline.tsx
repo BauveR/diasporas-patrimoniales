@@ -49,20 +49,23 @@ function scrollToParticipante(id: number) {
   window.setTimeout(() => el.classList.remove('ring-4', 'ring-brand-red', 'ring-offset-2'), 1400)
 }
 
-function ParticipantesChips({ participantes }: { participantes: string[] }) {
+function ParticipantesChips({ participantes, dark }: { participantes: string[]; dark: boolean }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-2 border-t border-stone-100 pt-3">
+    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${dark ? 'border-white/10' : 'border-stone-100'}`}>
       {participantes.map((nombre) => {
         // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo)
         // todavía no tienen ficha propia en participantes.ts — sin match,
         // el nombre queda como texto plano en vez de un link roto.
         const participante = findParticipante(nombre)
+        const chipClass = dark
+          ? 'bg-white/10 text-stone-200 hover:bg-white/15 hover:text-brand-orange'
+          : 'bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-brand-red'
         return participante ? (
           <button
             key={nombre}
             type="button"
             onClick={(e) => { e.stopPropagation(); scrollToParticipante(participante.id) }}
-            className="inline-flex cursor-pointer items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-700 underline decoration-dotted underline-offset-2 transition-colors hover:bg-stone-200 hover:text-brand-red"
+            className={`inline-flex cursor-pointer items-center rounded-md px-2.5 py-1 text-xs underline decoration-dotted underline-offset-2 transition-colors ${chipClass}`}
             style={labelStyle}
           >
             {nombre}
@@ -70,7 +73,7 @@ function ParticipantesChips({ participantes }: { participantes: string[] }) {
         ) : (
           <span
             key={nombre}
-            className="inline-flex items-center rounded-md bg-stone-100 px-2.5 py-1 text-xs text-stone-700"
+            className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs ${dark ? 'bg-white/10 text-stone-200' : 'bg-stone-100 text-stone-700'}`}
             style={labelStyle}
           >
             {nombre}
@@ -88,6 +91,7 @@ const TimelineRow = memo(function TimelineRow({
   isLast,
   moderadorLabel,
   dense,
+  dark,
 }: {
   item: ProgramaItem
   expanded: boolean
@@ -95,6 +99,7 @@ const TimelineRow = memo(function TimelineRow({
   isLast: boolean
   moderadorLabel: string
   dense: boolean
+  dark: boolean
 }) {
   const { t } = useTranslation()
   // La hora y el título vienen de programaItems.<id> en cada locale.json (el
@@ -110,10 +115,10 @@ const TimelineRow = memo(function TimelineRow({
 
   return (
     <div className="relative">
-      {!isLast && <div className="absolute top-5 bottom-0 left-[5px] w-px bg-stone-200" />}
-      <div className="absolute top-1.5 left-0 h-[11px] w-[11px] rounded-full border-2 border-stone-300 bg-white" />
+      {!isLast && <div className={`absolute top-5 bottom-0 left-[5px] w-px ${dark ? 'bg-white/10' : 'bg-stone-200'}`} />}
+      <div className={`absolute top-1.5 left-0 h-[11px] w-[11px] rounded-full border-2 ${dark ? 'border-stone-600 bg-stone-900' : 'border-stone-300 bg-white'}`} />
 
-      <div className={dense ? 'pb-1 pl-8' : 'pb-8 pl-8'}>
+      <div className={dense ? 'pb-3 pl-8' : 'pb-8 pl-8'}>
         {expandable ? (
           // `role="button"` sobre un `div`, no un `<button>` real: el nombre
           // del moderador y los chips de participantes de abajo son ahora
@@ -142,19 +147,19 @@ const TimelineRow = memo(function TimelineRow({
                   {hora}
                 </p>
                 <h4
-                  className="mt-1 text-sm leading-snug font-semibold text-stone-800 transition-colors group-hover:text-brand-red"
+                  className={`mt-1 text-sm leading-snug font-semibold transition-colors ${dark ? 'text-white group-hover:text-brand-orange' : 'text-stone-800 group-hover:text-brand-red'}`}
                   style={labelStyle}
                 >
                   {titulo}
                 </h4>
                 {item.moderador && (
-                  <p className="mt-1 text-xs text-stone-500" style={labelStyle}>
+                  <p className={`mt-1 text-xs ${dark ? 'text-stone-400' : 'text-stone-500'}`} style={labelStyle}>
                     {moderadorLabel}{' '}
                     {moderadorParticipante ? (
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); scrollToParticipante(moderadorParticipante.id) }}
-                        className="cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-red"
+                        className={`cursor-pointer underline decoration-dotted underline-offset-2 transition-colors ${dark ? 'hover:text-brand-orange' : 'hover:text-brand-red'}`}
                       >
                         {item.moderador}
                       </button>
@@ -170,7 +175,7 @@ const TimelineRow = memo(function TimelineRow({
             </div>
             {expanded && item.participantes && item.participantes.length > 0 && (
               <div id={contentId} role="region" aria-labelledby={headerId}>
-                <ParticipantesChips participantes={item.participantes} />
+                <ParticipantesChips participantes={item.participantes} dark={dark} />
               </div>
             )}
           </div>
@@ -179,7 +184,7 @@ const TimelineRow = memo(function TimelineRow({
             <p className="text-[11px] tracking-widest text-stone-400 uppercase" style={labelStyle}>
               {hora}
             </p>
-            <p className="mt-1 text-sm text-stone-600" style={labelStyle}>
+            <p className={`mt-1 text-sm ${dark ? 'text-stone-400' : 'text-stone-600'}`} style={labelStyle}>
               {titulo}
             </p>
           </div>
@@ -194,7 +199,12 @@ const TimelineRow = memo(function TimelineRow({
 // (pb-8→pb-4) and a tighter heading margin. Defaults to false so the actual
 // Programa section (ProgramaSection.tsx) keeps its normal, more relaxed
 // spacing; only the embedded copy needs to be tight.
-export function ProgramaTimeline({ dia, items, dense = false }: { dia: string; items: ProgramaItem[]; dense?: boolean }) {
+// `dark`: the modern black-card treatment of ActividadExpandido/
+// AmbosDiasExpandido — recolors every row for a dark surface, and skips this
+// component's own "Día X" heading entirely, since the caller already shows
+// a richer day badge (day + date) above it there; ProgramaSection (dark
+// false, the only other caller) keeps rendering it as before.
+export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { dia: string; items: ProgramaItem[]; dense?: boolean; dark?: boolean }) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
 
@@ -212,9 +222,11 @@ export function ProgramaTimeline({ dia, items, dense = false }: { dia: string; i
       {/* Plain RevealOnScroll (not SlideInText) here: SlideInText always
           renders an <h2>, which would break the h2 (section title) → h3
           (day header) heading hierarchy the rest of the page follows. */}
-      <RevealOnScroll>
-        <h3 className={`font-mattone text-lg font-bold tracking-tight text-brand-orange uppercase ${dense ? 'mb-3' : 'mb-6'}`}>{dia}</h3>
-      </RevealOnScroll>
+      {!dark && (
+        <RevealOnScroll>
+          <h3 className={`font-mattone text-lg font-bold tracking-tight text-brand-orange uppercase ${dense ? 'mb-3' : 'mb-6'}`}>{dia}</h3>
+        </RevealOnScroll>
+      )}
       <RevealGroup amount={0.05} staggerChildren={0.08}>
         {items.map((item, i) => (
           <RevealItem key={item.id}>
@@ -225,6 +237,7 @@ export function ProgramaTimeline({ dia, items, dense = false }: { dia: string; i
               isLast={i === items.length - 1}
               moderadorLabel={t('programa.moderador')}
               dense={dense}
+              dark={dark}
             />
           </RevealItem>
         ))}

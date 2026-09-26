@@ -35,7 +35,10 @@
     "parrafo": "Les sessions académiques auront lieu en présentiel et nécessitent une inscription préalable, dans la limite des places disponibles. Il est possible de s'inscrire à l'une des deux journées ou aux deux. Un message de confirmation sera envoyé après validation du formulaire.",
     "encabezado": "2 journées",
     "jornada1": "Jour 1 — 12 novembre",
-    "jornada2": "Jour 2 — 13 novembre"
+    "jornada2": "Jour 2 — 13 novembre",
+    "ambosDias": "Les deux journées — 12 et 13 novembre",
+    "ambosDiasDescripcion": "Une seule inscription vous donne accès aux deux journées du symposium.",
+    "yaInscritoParcial": "Vous êtes déjà inscrit(e) à {{jornada}}. Pour ajouter l'autre journée, faites-le depuis sa propre carte."
   },
   "sedeSection": {
     "titulo": "Lieu",
@@ -145,7 +148,8 @@
     "finalizada": "Terminé",
     "abreEl": "Ouvre le {{fecha}}",
     "inscripcionesDesde": "Inscriptions à partir du {{fecha}}",
-    "plazasDisponibles": "{{disponibles}} places disponibles sur {{total}}",
-    "plazasBadge": "{{n}} places"
+    "plazasDisponibles": "Places disponibles",
+    "algunasPlazas": "Quelques places disponibles",
+    "pocasPlazas": "Peu de places disponibles"
   }
 }

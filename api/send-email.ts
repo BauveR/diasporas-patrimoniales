@@ -3,17 +3,28 @@ import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import { Resend } from 'resend'
 import { getAdminApp } from './_lib/firebaseAdmin.js'
-import { renderConfirmacionEmail } from './_lib/emailTemplate.js'
+import { renderConfirmacionEmail, type DiaEmailData } from './_lib/emailTemplate.js'
+import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../src/data/programa.js'
 
 type ActividadDoc = {
+  id: number
   titulo: string
   fecha: string
   hora: string
   duracion: string
-  puntoEncuentro: string
-  organizador: string
   contacto: string
   sedeId: number
+}
+
+// El evento tiene exactamente 2 actividades — una por jornada — así que id
+// 1/2 identifican de forma estable qué agenda de programa.ts le corresponde
+// a cada una. Mismo mapeo hardcodeado que ya usa ActividadExpandido.tsx en
+// el sitio; sin match (no debería pasar hoy) el email simplemente no
+// incluye agenda para esa actividad.
+function getProgramaDia(actividadId: number) {
+  if (actividadId === 1) return PROGRAMA_DIA_1
+  if (actividadId === 2) return PROGRAMA_DIA_2
+  return []
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -22,10 +33,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'method_not_allowed' })
   }
 
-  const { idToken, actividadId } = (req.body ?? {}) as { idToken?: unknown; actividadId?: unknown }
-  if (typeof idToken !== 'string' || !idToken || typeof actividadId !== 'number') {
+  const { idToken, actividadIds } = (req.body ?? {}) as { idToken?: unknown; actividadIds?: unknown }
+  const idsValidas = Array.isArray(actividadIds) && actividadIds.length > 0 && actividadIds.every(id => typeof id === 'number')
+  if (typeof idToken !== 'string' || !idToken || !idsValidas) {
     return res.status(400).json({ error: 'invalid_body' })
   }
+  const ids = actividadIds as number[]
 
   const app = getAdminApp()
   const auth = getAuth(app)
@@ -51,39 +64,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'no_email' })
   }
 
-  const inscritoRef = db.doc(`actividades/${actividadId}/inscritos/${uid}`)
-  const actividadRef = db.doc(`actividades/${actividadId}`)
-  const [inscritoSnap, actividadSnap] = await Promise.all([inscritoRef.get(), actividadRef.get()])
+  const snaps = await Promise.all(
+    ids.map(id => Promise.all([
+      db.doc(`actividades/${id}/inscritos/${uid}`).get(),
+      db.doc(`actividades/${id}`).get(),
+    ])),
+  )
 
-  if (!inscritoSnap.exists) {
+  if (snaps.some(([inscritoSnap]) => !inscritoSnap.exists)) {
     return res.status(403).json({ error: 'not_registered' })
   }
-  if (!actividadSnap.exists) {
+  if (snaps.some(([, actividadSnap]) => !actividadSnap.exists)) {
     return res.status(404).json({ error: 'actividad_not_found' })
   }
 
-  const actividad = actividadSnap.data() as ActividadDoc
-  const sedeSnap = await db.doc(`sedes/${actividad.sedeId}`).get()
+  const actividades = snaps.map(([, actividadSnap]) => actividadSnap.data() as ActividadDoc)
+  const primeraInscrito = snaps[0][0]
+  const sedeSnap = await db.doc(`sedes/${actividades[0].sedeId}`).get()
   const sede = sedeSnap.data() as { nombre?: string; isla?: string } | undefined
 
-  const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const dias: DiaEmailData[] = actividades.map(actividad => ({
+    titulo: actividad.titulo,
+    fecha: new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    }),
+    hora: actividad.hora,
+    duracion: actividad.duracion,
+    programa: getProgramaDia(actividad.id).map(item => ({
+      hora: item.hora, titulo: item.titulo, moderador: item.moderador,
+    })),
+  }))
 
-  const nombre = (inscritoSnap.data()?.displayName as string | undefined) || tokenName || 'participante'
+  const nombre = (primeraInscrito.data()?.displayName as string | undefined) || tokenName || 'participante'
+  const primeraActividad = actividades[0]
 
   const { subject, html, text } = renderConfirmacionEmail({
     nombre,
-    titulo: actividad.titulo,
-    fecha: fechaStr,
-    hora: actividad.hora,
-    duracion: actividad.duracion,
-    puntoEncuentro: actividad.puntoEncuentro,
-    organizador: actividad.organizador,
-    contacto: actividad.contacto,
+    dias,
+    contacto: primeraActividad.contacto,
     sedeNombre: sede?.nombre,
     sedeIsla: sede?.isla,
   })

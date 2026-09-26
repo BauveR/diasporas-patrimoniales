@@ -156,21 +156,29 @@ function ParticipanteTextos({
   const { t, i18n } = useTranslation()
   const locale = i18n.language as Locale
   return (
-    <div className={`flex flex-col ${dense ? 'gap-1.5' : 'gap-3'} ${className}`}>
-      <div>
-        <h3 className={`font-mattone font-bold ${dense ? 'text-base' : 'text-lg'} ${dark ? 'text-white' : 'text-stone-900'}`} style={labelStyle}>
+    <div className={`flex flex-col ${dense ? 'gap-2' : 'gap-4'} ${className}`}>
+      <div className="flex flex-col gap-1">
+        {/* Sin `style={labelStyle}` acá a propósito — un inline style siempre
+            gana por encima de una clase, así que el `font-mattone` de abajo
+            quedaba pisado por el Open Sans de labelStyle y el nombre nunca
+            llegó a renderizar en Mattone pese a la clase. */}
+        <h3 className={`font-mattone font-bold leading-[1.05] ${dense ? 'text-xl' : 'text-3xl'} ${dark ? 'text-white' : 'text-stone-900'}`}>
           {participante.nombre}
         </h3>
-        <p className={`${dense ? 'text-xs' : 'text-sm'} ${dark ? 'text-white/60' : 'text-stone-400'}`} style={labelStyle}>
+        <p className={`tracking-wide ${dense ? 'text-xs' : 'text-sm'} ${dark ? 'text-white/60' : 'text-stone-400'}`} style={labelStyle}>
           {participante.cargo[locale] || t('participantes.cargoPendiente')}
         </p>
       </div>
       {participante.tituloIntervencion && (
-        <p className={`${dense ? 'text-xs' : 'text-sm'} font-semibold italic ${dark ? 'text-[#e8a79f]' : 'text-brand-red'}`} style={labelStyle}>
-          {participante.tituloIntervencion}
+        // Gambetta bold italic — mismo acento "editorial" que ya usa el
+        // email de confirmación para su titular, acá como cita destacada
+        // del título de la intervención en vez de negrita+cursiva fingida
+        // sobre la tipografía de cuerpo.
+        <p className={`font-gambetta italic ${dense ? 'text-sm' : 'text-xl'} leading-snug ${dark ? 'text-[#e8a79f]' : 'text-brand-red'}`}>
+          "{participante.tituloIntervencion}"
         </p>
       )}
-      <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} ${dark ? 'text-white/80' : 'text-stone-600'}`} style={labelStyle}>
+      <p className={`${dense ? 'text-xs leading-snug' : 'text-[15px] leading-relaxed'} ${dark ? 'text-white/80' : 'text-stone-600'}`} style={labelStyle}>
         {participante.bio[locale] || t('participantes.bioPendiente')}
       </p>
     </div>
@@ -193,7 +201,7 @@ function ParticipanteFoto({
 }) {
   return (
     <div
-      className={`shrink-0 overflow-hidden ${circular ? 'rounded-full border border-stone-100 bg-stone-100' : 'bg-stone-100'} ${className}`}
+      className={`shrink-0 overflow-hidden ${circular ? 'rounded-full border border-stone-700 bg-stone-800' : 'bg-stone-800'} ${className}`}
     >
       {participante.foto ? (
         <img
@@ -239,7 +247,7 @@ function ParticipanteSheet({ participante, onClose }: { participante: Participan
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-white shadow-xl pb-[env(safe-area-inset-bottom,0px)]"
+        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-stone-900 shadow-xl pb-[env(safe-area-inset-bottom,0px)]"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -250,15 +258,15 @@ function ParticipanteSheet({ participante, onClose }: { participante: Participan
         onDragEnd={handleDragEnd}
       >
         <div className="flex justify-center pt-3 pb-1">
-          <div className="h-1.5 w-10 rounded-full bg-stone-300" />
+          <div className="h-1.5 w-10 rounded-full bg-white/20" />
         </div>
         <CerrarButton
           onClose={onClose}
-          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         />
-        <div className="flex flex-col items-center gap-4 px-8 pt-4 pb-8 text-center">
+        <div className="flex flex-col items-center gap-6 px-8 pt-6 pb-10 text-center">
           <ParticipanteFoto participante={participante} className="h-28 w-28" circular={false} />
-          <ParticipanteTextos participante={participante} className="items-center text-center" />
+          <ParticipanteTextos participante={participante} className="items-center text-center" dark />
         </div>
       </motion.div>
     </>
@@ -295,16 +303,16 @@ function ParticipanteModal({ participante, onClose }: { participante: Participan
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <div
-          className="relative w-full max-w-[57.6rem] min-h-[31.5rem] max-h-[85svh] overflow-y-auto rounded-3xl bg-white shadow-xl pointer-events-auto"
+          className="relative w-full max-w-[57.6rem] min-h-[31.5rem] max-h-[85svh] overflow-y-auto rounded-3xl bg-stone-900 shadow-xl pointer-events-auto"
           onClick={e => e.stopPropagation()}
         >
           <CerrarButton
             onClose={onClose}
-            className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
+            className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
           />
-          <div className="flex h-full min-h-[31.5rem] items-center gap-10 py-10 pr-14 pl-28">
+          <div className="flex h-full min-h-[31.5rem] items-center gap-12 py-10 pr-16 pl-28">
             <ParticipanteFoto participante={participante} className="h-[19.2rem] w-[19.2rem]" circular={false} />
-            <ParticipanteTextos participante={participante} className="max-w-sm text-left" />
+            <ParticipanteTextos participante={participante} className="max-w-md text-left" dark />
           </div>
         </div>
       </motion.div>
@@ -347,11 +355,11 @@ function ParticipanteExpandido({
   return (
     <motion.div
       style={{ gridColumn: `${startCol} / span ${EXPANDED_SPAN}`, gridRow: `${row} / span 1` }}
-      // bg-stone-100: mismo gris que el fondo de toda la sección (antes
-      // bg-black) — con las dos columnas ahora del mismo color que lo que
-      // hay detrás, el border + shadow-xl son lo que le da separación
-      // visual al panel, no el contraste de color.
-      className="absolute inset-0 z-20 flex overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-xl"
+      // Mismo negro (bg-stone-900, sin borde) que ActividadExpandido/
+      // AmbosDiasExpandido — la card de registro desplegable — para que
+      // todos los paneles "desplegables" del sitio compartan un solo
+      // lenguaje visual.
+      className="absolute inset-0 z-20 flex overflow-hidden rounded-2xl bg-stone-900 shadow-xl"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
@@ -373,16 +381,15 @@ function ParticipanteExpandido({
           <FotoPlaceholder />
         )}
       </div>
-      <div className="flex w-[72%] flex-col justify-center gap-3 overflow-y-auto px-5 py-2 text-left">
-        {/* Sin `dark`: paleta gris de siempre (stone-900/400/600), pensada
-            para fondo claro — el panel ya no es negro. `dense`: ver el
-            comentario en ParticipanteTextos — este alto lo fija la fila de
-            la grilla, no da margen de sobra como sheet/modal. */}
-        <ParticipanteTextos participante={participante} dense />
+      <div className="flex w-[72%] flex-col justify-center gap-3 overflow-y-auto px-6 py-3 text-left">
+        {/* `dense`: ver el comentario en ParticipanteTextos — este alto lo
+            fija la fila de la grilla, no da margen de sobra como
+            sheet/modal. */}
+        <ParticipanteTextos participante={participante} dense dark />
       </div>
       <CerrarButton
         onClose={onClose}
-        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-stone-600 transition-colors hover:bg-black/10"
+        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
       />
     </motion.div>
   )

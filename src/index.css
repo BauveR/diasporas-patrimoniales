@@ -16,8 +16,22 @@
   font-display: swap;
 }
 
+/* Bold italic only — el archivo que hay (ver api/_lib/emailTemplate.ts,
+   donde ya se usa el mismo .woff2 vía @font-face para el email). Acá se
+   declara para el sitio en sí, pensado como acento editorial puntual
+   (citas/títulos de intervención de ponentes), no como tipografía de
+   cuerpo — por eso no hay una versión regular/no-italic. */
+@font-face {
+  font-family: 'Gambetta';
+  src: url('./assets/fonts/Gambetta-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 @theme {
   --font-mattone: 'Mattone', sans-serif;
+  --font-gambetta: 'Gambetta', Georgia, 'Times New Roman', serif;
 
   /* Institutional red + CTA orange — used as literal hex (style={{...}},
      text-[#9b2923]) in ~12 files today; real utilities (bg-brand-red,

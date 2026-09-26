@@ -2,10 +2,10 @@ import { useLocation } from 'react-router-dom'
 import { ALL_LOCALES, DEFAULT_LOCALE, LOCALE_TAGS } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 
-// TODO: swap in the real production domain once it's live — needed for
-// absolute hreflang/canonical URLs to be meaningful to crawlers. Exported so
-// other absolute-URL use sites (e.g. ShareButton links) stay in sync with it.
-export const SITE_URL = 'https://diasporas-patrimoniales.example'
+// Dominio final del sitio. Exportado para que otros usos de URL absoluta
+// (ej. ShareButton, o el email de confirmación en api/) se mantengan en
+// sincro con este único valor.
+export const SITE_URL = 'https://diasporaspatrimoniales.com'
 
 type Props = { title: string; description: string }
 

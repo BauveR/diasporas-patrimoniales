@@ -1,8 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Actividad } from '../../data/actividades'
+import { getPlazasEstado, type Actividad } from '../../data/actividades'
 
-import { DifficultyDots } from './DifficultyDots'
 import { useDataContext } from '../../contexts/DataContext'
 import { LOCALE_TAGS, type Locale } from '../../i18n/config'
 
@@ -26,8 +25,8 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
   // ActividadPage, AdminPage, el <title> del documento, etc.).
   const tituloTraducido =
     actividad.id === 1 ? t('inscripcion.jornada1') : actividad.id === 2 ? t('inscripcion.jornada2') : actividad.titulo
-  const plazasPct = actividad.plazas === 0 ? null : actividad.plazasDisponibles / actividad.plazas
-  const showPlazasBadge = plazasPct !== null && (plazasPct <= 0.10 || plazasPct < 0.40 || plazasPct >= 0.60)
+  const plazasEstado = getPlazasEstado(actividad)
+  const plazasEstadoLabel = t(`actividadCard.${plazasEstado === 'algunas' ? 'algunasPlazas' : plazasEstado === 'pocas' ? 'pocasPlazas' : 'plazasDisponibles'}`)
   const today = new Date().toISOString().slice(0, 10)
   const esProximamente = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
   const fechaApertura = esProximamente
@@ -62,37 +61,30 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
             </span>
           </div>
         )}
-        {/* Badge temática */}
+        {/* Badge plazas — mismo estilo (pastilla blanca, borde/texto en
+            naranja) que tenía antes la etiqueta de temática, en ese mismo
+            lugar sobre la imagen; ahora siempre visible, no solo cuando
+            escasea. */}
         <span
           className="absolute top-3 left-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full"
           style={{ ...labelStyle, color: '#cd6a26', backgroundColor: 'white', outline: '1.5px solid #cd6a26' }}
         >
-          {actividad.tematica}
+          {plazasEstadoLabel}
         </span>
-        {/* Badge plazas / próximamente */}
-        {esProximamente ? (
+        {/* Badge próximamente */}
+        {esProximamente && (
           <span
             className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
             style={{ ...labelStyle, backgroundColor: '#595d8d' }}
           >
             {t('actividadCard.abreEl', { fecha: fechaApertura })}
           </span>
-        ) : showPlazasBadge && (
-          <span
-            className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
-            style={{ ...labelStyle, backgroundColor: '#cd6a26' }}
-          >
-            {t('actividadCard.plazasBadge', { n: actividad.plazasDisponibles })}
-          </span>
         )}
       </div>
 
       {/* Info */}
       <div className="flex flex-col gap-1.5 px-1">
-        <h3
-          className="text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors"
-          style={labelStyle}
-        >
+        <h3 className="font-mattone font-bold text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors">
           {tituloTraducido}
         </h3>
 
@@ -107,12 +99,11 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
           <span className="text-stone-300">·</span>
           <span>{actividad.duracion}</span>
         </div>
-        <DifficultyDots dificultad={actividad.dificultad} />
 
         <p className="text-[11px] text-stone-400" style={labelStyle}>
           {esProximamente
             ? t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })
-            : t('actividadCard.plazasDisponibles', { disponibles: actividad.plazasDisponibles, total: actividad.plazas })}
+            : plazasEstadoLabel}
         </p>
 
         <span

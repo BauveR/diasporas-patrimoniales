@@ -847,14 +847,14 @@ export default function PointsToShapes() {
               <div className="flex flex-wrap items-center gap-4 xl:gap-2">
                 <a
                   href={sedesHref}
-                  className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 xl:px-3 xl:py-2 xl:text-[9px] xl:tracking-normal"
+                  className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
                   style={{ backgroundColor: '#f04f23' }}
                 >
                   {t('hero.cta')}
                 </a>
                 <a
                   href={programaHref}
-                  className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10 xl:px-3 xl:py-2 xl:text-[9px] xl:tracking-normal"
+                  className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
                 >
                   {t('hero.programCta')}
                 </a>
@@ -910,14 +910,14 @@ export default function PointsToShapes() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <a
             href={sedesHref}
-            className="w-fit rounded-full px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+            className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
             style={{ backgroundColor: '#f04f23' }}
           >
             {t('hero.cta')}
           </a>
           <a
             href={programaHref}
-            className="w-fit rounded-full border border-white/60 px-6 py-2.5 text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
+            className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
           >
             {t('hero.programCta')}
           </a>

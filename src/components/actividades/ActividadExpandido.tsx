@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
-import { TEMATICA_COLORS } from '../../data/tematicas'
 import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../../data/programa'
 import { ProgramaTimeline } from '../ProgramaTimeline'
 import { ShareButton } from './ShareButton'
@@ -12,13 +11,13 @@ import type { Actividad } from '../../data/actividades'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
-function CerrarButton({ onClose }: { onClose: () => void }) {
+export function CerrarButton({ onClose }: { onClose: () => void }) {
   return (
     <button
       type="button"
       onClick={onClose}
       aria-label="Cerrar"
-      className="absolute top-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-stone-500 shadow-sm transition-colors hover:bg-white cursor-pointer"
+      className="absolute top-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm transition-colors hover:bg-white/20 cursor-pointer"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
         <path d="M18 6 6 18M6 6l12 12" />
@@ -95,6 +94,8 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
     telefono: booking.telefono,
     onTelefonoChange: booking.onTelefonoChange,
     telefonoError: booking.telefonoError,
+    aceptoTerminos: booking.aceptoTerminos,
+    setAceptoTerminos: booking.setAceptoTerminos,
     onConfirmarInscripcion: booking.handleConfirmarInscripcion,
     onCancelarTelefono: booking.handleCancelarTelefono,
   }
@@ -107,8 +108,8 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={
         bare
-          ? 'relative w-full'
-          : 'relative w-full overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-xl sm:max-h-[75svh]'
+          ? 'relative w-full bg-stone-900'
+          : 'relative w-full overflow-hidden rounded-3xl bg-stone-900 shadow-xl sm:max-h-[75svh]'
       }
     >
       {!bare && <CerrarButton onClose={onClose} />}
@@ -130,13 +131,15 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
           crecer para acomodarlo — sin eso, un `max-height` en el grid solo
           movería el mismo recorte un nivel más abajo. */}
       <div className="grid grid-cols-1 sm:max-h-[75svh] sm:grid-rows-1 sm:grid-cols-[6fr_4fr]">
-        <div className="order-2 overflow-y-auto p-6 sm:order-1 sm:p-6">
-          <div className="mb-4 flex items-start justify-between gap-3 sm:hidden">
+        <div className="order-2 overflow-y-auto p-6 sm:order-1 sm:p-8">
+          <div className="mb-6 flex flex-col gap-1.5">
             <span
-              className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-              style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
+              className="w-fit rounded-lg bg-brand-red px-4 py-2 font-mattone text-sm font-bold tracking-wide text-white uppercase"
             >
-              {actividad.tematica}
+              {actividad.titulo}
+            </span>
+            <span className="text-xs text-stone-400 capitalize" style={labelStyle}>
+              {fecha}{actividad.hora ? ` · ${actividad.hora}` : ''}{actividad.duracion ? ` · ${actividad.duracion}` : ''}
             </span>
           </div>
           {programaDia ? (
@@ -145,22 +148,28 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
             // above) — half the row spacing buys back what the narrower `lg`
             // column costs in extra text-wrapped lines. ProgramaSection.tsx's
             // own (non-embedded) timeline keeps its relaxed default spacing.
-            <ProgramaTimeline dia={diaLabel} items={programaDia} dense />
+            // `dark`: this panel now uses the black-card treatment — see
+            // ProgramaTimeline's own `dark` prop comment.
+            <ProgramaTimeline dia={diaLabel} items={programaDia} dense dark />
           ) : (
-            <p className="text-sm text-stone-600 leading-relaxed wrap-break-word whitespace-pre-line" style={labelStyle}>
+            <p className="text-sm text-stone-300 leading-relaxed wrap-break-word whitespace-pre-line" style={labelStyle}>
               {actividad.descripcion}
             </p>
           )}
         </div>
 
-        <div className="order-1 flex flex-col gap-3 overflow-y-auto p-4 sm:order-2 sm:border-l sm:border-stone-100 sm:p-4">
-          {/* `sm:aspect-[3/2]`, not `sm:aspect-square`: a square image in
-              this already-narrow right column (worst case ~40% of a `lg`
-              section, well under half the width xl/2xl give it) ate a big
-              share of the shared 75svh budget for its own sake — 3:2 keeps a
-              real photo, just shorter, buying back height for the booking
-              widget below it. */}
-          <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-2xl bg-stone-50 sm:aspect-[3/2]">
+        <div className="order-1 flex flex-col gap-3 overflow-y-auto p-4 sm:order-2 sm:border-l sm:border-white/10 sm:p-4">
+          {/* Mobile: altura fija chica (`h-24`, ~60% menos que el
+              `aspect-[4/3]` de ancho completo que tenía antes) — en este
+              panel la prioridad es el texto (badge, agenda, botón de
+              inscripción), no la foto, así que ocupa lo mínimo arriba de
+              todo eso. `sm:aspect-[3/2]`, no `sm:aspect-square`: a partir de
+              `sm` sí vuelve a ser una foto real (más angosta que ancha
+              completa), y cuadrado en esta columna, ya angosta de por sí
+              (peor caso ~40% de una sección `lg`), comía buena parte del
+              75svh compartido por gusto — 3:2 la deja más baja, ganando alto
+              para el widget de reserva debajo. */}
+          <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-stone-800 sm:h-auto sm:aspect-[3/2]">
             <img
               src={actividad.imagen}
               alt={actividad.titulo}
@@ -170,21 +179,15 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
           </div>
 
           <div className="flex flex-col gap-3">
-            {/* Sin título acá — ya lo muestra el propio encabezado del
-                timeline a la izquierda ("DÍA 1 — 12 DE NOVIEMBRE"),
-                repetirlo era redundante. */}
+            {/* Sin título acá — ya lo muestra el badge de la izquierda
+                ("DÍA 1 — 12 DE NOVIEMBRE"), repetirlo era redundante. */}
             <div className="hidden flex-col gap-2 sm:flex">
-              <div className="flex items-start justify-between gap-3">
-                <span
-                  className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-                  style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-                >
-                  {actividad.tematica}
-                </span>
+              <div className="flex items-start justify-end gap-3">
                 <ShareButton
                   url={`${SITE_URL}/actividades/${actividad.id}`}
                   title={actividad.titulo}
                   text={`${fecha}${sede ? ` · ${sede.nombre}, ${sede.isla}` : ''}`}
+                  dark
                 />
               </div>
               {sede && (
@@ -197,17 +200,17 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
-                <span className="font-mattone text-sm font-bold text-stone-800 capitalize wrap-break-word">{fecha}</span>
+                <span className="font-mattone text-sm font-bold text-white capitalize wrap-break-word">{fecha}</span>
               </div>
               {actividad.hora && (
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
-                  <span className="font-mattone text-sm font-bold text-stone-800">{actividad.hora}</span>
+                  <span className="font-mattone text-sm font-bold text-white">{actividad.hora}</span>
                 </div>
               )}
             </div>
 
-            <BookingWidget {...widgetProps} compact />
+            <BookingWidget {...widgetProps} compact dark />
           </div>
         </div>
       </div>

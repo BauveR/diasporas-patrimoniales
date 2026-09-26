@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
+import {
+  inscribirseAmbosDias, liberarAmbosDias, getTelefonoForUser,
+  SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError,
+} from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 
-// Todo el estado y los handlers de inscripción/liberación de plaza, sacados
-// de ActividadPage.tsx para que ActividadExpandido (el panel inline dentro
-// de una sección) los comparta sin duplicar la lógica de transacción/email —
-// dos copias de esto divergiendo con el tiempo sería el bug clásico.
-export function useActividadBooking(actividad: Actividad | undefined) {
+// Misma forma que useActividadBooking, pero operando sobre las 2 jornadas a
+// la vez (ver inscribirseAmbosDias/liberarAmbosDias en lib/db.ts) — un solo
+// formulario/confirmación de teléfono cubre ambos registros.
+export function useAmbosDiasBooking(actividades: Actividad[]) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, inscripcionIds } = useAuth()
 
-  const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
+  const ids = actividades.map(a => a.id)
+  const inscritoEn = ids.filter(id => inscripcionIds.includes(id))
+  const inscritoAmbos = ids.length > 0 && inscritoEn.length === ids.length
+  const inscritoParcial = inscritoEn.length > 0 && inscritoEn.length < ids.length
+
   const [inscribiendo, setInscribiendo] = useState(false)
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
@@ -25,7 +31,6 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   const [telefonoError, setTelefonoError] = useState('')
   const [aceptoTerminos, setAceptoTerminos] = useState(false)
 
-  // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
   useEffect(() => {
     if (!user) return
     const uid = user.uid
@@ -38,10 +43,10 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   }, [user?.uid])
 
   const handleLiberar = async () => {
-    if (!user || !actividad) return
+    if (!user) return
     setLiberando(true)
     try {
-      await liberarPlaza(actividad.id, user.uid)
+      await liberarAmbosDias(ids, user.uid)
       setConfirmando(false)
     } catch (err) {
       if (!(err instanceof YaLiberadaError)) throw err
@@ -61,39 +66,33 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   }
 
   const handleConfirmarInscripcion = async () => {
-    if (!user || !actividad) return
+    if (!user) return
     if (!isValidTelefono(telefono)) {
       setTelefonoError('Introduce un teléfono válido (España o formato internacional +XX...)')
       return
     }
-    // Defensa además del botón deshabilitado en BookingWidget — por si algo
-    // llega a llamar a este handler sin pasar por ese guard.
     if (!aceptoTerminos) return
     setInscribiendo(true)
     setInscripcionError('')
     setTelefonoError('')
     try {
-      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       setMostrandoTelefono(false)
       setShowSuccessPopup(true)
-      // Fire-and-forget: enviar email de confirmación. El servidor recalcula
-      // todo el contenido desde Firestore a partir de actividadId — no manda
-      // texto libre, así el endpoint no puede usarse para emails con datos
-      // arbitrarios (ver api/send-email.ts).
       user.getIdToken().then(idToken => {
         fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken, actividadIds: [actividad.id] }),
+          body: JSON.stringify({ idToken, actividadIds: ids }),
         }).catch(() => { /* silencioso — inscripción ya completada */ })
       }).catch(() => { /* silencioso */ })
     } catch (err) {
       if (err instanceof SinPlazasError) {
-        setInscripcionError('Ya no quedan plazas disponibles.')
+        setInscripcionError('Ya no quedan plazas disponibles en una de las dos jornadas.')
       } else if (err instanceof EventoCanceladoError) {
-        setInscripcionError('Este evento ha sido cancelado.')
+        setInscripcionError('Una de las dos jornadas ha sido cancelada.')
       } else if (err instanceof InscripcionNoAbiertaError) {
-        setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
+        setInscripcionError('Las inscripciones todavía no están abiertas para una de las dos jornadas.')
       } else {
         setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
       }
@@ -104,7 +103,9 @@ export function useActividadBooking(actividad: Actividad | undefined) {
 
   return {
     isLoggedIn: !!user,
-    inscrito,
+    inscrito: inscritoAmbos,
+    inscritoParcial,
+    diasInscritos: inscritoEn,
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,

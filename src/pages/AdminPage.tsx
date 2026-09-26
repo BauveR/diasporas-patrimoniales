@@ -41,8 +41,6 @@ import {
 } from '../lib/db'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
-const ACCENT = '#cd6a26'
 
 type AdminSection = 'sedes' | 'asistentes'
 
@@ -75,10 +73,14 @@ const NAV_ITEMS: NavItem[] = [
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[10px] tracking-widest uppercase text-stone-500">{children}</label>
+    <label className="text-[10px] tracking-widest uppercase text-stone-400">{children}</label>
   )
 }
 
+// `colorScheme: 'dark'` en los 3 campos de abajo (Input/Select/Textarea):
+// sin esto, el navegador renderiza el caret y el overlay de autocompletado
+// nativo con su esquema claro por defecto, que no matchea el fondo oscuro —
+// mismo bug (y arreglo) que el input de teléfono de BookingWidget.
 function Input({ value, onChange, type = 'text', placeholder, className = '', error = false, selectOnFocus = false }: {
   value: string | number
   onChange: (v: string) => void
@@ -95,8 +97,9 @@ function Input({ value, onChange, type = 'text', placeholder, className = '', er
       onChange={e => onChange(e.target.value)}
       onFocus={selectOnFocus ? e => e.target.select() : undefined}
       placeholder={placeholder}
-      className={`w-full border rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none transition-colors placeholder:text-stone-500 ${
-        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
+      style={{ colorScheme: 'dark' }}
+      className={`w-full border rounded-xl px-3 py-2 text-base text-white bg-white/5 focus:outline-none transition-colors placeholder:text-stone-500 ${
+        error ? 'border-red-500/50 focus:border-red-400' : 'border-white/15 focus:border-brand-orange'
       } ${className}`}
     />
   )
@@ -112,8 +115,9 @@ function Select({ value, onChange, children, error = false }: {
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className={`w-full border rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none transition-colors ${
-        error ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-[#595d8d]'
+      style={{ colorScheme: 'dark' }}
+      className={`w-full border rounded-xl px-3 py-2 text-base text-white bg-white/5 focus:outline-none transition-colors ${
+        error ? 'border-red-500/50 focus:border-red-400' : 'border-white/15 focus:border-brand-orange'
       }`}
     >
       {children}
@@ -123,7 +127,7 @@ function Select({ value, onChange, children, error = false }: {
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null
-  return <p className="text-[10px] text-red-500 mt-0.5 wrap-break-word">{msg}</p>
+  return <p className="text-[10px] text-red-400 mt-0.5 wrap-break-word">{msg}</p>
 }
 
 function Textarea({ value, onChange, rows = 3, placeholder }: {
@@ -138,7 +142,8 @@ function Textarea({ value, onChange, rows = 3, placeholder }: {
       onChange={e => onChange(e.target.value)}
       rows={rows}
       placeholder={placeholder}
-      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-base text-stone-800 bg-white focus:outline-none focus:border-[#595d8d] transition-colors resize-none"
+      style={{ colorScheme: 'dark' }}
+      className="w-full border border-white/15 rounded-xl px-3 py-2 text-base text-white bg-white/5 focus:outline-none focus:border-brand-orange transition-colors resize-none placeholder:text-stone-500"
     />
   )
 }
@@ -169,7 +174,7 @@ function DuracionField({ value, onChange }: { value: string; onChange: (v: strin
           <button
             type="button"
             onClick={() => { setCustom(false); onChange('') }}
-            className="shrink-0 text-[10px] tracking-widest uppercase text-stone-400 hover:text-[#595d8d] transition-colors cursor-pointer"
+            className="shrink-0 text-[10px] tracking-widest uppercase text-stone-400 hover:text-brand-orange transition-colors cursor-pointer"
           >
             Lista
           </button>
@@ -195,8 +200,12 @@ function SaveButton({ loading, success, onClick, label = 'Guardar' }: {
     <button
       onClick={onClick}
       disabled={loading}
-      className="w-full py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-all disabled:opacity-40 cursor-pointer text-white hover:opacity-90"
-      style={{ backgroundColor: success ? '#50664d' : '#595d8d' }}
+      className={`w-full py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-all disabled:opacity-40 cursor-pointer text-white hover:opacity-90 ${success ? '' : 'bg-brand-orange'}`}
+      // El verde de éxito (#50664d) es el mismo que ya usa el resto del sitio
+      // para "inscripción confirmada" (BookingWidget) — sin token @theme
+      // propio todavía, así que se mantiene como color literal en vez de
+      // introducir uno nuevo solo para este botón.
+      style={success ? { backgroundColor: '#50664d' } : undefined}
     >
       {loading ? '...' : success ? '✓ Guardado' : label}
     </button>
@@ -205,8 +214,8 @@ function SaveButton({ loading, success, onClick, label = 'Guardar' }: {
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
-      <p className="text-[10px] tracking-widest uppercase mb-5" style={{ color: ACCENT }}>{title}</p>
+    <div className="bg-stone-900 rounded-2xl border border-white/10 p-6" style={labelStyle}>
+      <p className="font-mattone text-[10px] font-bold tracking-widest text-brand-red uppercase mb-5">{title}</p>
       {children}
     </div>
   )
@@ -396,7 +405,7 @@ function EditActividadDrawer({
         >
           <motion.div
             className="
-              bg-stone-50 flex flex-col overflow-hidden
+              bg-stone-900 flex flex-col overflow-hidden
               fixed bottom-0 left-0 right-0 rounded-t-3xl max-h-[92svh]
               pb-[env(safe-area-inset-bottom,0px)]
               sm:top-0 sm:bottom-auto sm:left-auto sm:right-0
@@ -419,7 +428,7 @@ function EditActividadDrawer({
             {/* Handle mobile */}
             {!isDesktop && (
               <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
-                <div className="w-10 h-1 rounded-full bg-stone-200" />
+                <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
             )}
 
@@ -430,16 +439,16 @@ function EditActividadDrawer({
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400 mb-1">Editando evento</p>
-                  <p className="text-sm text-stone-800 leading-snug">{actividad.titulo}</p>
+                  <p className="font-mattone text-sm font-bold text-white leading-snug">{actividad.titulo}</p>
                   {inscritos > 0 && (
-                    <p className="text-[11px] text-amber-500 mt-1">
+                    <p className="text-[11px] text-amber-400 mt-1">
                       {inscritos} inscrito{inscritos !== 1 ? 's' : ''} · plazas no reducibles por debajo de este número
                     </p>
                   )}
                 </div>
                 <button
                   onClick={onClose}
-                  className="shrink-0 w-7 h-7 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
+                  className="shrink-0 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
                   aria-label="Cerrar"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -448,7 +457,7 @@ function EditActividadDrawer({
                 </button>
               </div>
 
-              <div className="w-full h-px bg-stone-200" />
+              <div className="w-full h-px bg-white/10" />
 
               {/* Form fields */}
               <div className="flex flex-col gap-4">
@@ -550,7 +559,7 @@ function EditActividadDrawer({
                     <button
                       type="button"
                       onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
-                      className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+                      className="shrink-0 px-3 rounded-xl border border-white/15 text-[10px] tracking-widest text-stone-400 hover:border-brand-orange hover:text-brand-orange transition-colors cursor-pointer whitespace-nowrap"
                     >
                       Biblioteca
                     </button>
@@ -565,7 +574,7 @@ function EditActividadDrawer({
                 </div>
 
                 <SaveButton loading={saving} success={success} onClick={handleSave} label="Guardar cambios" />
-                {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
+                {saveError && <p className="text-[10px] text-red-400 text-center">{saveError}</p>}
               </div>
             </div>
           </motion.div>
@@ -631,46 +640,43 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
     <div
       className={`rounded-xl border transition-colors ${
         selected
-          ? 'bg-stone-50'
+          ? 'border-brand-orange bg-stone-800'
           : isCancelada
-            ? 'border-red-100 bg-red-50/40'
-            : 'border-stone-100 hover:border-stone-200 bg-white'
+            ? 'border-red-900/40 bg-red-950/20'
+            : 'border-white/10 hover:border-white/25 bg-stone-800'
       }`}
-      style={{ ...labelStyle, ...(selected ? { borderColor: '#595d8d' } : {}) }}
+      style={labelStyle}
     >
       {/* Info + barra — clickable */}
       <button onClick={onClick} className="w-full text-left px-4 pt-4 pb-3 cursor-pointer">
         {/* Tematica badge */}
         <span
           className="inline-block mb-2 px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-medium"
-          style={{ backgroundColor: isCancelada ? '#d6d3d1' : TEMATICA_COLORS[actividad.tematica] }}
+          style={{ backgroundColor: isCancelada ? '#57534e' : TEMATICA_COLORS[actividad.tematica] }}
         >
           {actividad.tematica}
         </span>
 
         <div className="flex items-start gap-2 mb-0.5">
-          <p className={`text-sm truncate flex-1 leading-snug ${isCancelada ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
+          <p className={`text-sm truncate flex-1 leading-snug ${isCancelada ? 'text-stone-500 line-through' : 'text-white'}`}>
             {actividad.titulo}
           </p>
           {isCancelada && (
-            <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-red-100 text-red-500 text-[9px] tracking-widest uppercase">
+            <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] tracking-widest uppercase">
               Cancelado
             </span>
           )}
         </div>
         <p className="text-[11px] text-stone-400 mb-3">{fecha}</p>
 
-        <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden mb-2">
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-2">
           <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${pct}%`,
-              backgroundColor: isCancelada ? '#d6d3d1' : pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#595d8d',
-            }}
+            className={`h-full rounded-full transition-all ${isCancelada ? 'bg-stone-600' : pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-brand-orange' : 'bg-brand-red'}`}
+            style={{ width: `${pct}%` }}
           />
         </div>
         <div className="flex justify-between text-[10px] tabular-nums">
-          <span className="text-stone-500">{count} / {actividad.plazas} inscritos</span>
+          <span className="text-stone-400">{count} / {actividad.plazas} inscritos</span>
           {!isCancelada && plazasLibres <= 5 && plazasLibres > 0 && (
             <span className="text-red-400">¡{plazasLibres} libre{plazasLibres !== 1 ? 's' : ''}!</span>
           )}
@@ -688,12 +694,12 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
       )}
 
       {/* Acción inferior */}
-      <div className="px-4 pt-2 pb-3 border-t border-stone-100 flex items-center justify-between gap-3">
+      <div className="px-4 pt-2 pb-3 border-t border-white/10 flex items-center justify-between gap-3">
         {confirmCancel ? (
           <div className="flex gap-2 items-center">
             <button
               onClick={e => { e.stopPropagation(); setConfirmCancel(false) }}
-              className="text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer"
+              className="text-[10px] text-stone-400 hover:text-stone-200 cursor-pointer"
             >
               No
             </button>
@@ -709,7 +715,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
           <div className="flex gap-2 items-center">
             <button
               onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}
-              className="text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer"
+              className="text-[10px] text-stone-400 hover:text-stone-200 cursor-pointer"
             >
               No
             </button>
@@ -725,7 +731,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
           <>
             <button
               onClick={e => { e.stopPropagation(); onEdit() }}
-              className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-[#595d8d] transition-colors cursor-pointer"
+              className="text-[10px] tracking-widest uppercase text-stone-400 hover:text-brand-orange transition-colors cursor-pointer"
             >
               Editar
             </button>
@@ -734,13 +740,13 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
                 <button
                   onClick={handleReactivar}
                   disabled={acting}
-                  className="text-[10px] tracking-widest uppercase text-stone-500 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#50664d]"
+                  className="text-[10px] tracking-widest uppercase text-stone-400 transition-colors cursor-pointer disabled:opacity-40 hover:text-[#7a9a74]"
                 >
                   {acting ? '...' : 'Reactivar'}
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-                  className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-600 transition-colors cursor-pointer"
+                  className="text-[10px] tracking-widest uppercase text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
                 >
                   Eliminar
                 </button>
@@ -748,7 +754,7 @@ function ActivityCard({ actividad, selected, onClick, onEdit }: ActivityCardProp
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmCancel(true) }}
-                className="text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
+                className="text-[10px] tracking-widest uppercase text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -838,12 +844,14 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
   }
 
   const inscritosRows = (): string[][] => [
-    ['Nombre', 'Email', 'Teléfono', 'Inscrito el'],
+    ['Nombre', 'Email', 'Teléfono', 'Inscrito el', 'Acepta política de privacidad', 'Versión aceptada'],
     ...inscritos.map(i => [
       i.displayName || '',
       i.email,
       i.telefono || '',
       i.inscritoEn ? i.inscritoEn.toLocaleDateString('es-ES') : '',
+      i.aceptoTerminos ? 'Sí' : 'No',
+      i.terminosVersion || '',
     ]),
   ]
 
@@ -877,11 +885,11 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
 
       {/* Panel de inscritos */}
       {selectedActividad && (
-        <div className="bg-white rounded-2xl border border-stone-100 p-6" style={labelStyle}>
+        <div className="bg-stone-900 rounded-2xl border border-white/10 p-6" style={labelStyle}>
           <div className="flex items-start justify-between mb-5 gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Inscritos</p>
-              <p className="text-sm text-stone-800 truncate">{selectedActividad.titulo}</p>
+              <p className="text-sm text-white truncate">{selectedActividad.titulo}</p>
               <p className="text-[11px] text-stone-400 mt-0.5 capitalize">
                 {selectedFecha} · {selectedCount} {selectedCount === 1 ? 'inscrito' : 'inscritos'}
               </p>
@@ -891,13 +899,13 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
                 <>
                   <button
                     onClick={handleCopiar}
-                    className="px-3 py-1.5 rounded-full border border-stone-200 text-[10px] tracking-widest uppercase text-stone-500 hover:border-stone-400 hover:text-stone-800 transition-colors cursor-pointer whitespace-nowrap"
+                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {copiado ? 'Copiado ✓' : 'Copiar'}
                   </button>
                   <button
                     onClick={handleDescargarCsv}
-                    className="px-3 py-1.5 rounded-full border border-stone-200 text-[10px] tracking-widest uppercase text-stone-500 hover:border-stone-400 hover:text-stone-800 transition-colors cursor-pointer whitespace-nowrap"
+                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
                   >
                     Descargar CSV
                   </button>
@@ -905,7 +913,7 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
               )}
               <button
                 onClick={() => setSelectedId(null)}
-                className="shrink-0 w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-400 transition-colors cursor-pointer"
+                className="shrink-0 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
                 aria-label="Cerrar"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -925,18 +933,26 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-stone-100">
+                  <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-white/10">
                     <th className="font-normal py-2 pr-4">Nombre</th>
                     <th className="font-normal py-2 pr-4">Email</th>
-                    <th className="font-normal py-2">Teléfono</th>
+                    <th className="font-normal py-2 pr-4">Teléfono</th>
+                    <th className="font-normal py-2">Política de privacidad</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-50">
+                <tbody className="divide-y divide-white/5">
                   {inscritos.map(i => (
                     <tr key={i.uid}>
-                      <td className="py-2.5 pr-4 text-sm text-stone-700 whitespace-nowrap">{i.displayName || '—'}</td>
+                      <td className="py-2.5 pr-4 text-sm text-stone-200 whitespace-nowrap">{i.displayName || '—'}</td>
                       <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
-                      <td className="py-2.5 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                      <td className="py-2.5 text-[11px] whitespace-nowrap">
+                        {i.aceptoTerminos ? (
+                          <span className="text-[#7a9a74]">✓ Aceptada{i.terminosVersion ? ` (${i.terminosVersion})` : ''}</span>
+                        ) : (
+                          <span className="text-stone-500">— Sin registro</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -954,9 +970,8 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
               key={t.label}
               onClick={t.onClick}
               className={`px-3 py-1 rounded-full text-[10px] tracking-widest uppercase transition-colors border cursor-pointer ${
-                t.active ? 'text-white border-transparent' : 'text-stone-400 border-stone-200 hover:border-stone-400'
+                t.active ? 'text-white border-transparent bg-brand-red' : 'text-stone-400 border-white/15 hover:border-white/30'
               }`}
-              style={t.active ? { backgroundColor: '#595d8d' } : {}}
             >
               {t.label}
             </button>
@@ -978,12 +993,13 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Buscar por título, sede o isla…"
-                className="w-full border border-stone-200 rounded-xl pl-8 pr-8 py-2 text-base text-stone-800 bg-white focus:outline-none focus:border-stone-400 transition-colors placeholder:text-stone-500"
+                style={{ colorScheme: 'dark' }}
+                className="w-full border border-white/15 rounded-xl pl-8 pr-8 py-2 text-base text-white bg-white/5 focus:outline-none focus:border-brand-orange transition-colors placeholder:text-stone-500"
               />
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                     <path d="M18 6 6 18M6 6l12 12" />
@@ -1003,7 +1019,7 @@ function ControlAsistentes({ actividades, sedes }: { actividades: Actividad[]; s
         )}
 
         {visible.length === 0 ? (
-          <p className="text-sm text-stone-500 py-4 text-center">Sin actividades</p>
+          <p className="text-sm text-stone-400 py-4 text-center">Sin actividades</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {visible.map(a => (
@@ -1125,13 +1141,13 @@ function SedeRow({ sede }: { sede: Sede }) {
   }
 
   return (
-    <div className="border-b border-stone-100 last:border-0">
+    <div className="border-b border-white/10 last:border-0">
       <button
         onClick={() => setExpanded(p => !p)}
         className="w-full flex items-center justify-between py-3 text-left cursor-pointer"
       >
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm text-stone-800">
+          <span className="text-sm text-white">
             {sede.nombre.replace('Sede Histórica de ', '')}
           </span>
           <span className="text-[11px] text-stone-400">{sede.isla} · {sede.municipio}</span>
@@ -1139,7 +1155,7 @@ function SedeRow({ sede }: { sede: Sede }) {
         <svg
           xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
           fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-          className={`text-stone-500 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`text-stone-400 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
         >
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -1186,7 +1202,7 @@ function SedeRow({ sede }: { sede: Sede }) {
               <button
                 type="button"
                 onClick={() => openCloudinaryPicker(url => set('imagen')(url))}
-                className="shrink-0 px-3 rounded-xl border border-stone-200 text-[10px] tracking-widest text-stone-400 hover:border-[#595d8d] hover:text-[#595d8d] transition-colors cursor-pointer whitespace-nowrap"
+                className="shrink-0 px-3 rounded-xl border border-white/15 text-[10px] tracking-widest text-stone-400 hover:border-brand-orange hover:text-brand-orange transition-colors cursor-pointer whitespace-nowrap"
               >
                 Biblioteca
               </button>
@@ -1222,7 +1238,7 @@ function SedeRow({ sede }: { sede: Sede }) {
             <button
               onClick={handleCancel}
               disabled={saving}
-              className="flex-1 py-2.5 rounded-xl border border-stone-200 text-[11px] tracking-widest uppercase text-stone-400 hover:bg-stone-50 transition-colors disabled:opacity-40 cursor-pointer"
+              className="flex-1 py-2.5 rounded-xl border border-white/15 text-[11px] tracking-widest uppercase text-stone-300 hover:bg-white/5 transition-colors disabled:opacity-40 cursor-pointer"
             >
               Cancelar
             </button>
@@ -1230,7 +1246,7 @@ function SedeRow({ sede }: { sede: Sede }) {
               <SaveButton loading={saving} success={success} onClick={handleSave} />
             </div>
           </div>
-          {saveError && <p className="text-[10px] text-red-500 text-center">{saveError}</p>}
+          {saveError && <p className="text-[10px] text-red-400 text-center">{saveError}</p>}
         </div>
       )}
     </div>
@@ -1244,7 +1260,7 @@ function GestionSedes({ sedes }: { sedes: Sede[] }) {
   return (
     <SectionCard title="Sede">
       {sedes.length === 0 ? (
-        <p className="text-sm text-stone-500 py-4 text-center">Sin sede. Inicializa la base de datos.</p>
+        <p className="text-sm text-stone-400 py-4 text-center">Sin sede. Inicializa la base de datos.</p>
       ) : (
         sedes.map(c => <SedeRow key={c.id} sede={c} />)
       )}
@@ -1257,17 +1273,17 @@ function GestionSedes({ sedes }: { sedes: Sede[] }) {
 function Sidebar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <aside
-      className="hidden sm:flex fixed top-navbar left-0 bottom-0 z-40 flex-col sm:w-14 lg:w-55 overflow-hidden"
-      style={{ ...labelStyle, backgroundColor: '#595d8d' }}
+      className="hidden sm:flex fixed top-navbar left-0 bottom-0 z-40 flex-col sm:w-14 lg:w-55 overflow-hidden bg-black"
+      style={labelStyle}
     >
       {/* Logo row — lg only */}
-      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/15 shrink-0">
-        <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#b19e7b' }}>
+      <div className="hidden lg:flex items-center gap-3 px-5 h-14 border-b border-white/10 shrink-0">
+        <div className="w-5 h-5 rounded-md bg-brand-red flex items-center justify-center shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
             <path d="M3 21h18M6 21V7l6-4 6 4v14" />
           </svg>
         </div>
-        <span className="text-white/70 text-[10px] tracking-[0.2em] uppercase whitespace-nowrap">
+        <span className="font-mattone text-white/70 text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
           Administración
         </span>
       </div>
@@ -1282,8 +1298,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
               onClick={() => setSection(key)}
               className={`flex items-center gap-3.5 py-3 px-4 lg:px-5 w-full transition-colors cursor-pointer
                 sm:justify-center lg:justify-start
-                ${active ? 'text-white' : 'text-white/55 hover:text-white hover:bg-white/10'}`}
-              style={active ? { backgroundColor: '#b19e7b' } : {}}
+                ${active ? 'text-white bg-brand-red' : 'text-white/55 hover:text-white hover:bg-white/10'}`}
             >
               <span className="shrink-0"><Icon /></span>
               <span className="hidden lg:flex flex-col items-start min-w-0">
@@ -1298,7 +1313,7 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
       </nav>
 
       {/* Back to site */}
-      <div className="shrink-0 py-3 border-t border-white/15">
+      <div className="shrink-0 py-3 border-t border-white/10">
         <Link
           to="/"
           className="flex items-center gap-3 py-2.5 px-4 lg:px-5 text-white/40 hover:text-white/80 transition-colors sm:justify-center lg:justify-start"
@@ -1318,8 +1333,8 @@ function Sidebar({ section, setSection }: { section: AdminSection; setSection: (
 function MobileTabBar({ section, setSection }: { section: AdminSection; setSection: (s: AdminSection) => void }) {
   return (
     <nav
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/15 flex items-stretch pb-[env(safe-area-inset-bottom,0px)]"
-      style={{ ...labelStyle, backgroundColor: '#595d8d' }}
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 flex items-stretch pb-[env(safe-area-inset-bottom,0px)] bg-black"
+      style={labelStyle}
     >
       {NAV_ITEMS.map(({ key, label, Icon }) => {
         const active = section === key
@@ -1331,10 +1346,7 @@ function MobileTabBar({ section, setSection }: { section: AdminSection; setSecti
               ${active ? 'text-white' : 'text-white/50'}`}
           >
             {active && (
-              <span
-                className="absolute top-0 inset-x-0 h-0.5"
-                style={{ backgroundColor: '#b19e7b' }}
-              />
+              <span className="absolute top-0 inset-x-0 h-0.5 bg-brand-red" />
             )}
             <Icon />
             <span className="text-[8px] tracking-widest uppercase">{label}</span>
@@ -1349,11 +1361,11 @@ function MobileTabBar({ section, setSection }: { section: AdminSection; setSecti
 
 function ContentHeader({ item }: { item: NavItem }) {
   return (
-    <div className="bg-white border-b border-stone-100 px-6 sm:px-8 pt-8 pb-7">
-      <p className="text-[10px] tracking-widest uppercase mb-1.5" style={{ color: ACCENT }}>
+    <div className="bg-black border-b border-white/10 px-6 sm:px-8 pt-8 pb-7">
+      <p className="font-mattone text-[10px] font-bold tracking-widest text-brand-red uppercase mb-1.5">
         {item.sublabel}
       </p>
-      <h1 className="text-2xl text-stone-900 uppercase tracking-tight" style={titleStyle}>
+      <h1 className="font-mattone text-2xl font-bold text-white uppercase tracking-tight">
         {item.label}
       </h1>
     </div>
@@ -1369,7 +1381,7 @@ export function AdminPage() {
   const currentNav = NAV_ITEMS.find(n => n.key === section)!
 
   return (
-    <div className="min-h-screen bg-stone-50" style={labelStyle}>
+    <div className="min-h-screen bg-black" style={labelStyle}>
 
       {/* Sidebar (sm+) */}
       <Sidebar section={section} setSection={setSection} />

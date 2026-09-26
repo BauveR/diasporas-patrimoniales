@@ -35,7 +35,10 @@
     "parrafo": "The academic sessions will take place in person and require advance registration, subject to venue capacity. You may register for either day or for both. A confirmation email will be sent once the form has been completed.",
     "encabezado": "2 days",
     "jornada1": "Day 1 — 12 November",
-    "jornada2": "Day 2 — 13 November"
+    "jornada2": "Day 2 — 13 November",
+    "ambosDias": "Both days — 12–13 November",
+    "ambosDiasDescripcion": "One registration gives you access to both days of the symposium.",
+    "yaInscritoParcial": "You're already registered for {{jornada}}. To add the other day, do it from its own card."
   },
   "sedeSection": {
     "titulo": "Venue",
@@ -145,7 +148,8 @@
     "finalizada": "Finished",
     "abreEl": "Opens on {{fecha}}",
     "inscripcionesDesde": "Registration opens {{fecha}}",
-    "plazasDisponibles": "{{disponibles}} of {{total}} spots available",
-    "plazasBadge": "{{n}} spots"
+    "plazasDisponibles": "Spots available",
+    "algunasPlazas": "Some spots available",
+    "pocasPlazas": "Few spots available"
   }
 }

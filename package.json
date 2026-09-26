@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:stress": "npx firebase emulators:exec --project demo-stress-test --only firestore,auth \"npx tsx scripts/stress-test-inscripciones.ts\""
   },
   "overrides": {
     "jwks-rsa": "3.2.2",

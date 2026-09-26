@@ -35,7 +35,10 @@
     "parrafo": "As sessões científicas serão presenciais e requerem inscrição prévia, até ao limite da capacidade disponível. É possível inscrever-se num dos dias ou em ambos. Depois de preencher o formulário, receberá a confirmação por email.",
     "encabezado": "2 dias",
     "jornada1": "Dia 1 — 12 de novembro",
-    "jornada2": "Dia 2 — 13 de novembro"
+    "jornada2": "Dia 2 — 13 de novembro",
+    "ambosDias": "Ambos os dias — 12 e 13 de novembro",
+    "ambosDiasDescripcion": "Uma única inscrição dá acesso aos dois dias do simpósio.",
+    "yaInscritoParcial": "Já está inscrito/a em {{jornada}}. Para somar o outro dia, faça-o a partir do respetivo cartão."
   },
   "sedeSection": {
     "titulo": "Local",
@@ -145,7 +148,8 @@
     "finalizada": "Terminado",
     "abreEl": "Abre a {{fecha}}",
     "inscripcionesDesde": "Inscrições a partir de {{fecha}}",
-    "plazasDisponibles": "{{disponibles}} de {{total}} vagas disponíveis",
-    "plazasBadge": "{{n}} vagas"
+    "plazasDisponibles": "Vagas disponíveis",
+    "algunasPlazas": "Algumas vagas disponíveis",
+    "pocasPlazas": "Poucas vagas disponíveis"
   }
 }

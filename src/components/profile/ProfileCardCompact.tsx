@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useDataContext } from '../../contexts/DataContext'
 
 const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
@@ -61,12 +60,6 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
 
       {/* Info + acción */}
       <div className="flex flex-col gap-1 min-w-0 flex-1">
-        <span
-          className="w-fit px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-          style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-        >
-          {actividad.tematica}
-        </span>
         <Link
           to={`/actividades/${actividad.id}`}
           state={{ from: 'perfil-mobile', background: location }}

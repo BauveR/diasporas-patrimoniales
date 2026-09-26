@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
 import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { TEMATICA_COLORS } from '../data/tematicas'
-import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { BookingWidget } from '../components/actividades/BookingWidget'
 import { useDataContext } from '../contexts/DataContext'
@@ -143,6 +141,8 @@ export function ActividadPage() {
     telefono: booking.telefono,
     onTelefonoChange: booking.onTelefonoChange,
     telefonoError: booking.telefonoError,
+    aceptoTerminos: booking.aceptoTerminos,
+    setAceptoTerminos: booking.setAceptoTerminos,
     onConfirmarInscripcion: booking.handleConfirmarInscripcion,
     onCancelarTelefono: booking.handleCancelarTelefono,
   }
@@ -152,12 +152,6 @@ export function ActividadPage() {
     return (
       <div className="flex flex-col" style={labelStyle}>
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
-          <span
-            className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-            style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-          >
-            {actividad.tematica}
-          </span>
           <h1 className="text-xl font-light text-stone-900 leading-snug" style={serifStyle}>
             {actividad.titulo}
           </h1>
@@ -194,10 +188,6 @@ export function ActividadPage() {
                   <span className="text-sm text-stone-800">{actividad.duracion}</span>
                 </div>
               )}
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Dificultad</span>
-                <DifficultyDots dificultad={actividad.dificultad} />
-              </div>
             </div>
             {actividad.puntoEncuentro && (
               <div className="flex flex-col gap-0.5 mt-5">
@@ -260,13 +250,7 @@ export function ActividadPage() {
           {/* Left */}
           <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <span
-                  className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-                  style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-                >
-                  {actividad.tematica}
-                </span>
+              <div className="flex items-center justify-end gap-3">
                 <ShareButton
                   url={`${SITE_URL}/actividades/${actividad.id}`}
                   title={actividad.titulo}

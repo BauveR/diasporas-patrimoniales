@@ -35,7 +35,10 @@
     "parrafo": "Las sesiones académicas son presenciales y requieren inscripción previa hasta completar el aforo. Puedes reservar plaza para una de las jornadas o para las dos. Tras completar el formulario recibirás la confirmación por correo electrónico.",
     "encabezado": "2 jornadas",
     "jornada1": "Jornada 1 — 12 de noviembre",
-    "jornada2": "Jornada 2 — 13 de noviembre"
+    "jornada2": "Jornada 2 — 13 de noviembre",
+    "ambosDias": "Ambos días — 12 y 13 de noviembre",
+    "ambosDiasDescripcion": "Un solo registro te da acceso a las dos jornadas del simposio.",
+    "yaInscritoParcial": "Ya estás inscrito/a en {{jornada}}. Para sumar la otra jornada, hazlo desde su propia tarjeta."
   },
   "sedeSection": {
     "titulo": "Sede",
@@ -145,7 +148,8 @@
     "finalizada": "Finalizada",
     "abreEl": "Abre el {{fecha}}",
     "inscripcionesDesde": "Inscripciones desde el {{fecha}}",
-    "plazasDisponibles": "{{disponibles}} de {{total}} plazas disponibles",
-    "plazasBadge": "{{n}} plazas"
+    "plazasDisponibles": "Plazas disponibles",
+    "algunasPlazas": "Algunas plazas disponibles",
+    "pocasPlazas": "Pocas plazas disponibles"
   }
 }

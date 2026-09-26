@@ -6,9 +6,10 @@ type Props = {
   url: string
   title: string
   text: string
+  dark?: boolean
 }
 
-export function ShareButton({ url, title, text }: Props) {
+export function ShareButton({ url, title, text, dark = false }: Props) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
@@ -32,7 +33,7 @@ export function ShareButton({ url, title, text }: Props) {
   return (
     <button
       onClick={handleShare}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-200 text-[10px] tracking-widest uppercase text-stone-500 hover:border-stone-400 hover:text-stone-800 transition-colors cursor-pointer shrink-0"
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-widest uppercase transition-colors cursor-pointer shrink-0 ${dark ? 'border border-white/20 text-stone-300 hover:border-white/40 hover:text-white' : 'border border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-800'}`}
       style={labelStyle}
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

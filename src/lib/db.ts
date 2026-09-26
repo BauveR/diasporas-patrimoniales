@@ -29,9 +29,21 @@ export type InscritoData = {
   displayName: string
   telefono: string
   inscritoEn: Date | null
+  aceptoTerminos: boolean
+  terminosVersion: string | null
 }
 
 type Unsubscribe = () => void
+
+// Versión de /privacidad que el usuario acepta al inscribirse — sube este
+// número (y el texto de la página) si el contenido de esa política cambia
+// de forma sustancial; los registros viejos quedan con la versión que
+// aceptaron en su momento, no se reescriben retroactivamente. `inscritoEn`
+// (mismo serverTimestamp de la inscripción) hace de sello de tiempo de esta
+// aceptación — es el mismo instante, así que no se duplica en un segundo
+// campo. Ver RGPD art. 7(1): el responsable del tratamiento debe poder
+// demostrar que hubo consentimiento, no alcanza con asumirlo.
+export const TERMINOS_VERSION = 'v1'
 
 // ── Subscriptions ────────────────────────────────────────────────────────────
 
@@ -119,9 +131,80 @@ export async function inscribirse(
     tx.set(inscritoRef, {
       uid, email, displayName, telefono,
       inscritoEn: serverTimestamp(),
+      // Llegar a este punto ya implica que se marcó el checkbox de
+      // aceptación en el formulario (BookingWidget lo exige antes de poder
+      // llamar a esta función) — no un booleano recibido por parámetro que
+      // este código tendría que volver a validar.
+      aceptoTerminos: true,
+      terminosVersion: TERMINOS_VERSION,
     })
     tx.update(actividadRef, { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
     tx.set(userRef, { telefono }, { merge: true })
+  })
+}
+
+// Inscripción combinada a varias actividades (hoy, las 2 jornadas del
+// evento) en una sola transacción: o se reservan las plazas en todas a la
+// vez, o no se reserva ninguna — nunca un registro "a medias" si una de las
+// dos ya se llenó entre que se cargó la página y se confirmó el formulario.
+export async function inscribirseAmbosDias(
+  actividadIds: number[],
+  uid: string,
+  email: string,
+  displayName: string,
+  telefono: string,
+): Promise<void> {
+  const actividadRefs = actividadIds.map(id => doc(db, 'actividades', String(id)))
+  const inscritoRefs = actividadIds.map(id => doc(db, 'actividades', String(id), 'inscritos', uid))
+  const userRef = doc(db, 'users', uid)
+
+  await runTransaction(db, async tx => {
+    const [actividadSnaps, inscritoSnaps] = await Promise.all([
+      Promise.all(actividadRefs.map(ref => tx.get(ref))),
+      Promise.all(inscritoRefs.map(ref => tx.get(ref))),
+    ])
+    if (actividadSnaps.some(snap => !snap.exists())) return
+    if (inscritoSnaps.some(snap => snap.exists())) return // ya inscrito a alguna — no-op
+
+    const today = new Date().toISOString().slice(0, 10)
+    const actividadesData = actividadSnaps.map(snap => snap.data() as Actividad)
+    actividadesData.forEach(actividad => assertInscribible(actividad, today))
+
+    actividadesData.forEach((actividad, i) => {
+      tx.set(inscritoRefs[i], {
+        uid, email, displayName, telefono,
+        inscritoEn: serverTimestamp(),
+        aceptoTerminos: true,
+        terminosVersion: TERMINOS_VERSION,
+      })
+      tx.update(actividadRefs[i], { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
+    })
+    tx.set(userRef, { telefono }, { merge: true })
+  })
+}
+
+export async function liberarAmbosDias(actividadIds: number[], uid: string): Promise<void> {
+  const actividadRefs = actividadIds.map(id => doc(db, 'actividades', String(id)))
+  const inscritoRefs = actividadIds.map(id => doc(db, 'actividades', String(id), 'inscritos', uid))
+
+  await runTransaction(db, async tx => {
+    const [actividadSnaps, inscritoSnaps] = await Promise.all([
+      Promise.all(actividadRefs.map(ref => tx.get(ref))),
+      Promise.all(inscritoRefs.map(ref => tx.get(ref))),
+    ])
+    if (inscritoSnaps.every(snap => !snap.exists())) throw new YaLiberadaError()
+
+    inscritoSnaps.forEach((snap, i) => {
+      if (!snap.exists()) return
+      tx.delete(inscritoRefs[i])
+      const actividadSnap = actividadSnaps[i]
+      if (actividadSnap.exists()) {
+        const actividad = actividadSnap.data() as Actividad
+        tx.update(actividadRefs[i], {
+          plazasDisponibles: Math.min((actividad.plazasDisponibles ?? 0) + 1, actividad.plazas),
+        })
+      }
+    })
   })
 }
 
@@ -187,6 +270,8 @@ export async function getInscritos(actividadId: number): Promise<InscritoData[]>
       displayName: data.displayName as string,
       telefono: data.telefono as string,
       inscritoEn: data.inscritoEn ? (data.inscritoEn as Timestamp).toDate() : null,
+      aceptoTerminos: (data.aceptoTerminos as boolean | undefined) ?? false,
+      terminosVersion: (data.terminosVersion as string | undefined) ?? null,
     }
   })
 }

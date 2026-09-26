@@ -34,7 +34,7 @@ export function ActividadSheet() {
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-white shadow-xl pb-[env(safe-area-inset-bottom,0px)]"
+        className="fixed inset-x-0 bottom-0 z-[1600] max-h-[85svh] overflow-y-auto rounded-t-3xl bg-stone-900 shadow-xl pb-[env(safe-area-inset-bottom,0px)]"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -45,13 +45,13 @@ export function ActividadSheet() {
         onDragEnd={handleDragEnd}
       >
         <div className="flex justify-center pt-3 pb-1">
-          <div className="h-1.5 w-10 rounded-full bg-stone-300" />
+          <div className="h-1.5 w-10 rounded-full bg-white/20" />
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <path d="M18 6 6 18M6 6l12 12" />

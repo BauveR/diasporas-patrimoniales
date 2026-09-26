@@ -51,6 +51,11 @@ const baseProps = {
   telefono: '',
   onTelefonoChange: vi.fn(),
   telefonoError: '',
+  // Por defecto "listo para enviar" (checkbox ya marcado) para no romper los
+  // tests existentes que no son sobre este comportamiento en particular —
+  // ver el describe dedicado más abajo para el caso sin marcar.
+  aceptoTerminos: true,
+  setAceptoTerminos: vi.fn(),
   onConfirmarInscripcion: vi.fn(),
   onCancelarTelefono: vi.fn(),
 }
@@ -120,7 +125,7 @@ describe('BookingWidget — formulario de inscripción', () => {
 
   it('muestra aviso cuando quedan pocas plazas', () => {
     renderWidget({ actividad: { ...baseActividad, plazasDisponibles: 3 } })
-    expect(screen.getByText(/solo quedan 3 plazas/i)).toBeInTheDocument()
+    expect(screen.getByText(/pocas plazas disponibles, inscríbete cuanto antes/i)).toBeInTheDocument()
   })
 
   it('muestra el error de inscripción', () => {
@@ -165,6 +170,23 @@ describe('BookingWidget — paso de teléfono', () => {
     renderWidget({ mostrandoTelefono: true, inscribiendo: true })
     expect(screen.getByRole('button', { name: /\.\.\./i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /cancelar/i })).toBeDisabled()
+  })
+
+  it('deshabilita "Confirmar y continuar" si no se aceptó la política de privacidad', () => {
+    renderWidget({ mostrandoTelefono: true, aceptoTerminos: false })
+    expect(screen.getByRole('button', { name: /confirmar y continuar/i })).toBeDisabled()
+  })
+
+  it('habilita "Confirmar y continuar" al marcar el checkbox de política de privacidad', () => {
+    const setAceptoTerminos = vi.fn()
+    renderWidget({ mostrandoTelefono: true, aceptoTerminos: false, setAceptoTerminos })
+    fireEvent.click(screen.getByRole('checkbox'))
+    expect(setAceptoTerminos).toHaveBeenCalledWith(true)
+  })
+
+  it('incluye un link a la política de privacidad', () => {
+    renderWidget({ mostrandoTelefono: true })
+    expect(screen.getByRole('link', { name: /política de privacidad/i })).toHaveAttribute('href', '/privacidad')
   })
 })
 
