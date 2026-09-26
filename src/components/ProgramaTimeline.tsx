@@ -49,15 +49,19 @@ function scrollToParticipante(id: number) {
   window.setTimeout(() => el.classList.remove('ring-4', 'ring-brand-red', 'ring-offset-2'), 1400)
 }
 
-function ParticipantesChips({ participantes, dark }: { participantes: string[]; dark: boolean }) {
+function ParticipantesChips({ participantes, dark, chipsLight }: { participantes: string[]; dark: boolean; chipsLight: boolean }) {
   return (
-    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${dark ? 'border-white/10' : 'border-stone-100'}`}>
+    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${dark && !chipsLight ? 'border-white/10' : 'border-stone-100'}`}>
       {participantes.map((nombre) => {
         // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo)
         // todavía no tienen ficha propia en participantes.ts — sin match,
         // el nombre queda como texto plano en vez de un link roto.
         const participante = findParticipante(nombre)
-        const chipClass = dark
+        // chipsLight: ProgramaSection pasa esto en su fondo oscuro nuevo —
+        // los chips se quedan con el mismo gris claro sólido de siempre en
+        // vez de pasar al translúcido que sí usa el panel desplegado
+        // (ActividadExpandido/AmbosDiasExpandido, dark sin chipsLight).
+        const chipClass = dark && !chipsLight
           ? 'bg-white/10 text-stone-200 hover:bg-white/15 hover:text-brand-orange'
           : 'bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-brand-red'
         return participante ? (
@@ -92,6 +96,7 @@ const TimelineRow = memo(function TimelineRow({
   moderadorLabel,
   dense,
   dark,
+  chipsLight,
 }: {
   item: ProgramaItem
   expanded: boolean
@@ -100,6 +105,7 @@ const TimelineRow = memo(function TimelineRow({
   moderadorLabel: string
   dense: boolean
   dark: boolean
+  chipsLight: boolean
 }) {
   const { t } = useTranslation()
   // La hora y el título vienen de programaItems.<id> en cada locale.json (el
@@ -175,7 +181,7 @@ const TimelineRow = memo(function TimelineRow({
             </div>
             {expanded && item.participantes && item.participantes.length > 0 && (
               <div id={contentId} role="region" aria-labelledby={headerId}>
-                <ParticipantesChips participantes={item.participantes} dark={dark} />
+                <ParticipantesChips participantes={item.participantes} dark={dark} chipsLight={chipsLight} />
               </div>
             )}
           </div>
@@ -200,11 +206,26 @@ const TimelineRow = memo(function TimelineRow({
 // Programa section (ProgramaSection.tsx) keeps its normal, more relaxed
 // spacing; only the embedded copy needs to be tight.
 // `dark`: the modern black-card treatment of ActividadExpandido/
-// AmbosDiasExpandido — recolors every row for a dark surface, and skips this
-// component's own "Día X" heading entirely, since the caller already shows
-// a richer day badge (day + date) above it there; ProgramaSection (dark
-// false, the only other caller) keeps rendering it as before.
-export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { dia: string; items: ProgramaItem[]; dense?: boolean; dark?: boolean }) {
+// AmbosDiasExpandido — recolors every row for a dark surface.
+// `showDiaHeading`: defaults to `!dark` (unchanged behavior for the two
+// existing dark callers, which skip this component's own "Día X" heading
+// since they already show a richer day badge — day + date — above it) but
+// ProgramaSection overrides it back to `true`: its own dark surface (see
+// bg-stone-900 on the section) still needs this heading, there's no other
+// day badge in that context.
+// `chipsLight`: ProgramaSection also overrides this — its ParticipantesChips
+// (the ponente pills) keep the plain light-gray look even on the dark
+// surface, instead of the translucent-on-dark style the embedded panels use.
+export function ProgramaTimeline({
+  dia, items, dense = false, dark = false, showDiaHeading = !dark, chipsLight = false,
+}: {
+  dia: string
+  items: ProgramaItem[]
+  dense?: boolean
+  dark?: boolean
+  showDiaHeading?: boolean
+  chipsLight?: boolean
+}) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
 
@@ -222,7 +243,7 @@ export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { 
       {/* Plain RevealOnScroll (not SlideInText) here: SlideInText always
           renders an <h2>, which would break the h2 (section title) → h3
           (day header) heading hierarchy the rest of the page follows. */}
-      {!dark && (
+      {showDiaHeading && (
         <RevealOnScroll>
           <h3 className={`font-mattone text-lg font-bold tracking-tight text-brand-orange uppercase ${dense ? 'mb-3' : 'mb-6'}`}>{dia}</h3>
         </RevealOnScroll>
@@ -238,6 +259,7 @@ export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { 
               moderadorLabel={t('programa.moderador')}
               dense={dense}
               dark={dark}
+              chipsLight={chipsLight}
             />
           </RevealItem>
         ))}
