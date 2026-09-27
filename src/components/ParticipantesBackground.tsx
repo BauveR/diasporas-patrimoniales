@@ -3,6 +3,7 @@ import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
 import * as THREE from 'three'
+import { mq } from '../lib/breakpoints'
 
 // Reemplaza el fondo anterior (puntos flotando en canvas 2D) por un enjambre
 // WebGL — mismo lugar, mismo rol (detrás de la grilla de Participantes),
@@ -69,10 +70,33 @@ const COLOR_A = new THREE.Color('#e99741')
 const COLOR_B = new THREE.Color('#9a2923')
 const COLOR_B_RATIO = 0.12
 
+// La grilla de Participantes pasa a 5 columnas recién en `md` (ver
+// useIsFiveColumns en ParticipantesSection.tsx) — por debajo de eso hay
+// bastantes más filas para las mismas 25 personas, así que la sección (y
+// este Canvas, que la cubre entera) queda mucho más alta. La cámara del
+// swarm no cambia con el dispositivo (mismo fov/distancia siempre), así
+// que esa altura extra hace que las mismas esferas ocupen más píxeles —
+// se ven "más grandes" en mobile aunque el mundo 3D no cambió. Reactivo
+// (no calculado una sola vez al montar): mismo patrón que useIsFiveColumns,
+// para que rotar un tablet o resizear la ventana lo recalcule.
+function useSwarmScale(): number {
+  const [small, setSmall] = useState(
+    () => typeof window !== 'undefined' && !window.matchMedia(mq('md')).matches,
+  )
+  useEffect(() => {
+    const mql = window.matchMedia(mq('md'))
+    const handler = (e: MediaQueryListEvent) => setSmall(!e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+  return small ? 0.55 : 1
+}
+
 function Swarm() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
+  const scale = useSwarmScale()
 
   const [positions] = useState(() => {
     const arr: THREE.Vector3[] = []
@@ -162,6 +186,7 @@ function Swarm() {
 
       positions[i].lerp(target, 0.1)
       dummy.position.copy(positions[i])
+      dummy.scale.setScalar(scale)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
