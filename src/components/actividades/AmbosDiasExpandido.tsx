@@ -7,8 +7,8 @@ import { CerrarButton } from './ActividadExpandido'
 import { useDataContext } from '../../contexts/DataContext'
 import { useAmbosDiasBooking } from '../../hooks/useAmbosDiasBooking'
 import type { Actividad } from '../../data/actividades'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
+import { formatFechaLarga } from '../../utils/formatMes'
 
 // Mismo mapeo hardcodeado que ActividadExpandido.tsx (id 1/2 → jornada).
 function getProgramaDia(actividadId: number) {
@@ -37,9 +37,7 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
     (!!dia1.fechaAperturaInscripciones && dia1.fechaAperturaInscripciones > today) ||
     (!!dia2.fechaAperturaInscripciones && dia2.fechaAperturaInscripciones > today)
 
-  const fmt = (fecha: string) => new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const fmt = formatFechaLarga
 
   const combinedActividad: Actividad = {
     ...dia1,

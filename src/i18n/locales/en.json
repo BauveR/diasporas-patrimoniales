@@ -56,7 +56,7 @@
     "parrafo": "Each speaker will have 10 minutes. Every panel will then leave substantial time for discussion among participants and questions from the audience.",
     "dia1": "Day 1 — 12 November",
     "dia2": "Day 2 — 13 November",
-    "moderador": "Moderator:"
+    "moderador": "Chair:"
   },
   "programaItems": {
     "d1-1": {
@@ -65,7 +65,8 @@
     },
     "d1-2": {
       "hora": "09:30–10:15",
-      "titulo": "Opening session. Welcome and inauguration"
+      "titulo": "Opening session. Welcome and inauguration",
+      "descripcion": "Institutional participation expected from the Government of the Canary Islands, Cabildo de Tenerife, Organismo Autónomo de Museos y Centros, Museum of Nature and Archaeology, and the Scientific Committee."
     },
     "d1-3": {
       "hora": "10:15–10:45",
@@ -73,7 +74,13 @@
     },
     "d1-4": {
       "hora": "10:45–12:00",
-      "titulo": "Panel I. Unequal collecting and museums: histories and practices of appropriation"
+      "titulo": "Panel I. Unequal collecting and museums: histories and practices of appropriation",
+      "participantesCargo": [
+        "Former Director of the Musée des Civilisations Noires, Senegal.",
+        "Director, Centro Nacional de Arqueologia (CNA), Instituto do Patrimônio Histórico e Artístico Nacional (IPHAN), Brazil.",
+        "Chargé de mission for international cooperation in the field of heritage, Ministry for Europe and Foreign Affairs, France.",
+        "Director of the Museo Nacional de Antropología, Spain."
+      ]
     },
     "d1-5": {
       "hora": "12:00–12:15",
@@ -81,7 +88,13 @@
     },
     "d1-6": {
       "hora": "12:15–13:30",
-      "titulo": "Panel II. Cooperation and restitution: policies and frameworks for action"
+      "titulo": "Panel II. Cooperation and restitution: policies and frameworks for action",
+      "participantesCargo": [
+        "Deputy to the Head of Collections, Service des musées de France, Directorate-General for Heritage and Architecture, Ministry of Culture, France.",
+        "President of the Intergovernmental Council of the Ibermuseums Programme and Coordinator of the Portuguese Museum Network, Museus e Monumentos de Portugal, E.P.E., Portugal.",
+        "Senior Advisor, Cultural Heritage Agency of the Netherlands, and co-Chair of the ICOM Standing Committee on Decolonisation, Netherlands.",
+        "President of ICOM Spain and museum curator at the Museo de Cádiz, Spain."
+      ]
     },
     "d1-7": {
       "hora": "13:30–15:30",
@@ -89,35 +102,57 @@
     },
     "d1-8": {
       "hora": "15:30–16:45",
-      "titulo": "Panel III. International experiences: Europe, Africa and Latin America"
+      "titulo": "Panel III. International experiences: Europe, Africa and Latin America",
+      "participantesCargo": [
+        "Director of Cultural Heritage, Ministry of Youth, Culture and Communication – Department of Culture, Morocco.",
+        "Director of the Templo Mayor Archaeological Zone and Site Museum, INAH; researcher at the Directorate of Historical Studies and lecturer at ENAH, Mexico.",
+        "UNESCO Culture Sector: 1970 Convention, fight against illicit trafficking in cultural property and Virtual Museum, France.",
+        "Director General for Culture, Organization of Ibero-American States (OEI), Spain."
+      ]
     },
     "d2-1": {
-      "hora": "10:30–11:45",
-      "titulo": "Panel IV. The Canary Islands as a case study: displacement, partnerships and expectations of restitution"
+      "hora": "09:30–10:45",
+      "titulo": "Panel IV. The Canary Islands as a case study: displacement, partnerships and expectations of restitution",
+      "participantesCargo": [
+        "Director, Museo Antropológico Montané, Faculty of Biology, University of Havana; Senior Researcher, Cuba.",
+        "Conservateur général du patrimoine honoraire, Centre Alexandre-Koyré (EHESS–CNRS–MNHN); former Director of the Musée de l’Homme, France.",
+        "Curator, North Africa, West and Central Asia and Siberia Collection, Weltmuseum Wien, Austria.",
+        "Director, Sociedad Científica El Museo Canario, Spain."
+      ]
     },
     "d2-2": {
-      "hora": "11:45–12:15",
-      "titulo": "Coffee break"
+      "hora": "10:45–12:00",
+      "titulo": "Panel V. Key trajectories and distinctive debates",
+      "participantesCargo": [
+        "Director of the Canary Institute of Bioanthropology and the Archaeological Museum of Tenerife, Museos de Tenerife–Cabildo de Tenerife, Spain.",
+        "Director of the Museo Nacional de las Culturas del Mundo, INAH, Mexico.",
+        "Predoctoral FPI-UAM researcher, Department of Prehistory and Archaeology, Autonomous University of Madrid, Spain.",
+        "Honorary Lecturer, Autonomous University of Madrid; Pausanias. Viajes Arqueológicos y Culturales, Spain. Co-author of the contribution presented by José Fenoll Cascales.",
+        "Predoctoral researcher, DOCTESO Programme, University of La Laguna, Spain."
+      ]
     },
     "d2-3": {
-      "hora": "12:15–13:30",
-      "titulo": "Panel V. Key trajectories and distinctive debates"
-    },
-    "d2-4": {
-      "hora": "13:30–15:30",
-      "titulo": "Lunch break"
-    },
-    "d2-5": {
-      "hora": "15:30–16:45",
-      "titulo": "Panel VI. Human remains and ethics: science, sensitivity and public responsibility"
-    },
-    "d2-6": {
-      "hora": "16:45–17:15",
+      "hora": "12:00–12:30",
       "titulo": "Coffee break"
     },
-    "d2-7": {
-      "hora": "17:15–18:00",
-      "titulo": "Closing session · Reading of the “Santa Cruz de Tenerife Declaration” and institutional closing"
+    "d2-4": {
+      "hora": "12:30–13:45",
+      "titulo": "Panel VI. Human remains and ethics: science, sensitivity and public responsibility",
+      "participantesCargo": [
+        "Honorary Professor, University of La Laguna, Spain.",
+        "Director of the Bioarchaeology Department, Ministry of Tourism and Antiquities, Egypt.",
+        "Bioarchaeological Research and Analysis Specialist, Pachacamac Museum, Ministry of Culture of Peru; “Mummies as Microcosms” Project, Peru.",
+        "Curator: Bioarchaeology, Department of Egypt and Sudan, The British Museum, United Kingdom."
+      ]
+    },
+    "d2-5": {
+      "hora": "13:45–15:45",
+      "titulo": "Lunch break"
+    },
+    "d2-6": {
+      "hora": "15:45–16:30",
+      "titulo": "Closing session",
+      "descripcion": "Reading of the “Santa Cruz de Tenerife Declaration” and institutional closing."
     }
   },
   "contacto": {

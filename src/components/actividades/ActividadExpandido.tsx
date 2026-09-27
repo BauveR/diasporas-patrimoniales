@@ -8,8 +8,8 @@ import { useDataContext } from '../../contexts/DataContext'
 import { useActividadBooking } from '../../hooks/useActividadBooking'
 import { SITE_URL } from '../SeoHead'
 import type { Actividad } from '../../data/actividades'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
+import { formatFechaLarga } from '../../utils/formatMes'
 
 export function CerrarButton({ onClose }: { onClose: () => void }) {
   return (
@@ -68,9 +68,7 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
   const esPasada = actividad.fecha < today
   const esCancelada = !!actividad.cancelada
   const noAbierto = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
-  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const fecha = formatFechaLarga(actividad.fecha)
   const plazasOcupadas = actividad.plazas - actividad.plazasDisponibles
   const pct = Math.round((plazasOcupadas / actividad.plazas) * 100)
 

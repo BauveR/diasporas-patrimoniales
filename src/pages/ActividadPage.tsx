@@ -6,8 +6,9 @@ import { BookingWidget } from '../components/actividades/BookingWidget'
 import { useDataContext } from '../contexts/DataContext'
 import { useActividadBooking } from '../hooks/useActividadBooking'
 import { SITE_URL } from '../components/SeoHead'
+import { labelStyle } from '../lib/styles'
+import { formatFechaLarga } from '../utils/formatMes'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
 // ── InscripcionSuccessPopup ───────────────────────────────────────────────────
@@ -118,9 +119,7 @@ export function ActividadPage() {
   const noAbierto   = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
 
   const sede = sedes.find(c => c.id === actividad.sedeId)
-  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const fecha = formatFechaLarga(actividad.fecha)
   const plazasOcupadas = actividad.plazas - actividad.plazasDisponibles
   const pct = Math.round((plazasOcupadas / actividad.plazas) * 100)
 

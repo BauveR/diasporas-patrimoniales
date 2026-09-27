@@ -9,8 +9,8 @@ import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ActividadExpandido } from '../components/actividades/ActividadExpandido'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 
 const today = new Date().toISOString().split('T')[0]

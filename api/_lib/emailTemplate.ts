@@ -38,6 +38,9 @@ function escapeHtml(value: string): string {
 const ROJO = '#9b2923'
 const GRIS = '#78716c'
 const NEGRO = '#1c1917'
+// Gris oscuro real (no negro) para el recuadro de sede/contacto — distinto
+// a propósito del NEGRO casi puro que usa el header.
+const GRIS_OSCURO = '#44403c'
 
 // Mismo dominio que SITE_URL en src/components/SeoHead.tsx — se duplica en
 // vez de importarlo para no meter react-router-dom (y el resto de ese
@@ -103,15 +106,18 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
   // en la versión html; el resto queda como texto simple.
   const contactoHref = data.contacto.includes('@') ? `mailto:${data.contacto}` : `tel:${data.contacto.replace(/\s+/g, '')}`
 
+  // Blanco + negrita sobre el recuadro oscuro de abajo (antes gris/negro
+  // sobre blanco) — label en blanco 70% para diferenciarlo del valor sin
+  // salir del blanco que pidió, el valor en blanco pleno.
   const filasLogisticaHtml = filasLogistica
     .map(([label, value]) => {
       const valueHtml = label === 'Contacto'
-        ? `<a href="${escapeHtml(contactoHref)}" style="color:${NEGRO};text-decoration:underline;">${escapeHtml(value)}</a>`
+        ? `<a href="${escapeHtml(contactoHref)}" style="color:#ffffff;text-decoration:underline;">${escapeHtml(value)}</a>`
         : escapeHtml(value)
       return `
         <tr>
-          <td style="padding:6px 12px 6px 0;color:${GRIS};font-size:14px;white-space:nowrap;vertical-align:top;">${escapeHtml(label)}</td>
-          <td style="padding:6px 0;color:${NEGRO};font-size:14px;">${valueHtml}</td>
+          <td style="padding:6px 12px 6px 0;color:rgba(255,255,255,0.7);font-size:13px;font-weight:700;white-space:nowrap;vertical-align:top;">${escapeHtml(label)}</td>
+          <td style="padding:6px 0;color:#ffffff;font-size:14px;font-weight:700;">${valueHtml}</td>
         </tr>`
     })
     .join('')
@@ -151,18 +157,20 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
             </tr>
             <tr>
               <td style="padding:32px;color:${NEGRO};">
-                <p style="margin:0 0 4px;font-size:15px;line-height:1.5;">Hola ${escapeHtml(data.nombre)},</p>
+                <p style="margin:0 0 4px;font-size:15px;line-height:1.5;font-family:'Mattone','Arial Black',Arial,sans-serif;font-weight:700;">Hola ${escapeHtml(data.nombre)},</p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">${intro}</p>
                 ${diasHtml}
-                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 0;border-top:1px solid #e7e5e4;padding-top:16px;">${filasLogisticaHtml}</table>
-                <p style="margin:24px 0 8px;font-size:13px;line-height:1.5;color:${GRIS};">Si necesitás liberar tu plaza, podés hacerlo desde tu perfil en el sitio.</p>
-                <table role="presentation" cellpadding="0" cellspacing="0">
+                <div style="margin:20px 0 0;background:${GRIS_OSCURO};border-radius:10px;padding:16px 18px 18px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${filasLogisticaHtml}</table>
+                  <p style="margin:14px 0 0;font-size:13px;line-height:1.5;font-weight:700;color:#ffffff;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;">Si necesitás liberar tu plaza, podés hacerlo desde tu perfil en el sitio.</p>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0;">
                   <tr>
-                    <td style="border-radius:8px;background:${ROJO};">
-                      <a href="${SITE_URL}/perfil" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;border-radius:8px;">Ir a tu perfil</a>
+                    <td style="border-radius:8px;background:${ROJO};text-align:center;">
+                      <a href="${SITE_URL}/perfil" style="display:block;padding:12px 22px;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;text-align:center;border-radius:8px;">Ir a tu perfil</a>
                     </td>
                   </tr>
-                </table>
+                  </table>
+                </div>
               </td>
             </tr>
           </table>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = {
   url: string

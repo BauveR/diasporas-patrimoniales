@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { getPlazasEstado, type Actividad, type PlazasEstado } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 // Cuál de las 2 jornadas es el cuello de botella real de "ambos días": si
 // una está más comprometida que la otra, ese es el estado que importa
@@ -27,8 +26,14 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
   const estadoLabel = t(`actividadCard.${estado === 'algunas' ? 'algunasPlazas' : estado === 'pocas' ? 'pocasPlazas' : 'plazasDisponibles'}`)
 
   return (
-    <button type="button" onClick={onClick} className="group flex w-full flex-col gap-3 text-left cursor-pointer">
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+    <button
+      type="button"
+      onClick={onClick}
+      // Mismo criterio que ActividadCard: card con fondo propio (bg-stone-900
+      // + sombra) en vez de texto directo sobre la sección.
+      className="group flex h-full w-full flex-col overflow-hidden rounded-2xl bg-stone-900 text-left shadow-sm cursor-pointer"
+    >
+      <div className="relative aspect-[4/3]">
         <img
           src={dia1.imagen}
           alt={t('inscripcion.ambosDias')}
@@ -45,23 +50,26 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5 px-1">
-        <h3 className="font-mattone font-bold text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors">
+      {/* flex-1 + CTA con mt-auto: mismo criterio que ActividadCard, para
+          que el "Ver detalle" quede pegado abajo aunque esta tarjeta tenga
+          un renglón menos de texto (no trae la línea de fecha/duración). */}
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="font-mattone font-bold text-sm text-white leading-snug line-clamp-2 group-hover:text-white/70 transition-colors">
           {t('inscripcion.ambosDias')}
         </h3>
 
         {sede && (
-          <p className="text-[11px] text-stone-400 tracking-wide" style={labelStyle}>
+          <p className="text-[11px] text-white/60 tracking-wide" style={labelStyle}>
             {sede.nombre} · {sede.isla}
           </p>
         )}
 
-        <p className="text-[11px] text-stone-400" style={labelStyle}>
+        <p className="text-[11px] text-white/60" style={labelStyle}>
           {estadoLabel}
         </p>
 
         <span
-          className="mt-1 text-[10px] tracking-widest uppercase text-stone-400 group-hover:text-stone-700 transition-colors duration-200 flex items-center gap-1"
+          className="mt-auto pt-1 text-[10px] tracking-widest uppercase text-white/60 group-hover:text-white transition-colors duration-200 flex items-center gap-1"
           style={labelStyle}
         >
           {t('actividadCard.verDetalle')}

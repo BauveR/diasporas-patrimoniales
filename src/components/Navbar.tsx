@@ -8,8 +8,8 @@ import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ALL_LOCALES, DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const NAVBAR_BG = 'var(--color-brand-red)'
 
 type NavEntry = { label: string; to?: string; href?: string }
@@ -48,7 +48,7 @@ function LanguageSwitcher({ mobile, onNavigate }: { mobile?: boolean; onNavigate
             to={localizePathname(location.pathname, loc)}
             onClick={onNavigate}
             aria-current={loc === currentLocale ? 'true' : undefined}
-            className={`text-[10px] tracking-widest uppercase transition-colors ${loc === currentLocale ? 'text-white' : 'text-white/50 hover:text-white'}`}
+            className={`text-[10px] font-bold tracking-widest uppercase transition-colors ${loc === currentLocale ? 'text-white' : 'text-white/50 hover:text-white'}`}
           >
             {loc}
           </Link>
@@ -59,11 +59,11 @@ function LanguageSwitcher({ mobile, onNavigate }: { mobile?: boolean; onNavigate
 }
 
 const linkClass =
-  'relative text-xs tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
+  'relative font-mattone text-xs font-bold tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
   'after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-white after:transition-all after:duration-300 hover:after:w-full'
 
 const mobileLinkClass =
-  'block text-xs tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 py-4 border-b border-white/10'
+  'block font-mattone text-xs font-bold tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 py-4 border-b border-white/10'
 
 function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean; onClick?: () => void }) {
   const location = useLocation()
@@ -77,11 +77,11 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
       }
     }
-    return <Link to={entry.to} className={cls} style={labelStyle} onClick={handleClick}>{entry.label}</Link>
+    return <Link to={entry.to} className={cls} onClick={handleClick}>{entry.label}</Link>
   }
 
   if (entry.to) {
-    return <Link to={entry.to} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</Link>
+    return <Link to={entry.to} className={cls} onClick={onClick}>{entry.label}</Link>
   }
 
   // Plain in-page anchor (the footer, present on every route) — smooth-
@@ -94,10 +94,10 @@ function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean
       onClick?.()
       document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' })
     }
-    return <a href={entry.href} className={cls} style={labelStyle} onClick={handleClick}>{entry.label}</a>
+    return <a href={entry.href} className={cls} onClick={handleClick}>{entry.label}</a>
   }
 
-  return <a href={entry.href ?? '#'} className={cls} style={labelStyle} onClick={onClick}>{entry.label}</a>
+  return <a href={entry.href ?? '#'} className={cls} onClick={onClick}>{entry.label}</a>
 }
 
 function AccountLabel({ displayName }: { displayName: string }) {
@@ -181,7 +181,7 @@ export function Navbar() {
           {user ? (
             <>
               {userRole === 'admin' && (
-                <Link to={`${prefix}/admin`} className={linkClass} style={labelStyle}>{t('nav.admin')}</Link>
+                <Link to={`${prefix}/admin`} className={linkClass}>{t('nav.admin')}</Link>
               )}
               <Link to={`${prefix}/perfil`}>
                 <AccountLabel displayName={displayName} />
@@ -189,13 +189,12 @@ export function Navbar() {
               <button
                 onClick={signOut}
                 className={`${linkClass} cursor-pointer`}
-                style={labelStyle}
               >
                 {t('nav.salir')}
               </button>
             </>
           ) : (
-            <button onClick={openLogin} className={`${linkClass} cursor-pointer`} style={labelStyle}>
+            <button onClick={openLogin} className={`${linkClass} cursor-pointer`}>
               {t('nav.login')}
             </button>
           )}
@@ -231,7 +230,6 @@ export function Navbar() {
                 <Link
                   to={`${prefix}/admin`}
                   className={mobileLinkClass}
-                  style={labelStyle}
                   onClick={() => setOpen(false)}
                 >
                   {t('nav.admin')}
@@ -247,7 +245,6 @@ export function Navbar() {
               <button
                 onClick={() => { setOpen(false); signOut() }}
                 className={`${mobileLinkClass} text-left cursor-pointer`}
-                style={labelStyle}
               >
                 {t('nav.cerrarSesion')}
               </button>
@@ -256,7 +253,6 @@ export function Navbar() {
             <button
               onClick={openLogin}
               className={`${mobileLinkClass} text-left cursor-pointer`}
-              style={labelStyle}
             >
               {t('nav.login')}
             </button>

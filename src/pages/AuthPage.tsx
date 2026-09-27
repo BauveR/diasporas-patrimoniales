@@ -3,8 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { isValidEmail } from '../utils/validators'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../lib/styles'
 
 // user-not-found and wrong-password map to the same message on purpose —
 // distinguishing them tells an attacker which emails have accounts

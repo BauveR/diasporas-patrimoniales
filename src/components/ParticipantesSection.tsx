@@ -8,20 +8,24 @@ import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { mq } from '../lib/breakpoints'
 import type { Locale } from '../i18n/config'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-
-// La grilla de participantes solo es de 5 columnas desde md: (768px, ver el
-// className del grid en ParticipantesSection) — entre 640 y 767px sigue
-// siendo de 3 (useIsDesktop ya da true ahí). El panel expandido que fusiona
-// 2 columnas (ParticipanteExpandido) solo tiene sentido con 5 columnas
-// reales; en el rango de 3 se sigue usando el modal centrado de siempre.
+// La grilla visual de participantes ya es de 5 columnas desde md: (768px,
+// ver el className del grid en ParticipantesSection), pero el panel
+// expandido inline (ParticipanteExpandido) solo se habilita desde lg:
+// (1024px) — a partir de acá el texto que trae (nombre + cargo + título +
+// bio) mide bien contra el alto/ancho real de una fila de 5 columnas (ver
+// el comentario "dense" en ParticipanteTextos, medido a 832px). Entre md y
+// lg (tablets tipo iPad, 768-1023px) esa misma fila es demasiado angosta/
+// baja para ese texto y el contenido se desbordaba del panel; en ese rango
+// se sigue usando el modal centrado de siempre (ancho fijo, no atado al
+// tamaño de celda de la grilla) aunque la grilla ya se vea de 5 columnas.
 function useIsFiveColumns() {
   const [isFiveCol, setIsFiveCol] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(mq('md')).matches,
+    () => typeof window !== 'undefined' && window.matchMedia(mq('lg')).matches,
   )
   useEffect(() => {
-    const mql = window.matchMedia(mq('md'))
+    const mql = window.matchMedia(mq('lg'))
     const handler = (e: MediaQueryListEvent) => setIsFiveCol(e.matches)
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
@@ -404,17 +408,19 @@ export function ParticipantesSection() {
   const selectedIndex = selected ? PARTICIPANTES.findIndex(p => p.id === selected.id) : -1
 
   return (
-    <section id="participantes" className="relative w-full overflow-hidden scroll-mt-16 bg-stone-100 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+    <section id="participantes" className="relative w-full overflow-hidden scroll-mt-16 bg-black px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <ParticipantesBackground />
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-10">
-        <div className="flex flex-col gap-4">
+        {/* Mismo grid 30/70 que AboutSection/InscripcionSection: título y
+            párrafo lado a lado desde lg:, apilados debajo de ese ancho. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[30fr_70fr] lg:gap-16">
           <SlideInText
             text={t('participantes.titulo')}
             revealOnScroll
             className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
           />
           <RevealOnScroll>
-            <p className="max-w-2xl text-base leading-relaxed text-stone-600 md:text-lg lg:text-xl" style={labelStyle}>
+            <p className="max-w-2xl text-sm leading-relaxed text-stone-300 md:text-base lg:text-lg" style={labelStyle}>
               {t('participantes.parrafo1')}
             </p>
           </RevealOnScroll>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { ProgramaItem } from '../data/programa'
 import { findParticipante, participanteAnchorId } from '../data/participantes'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
+import { labelStyle } from '../lib/styles'
 
 // Adaptado del componente "ProfessionalTimeline" que pasó el usuario:
 // - Sin dark mode (el sitio no lo tiene) y paleta slate-* → stone-*/rojo
@@ -17,8 +18,6 @@ import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 //   ni click, porque no tienen nada que expandir.
 // - Colapsado por defecto (el original expandía todo): con ~12 filas por día
 //   acá, mostrar todo abierto de entrada sería una pared de texto.
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 const ChevronDown = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -49,15 +48,64 @@ function scrollToParticipante(id: number) {
   window.setTimeout(() => el.classList.remove('ring-4', 'ring-brand-red', 'ring-offset-2'), 1400)
 }
 
-function ParticipantesChips({ participantes, dark }: { participantes: string[]; dark: boolean }) {
+// `cargos`: solo lo pasa la versión completa (ProgramaSection, !dense) —
+// ahí cada ponente se muestra como nombre + su cargo/afiliación debajo, en
+// vez de la píldora chica de siempre (no entra un cargo de una línea en
+// una píldora). La versión compacta (paneles de inscripción, dense) sigue
+// exactamente igual que antes: solo píldoras con el nombre.
+function ParticipantesChips({ participantes, cargos, dark, chipsLight }: { participantes: string[]; cargos?: string[]; dark: boolean; chipsLight: boolean }) {
+  // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo) todavía
+  // no tienen ficha propia en participantes.ts — sin match, el nombre queda
+  // como texto plano en vez de un link roto.
+  // chipsLight: ProgramaSection pasa esto en su fondo oscuro nuevo — el
+  // texto/las píldoras se quedan con el mismo gris claro sólido de siempre
+  // en vez de pasar al translúcido que sí usa el panel desplegado
+  // (ActividadExpandido/AmbosDiasExpandido, dark sin chipsLight).
+  const borderClass = dark && !chipsLight ? 'border-white/10' : 'border-stone-100'
+
+  if (cargos) {
+    const nameClass = dark && !chipsLight
+      ? 'text-stone-200 hover:text-brand-orange'
+      : 'text-stone-700 hover:text-brand-red'
+    const cargoClass = dark && !chipsLight ? 'text-stone-400' : 'text-stone-500'
+    return (
+      <div className={`mt-3 flex flex-col gap-3 border-t pt-3 ${borderClass}`}>
+        {participantes.map((nombre, i) => {
+          const participante = findParticipante(nombre)
+          const cargo = cargos[i]
+          return (
+            <div key={nombre}>
+              {participante ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); scrollToParticipante(participante.id) }}
+                  className={`cursor-pointer text-xs font-semibold underline decoration-dotted underline-offset-2 transition-colors ${nameClass}`}
+                  style={labelStyle}
+                >
+                  {nombre}
+                </button>
+              ) : (
+                <span className={`text-xs font-semibold ${dark && !chipsLight ? 'text-stone-200' : 'text-stone-700'}`} style={labelStyle}>
+                  {nombre}
+                </span>
+              )}
+              {cargo && (
+                <p className={`mt-0.5 text-[11px] leading-snug ${cargoClass}`} style={labelStyle}>
+                  {cargo}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
-    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${dark ? 'border-white/10' : 'border-stone-100'}`}>
+    <div className={`mt-3 flex flex-wrap gap-2 border-t pt-3 ${borderClass}`}>
       {participantes.map((nombre) => {
-        // Los 3 moderadores (Jorge Onrubia, Isaac Sastre, Jared Carballo)
-        // todavía no tienen ficha propia en participantes.ts — sin match,
-        // el nombre queda como texto plano en vez de un link roto.
         const participante = findParticipante(nombre)
-        const chipClass = dark
+        const chipClass = dark && !chipsLight
           ? 'bg-white/10 text-stone-200 hover:bg-white/15 hover:text-brand-orange'
           : 'bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-brand-red'
         return participante ? (
@@ -92,6 +140,7 @@ const TimelineRow = memo(function TimelineRow({
   moderadorLabel,
   dense,
   dark,
+  chipsLight,
 }: {
   item: ProgramaItem
   expanded: boolean
@@ -100,6 +149,7 @@ const TimelineRow = memo(function TimelineRow({
   moderadorLabel: string
   dense: boolean
   dark: boolean
+  chipsLight: boolean
 }) {
   const { t } = useTranslation()
   // La hora y el título vienen de programaItems.<id> en cada locale.json (el
@@ -108,7 +158,15 @@ const TimelineRow = memo(function TimelineRow({
   // programa.ts quedan solo como defaultValue por si falta la clave.
   const hora = t(`programaItems.${item.id}.hora`, { defaultValue: item.hora })
   const titulo = t(`programaItems.${item.id}.titulo`, { defaultValue: item.titulo })
-  const expandable = Boolean(item.moderador || item.participantes?.length)
+  // Solo en la versión completa (ProgramaSection, !dense) — la versión
+  // compacta embebida en el panel de inscripción se queda como estaba,
+  // sin descripción, a pedido.
+  const descripcion = dense ? undefined : t(`programaItems.${item.id}.descripcion`, { defaultValue: item.descripcion ?? '' }) || undefined
+  // Mismo criterio que `descripcion`: solo en la versión completa.
+  const participantesCargo = dense || !item.participantesCargo
+    ? undefined
+    : t(`programaItems.${item.id}.participantesCargo`, { returnObjects: true, defaultValue: item.participantesCargo }) as string[]
+  const expandable = Boolean(item.moderador || item.participantes?.length || descripcion)
   const headerId = `programa-header-${item.id}`
   const contentId = `programa-content-${item.id}`
   const moderadorParticipante = item.moderador ? findParticipante(item.moderador) : undefined
@@ -173,9 +231,19 @@ const TimelineRow = memo(function TimelineRow({
                 className={`mt-1 h-4 w-4 shrink-0 text-stone-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
               />
             </div>
-            {expanded && item.participantes && item.participantes.length > 0 && (
+            {expanded && (descripcion || (item.participantes && item.participantes.length > 0)) && (
               <div id={contentId} role="region" aria-labelledby={headerId}>
-                <ParticipantesChips participantes={item.participantes} dark={dark} />
+                {descripcion && (
+                  <p
+                    className={`mt-3 border-t pt-3 text-xs leading-relaxed ${dark && !chipsLight ? 'border-white/10 text-stone-300' : 'border-stone-100 text-stone-600'}`}
+                    style={labelStyle}
+                  >
+                    {descripcion}
+                  </p>
+                )}
+                {item.participantes && item.participantes.length > 0 && (
+                  <ParticipantesChips participantes={item.participantes} cargos={participantesCargo} dark={dark} chipsLight={chipsLight} />
+                )}
               </div>
             )}
           </div>
@@ -200,11 +268,26 @@ const TimelineRow = memo(function TimelineRow({
 // Programa section (ProgramaSection.tsx) keeps its normal, more relaxed
 // spacing; only the embedded copy needs to be tight.
 // `dark`: the modern black-card treatment of ActividadExpandido/
-// AmbosDiasExpandido — recolors every row for a dark surface, and skips this
-// component's own "Día X" heading entirely, since the caller already shows
-// a richer day badge (day + date) above it there; ProgramaSection (dark
-// false, the only other caller) keeps rendering it as before.
-export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { dia: string; items: ProgramaItem[]; dense?: boolean; dark?: boolean }) {
+// AmbosDiasExpandido — recolors every row for a dark surface.
+// `showDiaHeading`: defaults to `!dark` (unchanged behavior for the two
+// existing dark callers, which skip this component's own "Día X" heading
+// since they already show a richer day badge — day + date — above it) but
+// ProgramaSection overrides it back to `true`: its own dark surface (see
+// bg-stone-900 on the section) still needs this heading, there's no other
+// day badge in that context.
+// `chipsLight`: ProgramaSection also overrides this — its ParticipantesChips
+// (the ponente pills) keep the plain light-gray look even on the dark
+// surface, instead of the translucent-on-dark style the embedded panels use.
+export function ProgramaTimeline({
+  dia, items, dense = false, dark = false, showDiaHeading = !dark, chipsLight = false,
+}: {
+  dia: string
+  items: ProgramaItem[]
+  dense?: boolean
+  dark?: boolean
+  showDiaHeading?: boolean
+  chipsLight?: boolean
+}) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
 
@@ -222,7 +305,7 @@ export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { 
       {/* Plain RevealOnScroll (not SlideInText) here: SlideInText always
           renders an <h2>, which would break the h2 (section title) → h3
           (day header) heading hierarchy the rest of the page follows. */}
-      {!dark && (
+      {showDiaHeading && (
         <RevealOnScroll>
           <h3 className={`font-mattone text-lg font-bold tracking-tight text-brand-orange uppercase ${dense ? 'mb-3' : 'mb-6'}`}>{dia}</h3>
         </RevealOnScroll>
@@ -238,6 +321,7 @@ export function ProgramaTimeline({ dia, items, dense = false, dark = false }: { 
               moderadorLabel={t('programa.moderador')}
               dense={dense}
               dark={dark}
+              chipsLight={chipsLight}
             />
           </RevealItem>
         ))}

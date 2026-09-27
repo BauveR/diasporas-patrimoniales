@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { getPlazasEstado, type Actividad } from '../../data/actividades'
+import { labelStyle } from '../../lib/styles'
 
 const PLAZAS_ESTADO_LABEL = {
   disponibles: 'Plazas disponibles',
@@ -7,8 +8,6 @@ const PLAZAS_ESTADO_LABEL = {
   pocas: 'Pocas plazas disponibles',
   agotada: 'Sin plazas disponibles',
 } as const
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 
 type BookingWidgetProps = {
   actividad: Actividad

@@ -4,8 +4,7 @@ import { getPlazasEstado, type Actividad } from '../../data/actividades'
 
 import { useDataContext } from '../../contexts/DataContext'
 import { LOCALE_TAGS, type Locale } from '../../i18n/config'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
@@ -43,10 +42,16 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       // gates its own inline-panel swap on isDesktop separately, so this
       // doesn't make that panel show up on mobile too.
       state={{ from, background: location }}
-      className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
+      // Card propia (fondo + sombra) en vez de texto flotando directo sobre
+      // el fondo de la sección que la envuelve — así se lee igual sin
+      // importar de qué color sea la sección debajo. bg-stone-900 (mismo
+      // gris oscuro que ProgramaSection y los popups de Participantes/
+      // Sede), no bg-white: sobre el rojo teja de Inscripción, un gris
+      // oscuro con texto blanco combina mejor que un recuadro blanco.
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-stone-900 shadow-sm ${inactiva ? 'opacity-50' : ''}`}
     >
       {/* Imagen */}
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+      <div className="relative aspect-[4/3]">
         <img
           src={actividad.imagen}
           alt={tituloTraducido}
@@ -82,32 +87,37 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col gap-1.5 px-1">
-        <h3 className="font-mattone font-bold text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors">
+      {/* Info. flex-1 + el CTA con mt-auto: con la card ahora a h-full (ver
+          el Link de arriba), esto reparte el alto ganado por flex-wrap's
+          align-items:stretch en vez de dejarlo como hueco after del bloque
+          de texto — así el "Ver detalle" siempre queda pegado abajo,
+          alineado con el de las tarjetas vecinas, tenga o no `sede` esta
+          actividad o el título 1 o 2 líneas. */}
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="font-mattone font-bold text-sm text-white leading-snug line-clamp-2 group-hover:text-white/70 transition-colors">
           {tituloTraducido}
         </h3>
 
         {sede && (
-          <p className="text-[11px] text-stone-400 tracking-wide" style={labelStyle}>
+          <p className="text-[11px] text-white/60 tracking-wide" style={labelStyle}>
             {sede.nombre} · {sede.isla}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-stone-500" style={labelStyle}>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/70" style={labelStyle}>
           <span>{fecha} · {actividad.hora}</span>
-          <span className="text-stone-300">·</span>
+          <span className="text-white/30">·</span>
           <span>{actividad.duracion}</span>
         </div>
 
-        <p className="text-[11px] text-stone-400" style={labelStyle}>
+        <p className="text-[11px] text-white/60" style={labelStyle}>
           {esProximamente
             ? t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })
             : plazasEstadoLabel}
         </p>
 
         <span
-          className="mt-1 text-[10px] tracking-widest uppercase text-stone-400 group-hover:text-stone-700 transition-colors duration-200 flex items-center gap-1"
+          className="mt-auto pt-1 text-[10px] tracking-widest uppercase text-white/60 group-hover:text-white transition-colors duration-200 flex items-center gap-1"
           style={labelStyle}
         >
           {t('actividadCard.verDetalle')}
