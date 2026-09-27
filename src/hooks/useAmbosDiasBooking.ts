@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import {
   inscribirseAmbosDias, liberarAmbosDias, getTelefonoForUser,
-  SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError,
+  SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, ActividadNoEncontradaError,
 } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
@@ -91,7 +91,11 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
         setInscripcionError('Una de las dos jornadas ha sido cancelada.')
       } else if (err instanceof InscripcionNoAbiertaError) {
         setInscripcionError('Las inscripciones todavía no están abiertas para una de las dos jornadas.')
+      } else if (err instanceof ActividadNoEncontradaError) {
+        console.error('inscribirseAmbosDias(): una actividad no existe en Firestore', ids)
+        setInscripcionError('No pudimos procesar la inscripción. Por favor, contactanos.')
       } else {
+        console.error('inscribirseAmbosDias() falló:', err)
         setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
       }
     } finally {

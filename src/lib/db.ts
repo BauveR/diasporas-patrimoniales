@@ -99,6 +99,19 @@ export class YaLiberadaError extends Error {
   constructor() { super('YA_LIBERADA') }
 }
 
+// Antes, si el documento de la actividad no existía en el proyecto de
+// Firestore al que apunta el cliente, inscribirse()/inscribirseAmbosDias()
+// simplemente no hacían nada — la transacción resolvía sin error, el email
+// de confirmación se mandaba igual (no depende de que la escritura haya
+// funcionado), y quien se "inscribió" nunca quedaba realmente registrado,
+// sin ningún aviso de que algo había fallado. Tirar un error acá hace que
+// ese caso (que no debería pasar nunca en producción, pero indicaría algo
+// serio si pasa — ej. un desajuste de proyecto de Firebase entre cliente y
+// servidor) se vea en pantalla en vez de fallar en silencio.
+export class ActividadNoEncontradaError extends Error {
+  constructor() { super('ACTIVIDAD_NO_ENCONTRADA') }
+}
+
 // Pure — no Firestore involved — so it's unit-testable without an emulator.
 // Both inscribirse() and the tests call this same check.
 export function assertInscribible(actividad: Pick<Actividad, 'cancelada' | 'plazasDisponibles' | 'fechaAperturaInscripciones'>, today: string): void {
@@ -121,7 +134,7 @@ export async function inscribirse(
 
   await runTransaction(db, async tx => {
     const [actividadSnap, inscritoSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef)])
-    if (!actividadSnap.exists()) return
+    if (!actividadSnap.exists()) throw new ActividadNoEncontradaError()
     if (inscritoSnap.exists()) return // ya inscrito — no-op, igual que la transacción original
 
     const actividad = actividadSnap.data() as Actividad
@@ -163,7 +176,7 @@ export async function inscribirseAmbosDias(
       Promise.all(actividadRefs.map(ref => tx.get(ref))),
       Promise.all(inscritoRefs.map(ref => tx.get(ref))),
     ])
-    if (actividadSnaps.some(snap => !snap.exists())) return
+    if (actividadSnaps.some(snap => !snap.exists())) throw new ActividadNoEncontradaError()
     if (inscritoSnaps.some(snap => snap.exists())) return // ya inscrito a alguna — no-op
 
     const today = new Date().toISOString().slice(0, 10)
