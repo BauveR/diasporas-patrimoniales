@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieBanner } from './components/CookieBanner'
 import { Home } from './pages/Home'
 import { AuthPage } from './pages/AuthPage'
+import { UnderConstruction } from './pages/UnderConstruction'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { DataProvider } from './contexts/DataContext'
 import { AuthProvider } from './contexts/AuthContext'
@@ -17,6 +18,52 @@ import { pageVariants } from './utils/pageTransition'
 import { getLocaleFromPathname } from './i18n/routing'
 import { LOCALE_TAGS } from './i18n/config'
 import './App.css'
+
+// Candado de prelanzamiento — pensado para la rama `main` (producción),
+// no para `deploy`: si VITE_SITE_LOCKED no está en 'true' (no seteada, o
+// cualquier otro valor), este bloque es un no-op y el sitio se comporta
+// exactamente igual que antes; así el mismo código sirve para ambas ramas,
+// solo cambia la config de entorno en Vercel según el deploy. Con el
+// candado activo, cualquier ruta muestra UnderConstruction salvo que el
+// navegador ya se haya desbloqueado antes.
+//
+// Desbloqueo: un link con `?key=<VITE_PREVIEW_KEY>` (compartido a mano con
+// quien deba ver el sitio antes del lanzamiento, no un login) guarda el
+// desbloqueo en localStorage la primera vez que se abre — de ahí en más
+// ese navegador navega todo el sitio con normalidad, sin repetir el
+// parámetro. El día del lanzamiento, VITE_SITE_LOCKED pasa a 'false' (o se
+// borra) y el candado desaparece para todos sin tocar código.
+const SITE_LOCKED = import.meta.env.VITE_SITE_LOCKED === 'true'
+const PREVIEW_KEY = import.meta.env.VITE_PREVIEW_KEY as string | undefined
+const UNLOCK_STORAGE_KEY = 'site_unlocked'
+
+function useSiteUnlocked(): boolean {
+  const location = useLocation()
+
+  // Derivado directo del render (no estado): así `unlocked` refleja el
+  // `?key=` correcto en el mismo render en que llega, sin esperar a que un
+  // efecto dispare un setState (el linter de hooks no deja hacer eso
+  // síncronamente dentro de un efecto, con razón — dispara un render en
+  // cascada evitable). El efecto de abajo solo hace el trabajo que sí le
+  // corresponde a un efecto: el side effect de persistir y limpiar la URL.
+  const keyMatches = SITE_LOCKED && !!PREVIEW_KEY && new URLSearchParams(location.search).get('key') === PREVIEW_KEY
+  const storedUnlocked = SITE_LOCKED && localStorage.getItem(UNLOCK_STORAGE_KEY) === 'true'
+  const unlocked = !SITE_LOCKED || keyMatches || storedUnlocked
+
+  useEffect(() => {
+    if (!keyMatches) return
+    localStorage.setItem(UNLOCK_STORAGE_KEY, 'true')
+
+    // Saca el `?key=...` de la URL visible una vez consumido, para que no
+    // quede pegado en el historial ni en un screenshot/link reenviado.
+    const params = new URLSearchParams(location.search)
+    params.delete('key')
+    const newSearch = params.toString()
+    window.history.replaceState(null, '', location.pathname + (newSearch ? `?${newSearch}` : '') + location.hash)
+  }, [keyMatches, location.pathname, location.search, location.hash])
+
+  return unlocked
+}
 
 const Intro          = lazy(() => import('./pages/Intro').then(m          => ({ default: m.Intro          })))
 const ActividadPage  = lazy(() => import('./pages/ActividadPage').then(m  => ({ default: m.ActividadPage  })))
@@ -54,6 +101,7 @@ export default function App() {
   const isBack = navType === 'POP'
   const background = location.state?.background as Location | undefined
   const { i18n } = useTranslation()
+  const unlocked = useSiteUnlocked()
 
   // El id de la actividad abierta inline (si la URL real apunta a
   // /actividades/:id mientras el contenido principal se queda "congelado"
@@ -80,6 +128,11 @@ export default function App() {
     if (i18n.language !== urlLocale) i18n.changeLanguage(urlLocale)
     document.documentElement.lang = LOCALE_TAGS[urlLocale]
   }, [urlLocale, i18n])
+
+  // Todos los hooks de arriba tienen que correr siempre, en el mismo orden,
+  // así que este return recién puede ir acá — antes de esto rompería las
+  // Rules of Hooks apenas `unlocked` cambiara de valor entre renders.
+  if (!unlocked) return <UnderConstruction />
 
   // /intro is a full-screen route that opts out of the site chrome entirely
   // (no Navbar, no page-transition wrapper, no Footer/CookieBanner). Branching
