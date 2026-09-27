@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../../data/programa'
 import { ProgramaTimeline } from '../ProgramaTimeline'
 import { BookingWidget } from './BookingWidget'
@@ -143,7 +143,23 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
                 })}
               </p>
             ) : (
-              <BookingWidget {...widgetProps} compact dark />
+              // Sin popup de confirmación aparte — mismo criterio que
+              // ActividadExpandido: `booking.inscrito` viene de un listener
+              // de Firestore en tiempo real, así que BookingWidget pasa solo
+              // a su vista de "ya inscrito" apenas se confirma; este
+              // fade+scale (keyed en `inscrito`) es lo único que marca el
+              // cambio.
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={booking.inscrito ? 'inscrito' : 'form'}
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                >
+                  <BookingWidget {...widgetProps} compact dark />
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>

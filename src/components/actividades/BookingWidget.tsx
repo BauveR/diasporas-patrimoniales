@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { getPlazasEstado, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
+import { AnimatedCheckmark } from './AnimatedCheckmark'
 
 const PLAZAS_ESTADO_LABEL = {
   disponibles: 'Plazas disponibles',
@@ -111,10 +112,10 @@ export function BookingWidget({
       return (
         <div className="flex flex-col gap-4 font-mattone font-normal">
           <span
-            className="inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-wide text-white uppercase"
+            className="inline-flex w-fit items-center gap-2 rounded-full py-1.5 pr-3 pl-1.5 text-[11px] font-bold tracking-wide text-white uppercase"
             style={{ backgroundColor: '#50664d' }}
           >
-            <span>✓</span>
+            <AnimatedCheckmark size={18} />
             <span>Inscripción confirmada</span>
           </span>
 
@@ -177,7 +178,7 @@ export function BookingWidget({
         <div className="flex flex-col gap-1.5 font-mattone font-normal">
           <div className="rounded-2xl overflow-hidden border border-stone-200">
             <div className="px-4 py-1.5 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
-              <span className="text-white text-sm leading-none">✓</span>
+              <AnimatedCheckmark size={16} />
               <span className="text-[10px] tracking-widest uppercase text-white/80">Inscripción confirmada</span>
             </div>
             <div className="px-4 pt-2 pb-1.5">{plazasBar}</div>
@@ -230,7 +231,7 @@ export function BookingWidget({
         <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm">
           <div className="px-6 py-5 flex flex-col gap-3" style={{ backgroundColor: '#50664d' }}>
             <div className="flex items-center gap-2">
-              <span className="text-white text-base leading-none">✓</span>
+              <AnimatedCheckmark size={22} />
               <span className="text-[10px] tracking-widest uppercase text-white/80" style={textFont}>
                 Inscripción confirmada
               </span>

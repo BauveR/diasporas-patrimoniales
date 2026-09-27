@@ -19,7 +19,6 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
@@ -75,7 +74,12 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     try {
       await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       setMostrandoTelefono(false)
-      setShowSuccessPopup(true)
+      // `inscrito` (arriba) viene de un listener de Firestore en tiempo real
+      // (ver subscribeInscripcionIds en AuthContext) — apenas la escritura
+      // de arriba se confirma, ese listener lo pone en `true` solo, y
+      // BookingWidget cambia a su propia vista de "ya inscrito" (ticket
+      // verde + ✓) sin que haga falta ningún popup aparte que el usuario
+      // tenga que cerrar.
       // Fire-and-forget: enviar email de confirmación. El servidor recalcula
       // todo el contenido desde Firestore a partir de actividadId — no manda
       // texto libre, así el endpoint no puede usarse para emails con datos
@@ -108,7 +112,6 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,
-    showSuccessPopup, setShowSuccessPopup,
     mostrandoTelefono, setMostrandoTelefono,
     telefono,
     onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
