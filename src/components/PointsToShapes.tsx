@@ -11,7 +11,7 @@ import { createShapeMask } from '../lib/createShapeMask'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
-import { HERO_TUNING_DEFAULTS } from '../lib/heroTuning'
+import { HERO_TUNING_DEFAULTS, HERO_ORB_BASE_BY_HEIGHT, interpolateOrbByHeight } from '../lib/heroTuning'
 import { useBreakpoint, type BreakpointBucket } from '../hooks/useBreakpoint'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
@@ -211,15 +211,11 @@ function computeViewportZoom(shapeGrowth: number, viewportHeight: number) {
 }
 
 // Recomputes whenever `shapeGrowth` changes (live edits from the dev-only
-// tuning panel) or the settled viewport height changes (a real resize, not
-// mobile address-bar noise — see useSettledViewportHeight). Returns
-// `viewportHeight` too: CameraRig needs the same settled value for its own
-// frustum math, so both stay in agreement instead of each deriving it
-// separately.
-function useViewportZoom(shapeGrowth: number): { zoom: number; viewportHeight: number } {
-  const viewportHeight = useSettledViewportHeight()
-  const zoom = useMemo(() => computeViewportZoom(shapeGrowth, viewportHeight), [shapeGrowth, viewportHeight])
-  return { zoom, viewportHeight }
+// tuning panel, or the base-bucket height interpolation below) or the
+// settled viewport height changes (a real resize, not mobile address-bar
+// noise — see useSettledViewportHeight).
+function useZoom(shapeGrowth: number, viewportHeight: number): number {
+  return useMemo(() => computeViewportZoom(shapeGrowth, viewportHeight), [shapeGrowth, viewportHeight])
 }
 
 // `cameraX`/`cameraY` flip instantly whenever the active bucket (see
@@ -626,16 +622,27 @@ export default function PointsToShapes() {
   // override instead — orbLgPortrait.
   const isMdLandscapePhone = bucket === 'md' && isLandscape
   const isLgPortraitTablet = bucket === 'lg' && !isLandscape
+  // Needed before shiftX/shiftY/scale are picked below (the `base` bucket
+  // interpolates against it), not just for zoom — see useZoom further down.
+  const viewportHeight = useSettledViewportHeight()
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
   const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape, orbLgPortrait } = tuning
+  // `base` spans real phones from ~500px to ~950px tall with no natural
+  // step in between (confirmed live: one fixed value overlapped the
+  // wordmark on some real devices and not others, all inside the same
+  // <640px-wide bucket) — interpolated by height instead of a single fixed
+  // value. See HERO_ORB_BASE_BY_HEIGHT's comment in heroTuning.ts for the
+  // calibration points and how to add more.
   const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = isMdLandscapePhone
     ? orbMdLandscape
     : isLgPortraitTablet
       ? orbLgPortrait
-      : orb[bucket]
-  const { zoom, viewportHeight } = useViewportZoom(shapeGrowth)
+      : bucket === 'base'
+        ? interpolateOrbByHeight(HERO_ORB_BASE_BY_HEIGHT, viewportHeight)
+        : orb[bucket]
+  const zoom = useZoom(shapeGrowth, viewportHeight)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [canvasReady, setCanvasReady] = useState(false)
