@@ -94,8 +94,19 @@ service cloud.firestore {
     // subscribeInscripcionIds' uid-filtered query spans every actividad's
     // 'inscritos' subcollection — the nested rule above only governs direct
     // reads/writes under one specific actividad, not that kind of query.
+    //
+    // resource.data.uid, not a path wildcard: Firestore can't prove a
+    // collection-group *query* safe against a rule that checks the
+    // document's path (its ID) — the query's own where('uid','==',...)
+    // filters on a data field, and Firestore's query-safety check only
+    // accepts a rule expressed over that same field, not the path. A
+    // path-wildcard check works fine for a single doc get()/onSnapshot()
+    // (no query-safety proof needed there), which is why writes/admin
+    // reads elsewhere were never affected — only this one collection-group
+    // listener was. (inscribirse() always writes uid == the doc's own ID,
+    // so this stays equivalent to the old path check for this app's data.)
     match /{path=**}/inscritos/{uid} {
-      allow read: if isOwner(uid) || isAdmin();
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
     match /{document=**} {
