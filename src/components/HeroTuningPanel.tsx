@@ -31,10 +31,12 @@ export default function HeroTuningPanel({
   onChange,
   bucket,
   isMdLandscapePhone,
+  isLgPortraitTablet,
 }: {
   onChange: (tuning: HeroTuning) => void
   bucket: BreakpointBucket
   isMdLandscapePhone: boolean
+  isLgPortraitTablet: boolean
 }) {
   const layout = useControls('Hero — layout', {
     heroOverlayShiftPx: { value: HERO_TUNING_DEFAULTS.heroOverlayShiftPx, min: 0, max: 350, step: 1 },
@@ -51,12 +53,19 @@ export default function HeroTuningPanel({
   // (a rotated phone, not a portrait tablet) — see the orbMdLandscape
   // comment in heroTuning.ts.
   const mdLandscape = useOrbBucketControls('Orb — md landscape (phone)', HERO_TUNING_DEFAULTS.orbMdLandscape)
+  // Only takes effect at the `lg` bucket while the viewport is portrait (a
+  // large iPad, not a landscape tablet/narrow laptop) — see the
+  // orbLgPortrait comment in heroTuning.ts.
+  const lgPortrait = useOrbBucketControls('Orb — lg portrait (tablet)', HERO_TUNING_DEFAULTS.orbLgPortrait)
 
   const orb = useMemo<Record<BreakpointBucket, HeroOrbTuning>>(
     () => ({ base, sm, md, lg, xl, '2xl': xxl }),
     [base, sm, md, lg, xl, xxl],
   )
-  const tuning = useMemo<HeroTuning>(() => ({ ...layout, orb, orbMdLandscape: mdLandscape }), [layout, orb, mdLandscape])
+  const tuning = useMemo<HeroTuning>(
+    () => ({ ...layout, orb, orbMdLandscape: mdLandscape, orbLgPortrait: lgPortrait }),
+    [layout, orb, mdLandscape, lgPortrait],
+  )
 
   useEffect(() => {
     onChange(tuning)
@@ -74,6 +83,7 @@ export default function HeroTuningPanel({
       <div className="pointer-events-none fixed right-4 bottom-4 z-[10000] rounded-md bg-black/80 px-3 py-1.5 font-mono text-xs text-white">
         Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
         {isMdLandscapePhone && <> — <strong>md landscape (phone)</strong> activo</>}
+        {isLgPortraitTablet && <> — <strong>lg portrait (tablet)</strong> activo</>}
       </div>
       <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
     </>

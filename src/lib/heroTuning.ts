@@ -29,6 +29,13 @@ export interface HeroTuning {
   // orb.md whenever the bucket is `md` and the viewport is landscape — see
   // useIsLandscape in PointsToShapes.tsx.
   orbMdLandscape: HeroOrbTuning
+  // Same kind of split, one bucket up: a large iPad in *portrait*
+  // (~1024x1305) reports the same `lg` bucket by width as a landscape
+  // tablet/narrow laptop (~1024x768) — but orb.lg is tuned for the
+  // landscape case (confirmed live: it looks right there) and rides too
+  // high/wrong on the tall portrait one. Used instead of orb.lg whenever
+  // the bucket is `lg` and the viewport is portrait (not landscape).
+  orbLgPortrait: HeroOrbTuning
 }
 
 // Final values landed on via the live HeroTuningPanel sliders, after several
@@ -57,7 +64,12 @@ export const HERO_TUNING_DEFAULTS: HeroTuning = {
   // what looked right under that corrected math, not a straight carryover
   // of the pre-fix values.
   orb: {
-    base: { shiftX: 0, shiftY: -35, scale: 0.70 },
+    // Re-tuneado a mano (2026-09-27) contra un viewport real de 440x792
+    // (iPhone 17 Pro Max, Safari) — más bajo que el que se usó para el
+    // primer pase (390x844), lo que subía/agrandaba de más el orb hasta
+    // encimarse con el wordmark. Un viewport más bajo dentro del mismo
+    // bucket `base` puede necesitar este mismo retuneo otra vez.
+    base: { shiftX: 0, shiftY: -55, scale: 0.55 },
     sm: { shiftX: 0, shiftY: -45, scale: 0.65 },
     md: { shiftX: 0, shiftY: -37, scale: 0.65 },
     lg: { shiftX: 83, shiftY: -12, scale: 0.65 },
@@ -68,4 +80,6 @@ export const HERO_TUNING_DEFAULTS: HeroTuning = {
   // HeroTuning.orbMdLandscape comment above for why this exists separately
   // from orb.md.
   orbMdLandscape: { shiftX: 0, shiftY: 15, scale: 0.90 },
+  // Confirmado en vivo contra un iPad grande en portrait real (1024x1305).
+  orbLgPortrait: { shiftX: 83, shiftY: -18, scale: 0.45 },
 }

@@ -620,13 +620,21 @@ export default function PointsToShapes() {
   const isLandscape = useIsLandscape()
   // See useIsLandscape above — a landscape phone at the `md` bucket needs
   // orbMdLandscape's tuning instead of orb.md, which is dialed in for a
-  // portrait tablet's very different aspect ratio.
+  // portrait tablet's very different aspect ratio. Same split one bucket
+  // up: orb.lg is tuned for a landscape tablet/narrow laptop (confirmed
+  // live), so a large iPad in *portrait* at that same width needs its own
+  // override instead — orbLgPortrait.
   const isMdLandscapePhone = bucket === 'md' && isLandscape
+  const isLgPortraitTablet = bucket === 'lg' && !isLandscape
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape } = tuning
-  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = isMdLandscapePhone ? orbMdLandscape : orb[bucket]
+  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape, orbLgPortrait } = tuning
+  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = isMdLandscapePhone
+    ? orbMdLandscape
+    : isLgPortraitTablet
+      ? orbLgPortrait
+      : orb[bucket]
   const { zoom, viewportHeight } = useViewportZoom(shapeGrowth)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -1018,7 +1026,12 @@ export default function PointsToShapes() {
 
       {HeroTuningPanel && (
         <Suspense fallback={null}>
-          <HeroTuningPanel onChange={setTuning} bucket={bucket} isMdLandscapePhone={isMdLandscapePhone} />
+          <HeroTuningPanel
+            onChange={setTuning}
+            bucket={bucket}
+            isMdLandscapePhone={isMdLandscapePhone}
+            isLgPortraitTablet={isLgPortraitTablet}
+          />
         </Suspense>
       )}
     </section>

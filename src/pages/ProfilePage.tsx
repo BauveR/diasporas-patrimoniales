@@ -11,11 +11,9 @@ import { ActividadExpandido } from '../components/actividades/ActividadExpandido
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
 import { labelStyle } from '../lib/styles'
 
-const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
-
 const today = new Date().toISOString().split('T')[0]
 
-type Tab = 'todas' | 'proximas' | 'pasadas'
+type Tab = 'todas' | 'proximas'
 
 function getInitials(user: AppUser): string {
   if (user.displayName) {
@@ -60,30 +58,39 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
           Evento cancelado
         </p>
       )}
+      {/* Botones tipo pill, negro (bg-stone-900) en vez de texto plano — mismo
+          lenguaje visual que los de BookingWidget en la card desplegada
+          (ActividadExpandido), adaptado a fondo negro porque acá el fondo de
+          la página es blanco, no oscuro como ahí. Sin `style={labelStyle}`:
+          un inline style siempre gana por encima de una clase, así que
+          pisaría el `font-mattone` de abajo (mismo motivo documentado en
+          ParticipanteTextos). */}
       {!inactiva && !isCancelada && (
         confirmando ? (
-          <div className="flex gap-2 px-1" style={labelStyle}>
-            <button
-              onClick={handleLiberar}
-              disabled={liberando}
-              className="text-[10px] tracking-widest uppercase text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer"
-            >
-              {liberando ? '...' : 'Sí, liberar'}
-            </button>
-            <span className="text-stone-200 text-[10px]">·</span>
-            <button
-              onClick={() => setConfirmando(false)}
-              disabled={liberando}
-              className="text-[10px] tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
-            >
-              Mantener
-            </button>
+          <div className="flex flex-col gap-1.5 px-1">
+            <p className="text-center font-mattone text-xs font-bold text-stone-500">¿Liberar tu plaza?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleLiberar}
+                disabled={liberando}
+                className="flex-1 rounded-xl bg-red-500 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+              >
+                {liberando ? '...' : 'Sí, liberar'}
+              </button>
+              <button
+                onClick={() => setConfirmando(false)}
+                disabled={liberando}
+                className="flex-1 rounded-xl bg-stone-900 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 disabled:opacity-40 cursor-pointer"
+              >
+                Mantener
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="flex gap-2 px-1" style={labelStyle}>
+          <div className="px-1">
             <button
               onClick={() => setConfirmando(true)}
-              className="w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
+              className="w-full rounded-xl bg-stone-900 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 cursor-pointer"
             >
               Liberar plaza
             </button>
@@ -95,7 +102,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 }
 
 export function ProfilePage() {
-  const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
+  const { user, inscripcionIds, inscripcionesLoading } = useAuth()
   const { actividades } = useDataContext()
   const navigate = useNavigate()
   const openActividadId = useOpenActividadId()
@@ -106,7 +113,7 @@ export function ProfilePage() {
   const pasadas    = inscritas.filter(a => a.fecha < today && !a.cancelada)
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
-  const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? [...pasadas, ...canceladas] : [...proximas, ...pasadas, ...canceladas]
+  const visible = tab === 'proximas' ? proximas : [...proximas, ...pasadas, ...canceladas]
   // Solo abre inline si el id pertenece a esta lista (y por lo tanto es
   // visible en la pestaña actual) — si viene de otra sección, esto no
   // encuentra nada y la grilla se muestra normal.
@@ -115,7 +122,6 @@ export function ProfilePage() {
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
     { key: 'proximas', label: 'Próximas', count: proximas.length  },
-    { key: 'pasadas',  label: 'Pasadas',  count: pasadas.length + canceladas.length },
   ]
 
   const makeLiberar = (actividadId: number) => async () => {
@@ -130,58 +136,46 @@ export function ProfilePage() {
   return (
     <main className="min-h-screen bg-white" style={labelStyle}>
 
-      {/* Hero header */}
-      <div className="bg-stone-50 border-b border-stone-100 pt-[calc(var(--spacing-navbar)+2rem)] pb-10 px-6 sm:px-8 lg:px-10">
+      {/* Hero header — fondo negro, texto blanco, avatar/etiqueta/nombre en
+          Mattone Bold (antes Google Sans Flex vía `titleStyle`, ya no se usa
+          en este archivo). */}
+      <div className="bg-black border-b border-white/10 pt-[calc(var(--spacing-navbar)+2rem)] pb-10 px-6 sm:px-8 lg:px-10">
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
-          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center" style={{ ...titleStyle, backgroundColor: '#b19e7b' }}>
-            <span className="text-white text-xl sm:text-2xl">
+          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#b19e7b' }}>
+            <span className="font-mattone font-bold text-white text-xl sm:text-2xl">
               {user ? getInitials(user) : '?'}
             </span>
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Mi cuenta</p>
-            <h1 className="text-xl sm:text-2xl text-stone-900 uppercase tracking-tight truncate" style={titleStyle}>
+            <p className="font-mattone font-bold text-[10px] tracking-widest uppercase text-white/50 mb-1">Mi cuenta</p>
+            <h1 className="font-mattone font-bold text-xl sm:text-2xl text-white uppercase tracking-tight truncate">
               {user?.displayName ?? user?.email?.split('@')[0]}
             </h1>
             {!inscripcionesLoading && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {proximas.length > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full text-white text-[10px] tracking-widest uppercase" style={{ backgroundColor: '#50664d' }}>
+                  <span className="px-3 py-1 rounded-full text-white font-mattone text-xs font-bold tracking-widest uppercase" style={{ backgroundColor: '#50664d' }}>
                     {proximas.length} próxima{proximas.length !== 1 ? 's' : ''}
                   </span>
                 )}
                 {pasadas.length > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] tracking-widest uppercase">
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 font-mattone text-xs font-bold tracking-widest uppercase">
                     {pasadas.length} pasada{pasadas.length !== 1 ? 's' : ''}
                   </span>
                 )}
                 {canceladas.length > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-red-100 text-red-400 text-[10px] tracking-widest uppercase">
+                  <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 font-mattone text-xs font-bold tracking-widest uppercase">
                     {canceladas.length} cancelada{canceladas.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
             )}
           </div>
-
-          <button
-            onClick={signOut}
-            className="hidden sm:block shrink-0 px-5 py-2 rounded-xl border border-stone-200 text-[11px] tracking-widest uppercase text-stone-500 hover:bg-white transition-colors cursor-pointer"
-          >
-            Cerrar sesión
-          </button>
         </div>
-
-        <button
-          onClick={signOut}
-          className="sm:hidden mt-5 w-full py-2.5 rounded-xl border border-stone-200 text-[11px] tracking-widest uppercase text-stone-500 hover:bg-white transition-colors cursor-pointer"
-        >
-          Cerrar sesión
-        </button>
       </div>
 
       {/* Content */}
@@ -219,16 +213,15 @@ export function ProfilePage() {
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  style={tab === t.key ? { backgroundColor: '#595d8d' } : {}}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] tracking-widest uppercase transition-colors cursor-pointer border ${
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-full font-mattone text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer border ${
                     tab === t.key
-                      ? 'text-white border-transparent'
+                      ? 'bg-brand-red text-white border-transparent'
                       : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400'
                   }`}
                 >
                   {t.label}
                   {t.count > 0 && (
-                    <span className={`text-[10px] ${tab === t.key ? 'text-white/60' : 'text-stone-500'}`}>
+                    <span className={`text-xs ${tab === t.key ? 'text-white/60' : 'text-stone-500'}`}>
                       {t.count}
                     </span>
                   )}
@@ -268,14 +261,24 @@ export function ProfilePage() {
                         onClose={() => navigate(-1)}
                       />
                     ) : (
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      // flex-wrap + justify-center, no grid: con grid-cols
+                      // fijas (1fr), una última fila incompleta (ej. 1 o 2
+                      // tarjetas en la fila de 3) queda pegada a la
+                      // izquierda — las columnas 1fr ocupan todo el ancho,
+                      // así que justify-content no tiene ningún espacio
+                      // sobrante para repartir. Con ancho fijo por tarjeta
+                      // (via flex-basis) en vez de columnas elásticas, el
+                      // espacio sobrante de una fila incompleta sí existe y
+                      // justify-center lo reparte de verdad.
+                      <div className="flex flex-wrap justify-center gap-6">
                         {visible.map(a => (
-                          <GridCardWrapper
-                            key={a.id}
-                            actividadId={a.id}
-                            uid={user!.uid}
-                            inactiva={a.fecha < today || !!a.cancelada}
-                          />
+                          <div key={a.id} className="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]">
+                            <GridCardWrapper
+                              actividadId={a.id}
+                              uid={user!.uid}
+                              inactiva={a.fecha < today || !!a.cancelada}
+                            />
+                          </div>
                         ))}
                       </div>
                     )}
