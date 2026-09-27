@@ -27,7 +27,15 @@ function useOrbBucketControls(label: string, defaults: HeroOrbTuning): HeroOrbTu
 // in production. Reports live slider values up to the parent instead of
 // owning them, since the parent (not this dev-only panel) is what needs
 // them for every render, including production ones where this never mounts.
-export default function HeroTuningPanel({ onChange, bucket }: { onChange: (tuning: HeroTuning) => void; bucket: BreakpointBucket }) {
+export default function HeroTuningPanel({
+  onChange,
+  bucket,
+  isMdLandscapePhone,
+}: {
+  onChange: (tuning: HeroTuning) => void
+  bucket: BreakpointBucket
+  isMdLandscapePhone: boolean
+}) {
   const layout = useControls('Hero — layout', {
     heroOverlayShiftPx: { value: HERO_TUNING_DEFAULTS.heroOverlayShiftPx, min: 0, max: 350, step: 1 },
     railMaxWidthRem: { value: HERO_TUNING_DEFAULTS.railMaxWidthRem, min: 60, max: 160, step: 1 },
@@ -39,12 +47,16 @@ export default function HeroTuningPanel({ onChange, bucket }: { onChange: (tunin
   const lg = useOrbBucketControls('Orb — lg (1024)', HERO_TUNING_DEFAULTS.orb.lg)
   const xl = useOrbBucketControls('Orb — xl (1280)', HERO_TUNING_DEFAULTS.orb.xl)
   const xxl = useOrbBucketControls('Orb — 2xl (1536)', HERO_TUNING_DEFAULTS.orb['2xl'])
+  // Only takes effect at the `md` bucket while the viewport is landscape
+  // (a rotated phone, not a portrait tablet) — see the orbMdLandscape
+  // comment in heroTuning.ts.
+  const mdLandscape = useOrbBucketControls('Orb — md landscape (phone)', HERO_TUNING_DEFAULTS.orbMdLandscape)
 
   const orb = useMemo<Record<BreakpointBucket, HeroOrbTuning>>(
     () => ({ base, sm, md, lg, xl, '2xl': xxl }),
     [base, sm, md, lg, xl, xxl],
   )
-  const tuning = useMemo<HeroTuning>(() => ({ ...layout, orb }), [layout, orb])
+  const tuning = useMemo<HeroTuning>(() => ({ ...layout, orb, orbMdLandscape: mdLandscape }), [layout, orb, mdLandscape])
 
   useEffect(() => {
     onChange(tuning)
@@ -61,6 +73,7 @@ export default function HeroTuningPanel({ onChange, bucket }: { onChange: (tunin
           as the controls being broken (happened tuning `sm`). */}
       <div className="pointer-events-none fixed right-4 bottom-4 z-[10000] rounded-md bg-black/80 px-3 py-1.5 font-mono text-xs text-white">
         Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
+        {isMdLandscapePhone && <> — <strong>md landscape (phone)</strong> activo</>}
       </div>
       <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
     </>
