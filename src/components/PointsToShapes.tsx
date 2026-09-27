@@ -125,6 +125,25 @@ const COLOR_PARTICLE = new THREE.Color(0xffffff)
 // mobile/tablet one, is what's on screen.
 const LARGE_BUCKETS = new Set<BreakpointBucket>(['lg', 'xl', '2xl'])
 
+// A rotated phone (e.g. ~844x390) reports the same `md` bucket by width as
+// a portrait tablet (~768x1024) — useBreakpoint only looks at width, so it
+// can't tell the two apart, but they need very different orb framing (a
+// short-and-wide viewport vs a tall-and-narrow one). `orientation` (a CSS
+// media feature, not a raw width/height compare) matches the pattern
+// useBreakpoint/useIsDesktop already use elsewhere in this codebase.
+function useIsLandscape(): boolean {
+  const [isLandscape, setIsLandscape] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(orientation: landscape)').matches,
+  )
+  useEffect(() => {
+    const mql = window.matchMedia('(orientation: landscape)')
+    const handler = (e: MediaQueryListEvent) => setIsLandscape(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+  return isLandscape
+}
+
 // An orthographic camera's `zoom` maps 1 world unit to exactly `zoom` CSS
 // pixels — unlike R3F's default `zoom: 1` (1 world unit = 1 raw pixel, which
 // rendered SHAPE_WORLD_WIDTH's 62 units as a ~62px speck), zoom here is
@@ -143,36 +162,64 @@ const PERSPECTIVE_VISIBLE_WORLD_HEIGHT = 2 * 100 * Math.tan((60 / 2) * (Math.PI 
 // Reference viewport height (px) the +/-30% zoom clamp below is centered on.
 const REFERENCE_VIEWPORT_HEIGHT_PX = 900
 
-// Without a ceiling, zoom scales linearly forever with window.innerHeight —
-// fine near REFERENCE_VIEWPORT_HEIGHT_PX, but on a tall/large monitor (or a
-// maximized window on a big display) it keeps growing well past where the
-// shape still reads as proportionate. Clamped to +/-30% of the reference
-// zoom so very tall or very short viewports can't run away in either
-// direction; this is exactly the "large screens" case the switch to an
-// orthographic camera was meant to fix.
-function computeViewportZoom(shapeGrowth: number) {
+// On mobile, scrolling collapses/expands the browser's own address bar,
+// which changes `window.innerHeight` (and fires `resize`) even though
+// nothing about the actual device or window changed — reading that value
+// live is what made the orb visibly "zoom" while scrolling on iPad/mobile.
+// A real resize or device rotation always changes `innerWidth` too (or
+// moves `innerHeight` by far more than this); a pure, small height-only
+// change is the address bar animating, not a real viewport change — kept
+// below and ignored by useSettledViewportHeight instead of chased.
+const HEIGHT_CHANGE_IGNORE_THRESHOLD_PX = 100
+
+// Single shared source for "the viewport height the orb's camera should
+// frame against" — filters out the mobile-address-bar noise described
+// above so both computeViewportZoom and CameraRig's frustum agree on the
+// same settled value, instead of each reading window.innerHeight on its
+// own (CameraRig used to do that directly, every frame, with no filtering
+// at all — the main source of the scroll-zoom bug).
+function useSettledViewportHeight(): number {
+  const widthRef = useRef(typeof window !== 'undefined' ? window.innerWidth : 0)
+  const [height, setHeight] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 0))
+  useEffect(() => {
+    const handler = () => {
+      const width = window.innerWidth
+      const newHeight = window.innerHeight
+      const widthChanged = width !== widthRef.current
+      widthRef.current = width
+      setHeight(prev => (!widthChanged && Math.abs(newHeight - prev) < HEIGHT_CHANGE_IGNORE_THRESHOLD_PX ? prev : newHeight))
+    }
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return height
+}
+
+// Without a ceiling, zoom scales linearly forever with the settled viewport
+// height — fine near REFERENCE_VIEWPORT_HEIGHT_PX, but on a tall/large
+// monitor (or a maximized window on a big display) it keeps growing well
+// past where the shape still reads as proportionate. Clamped to +/-30% of
+// the reference zoom so very tall or very short viewports can't run away in
+// either direction; this is exactly the "large screens" case the switch to
+// an orthographic camera was meant to fix.
+function computeViewportZoom(shapeGrowth: number, viewportHeight: number) {
   const referenceWorldHeight = PERSPECTIVE_VISIBLE_WORLD_HEIGHT / shapeGrowth
   const referenceZoom = REFERENCE_VIEWPORT_HEIGHT_PX / referenceWorldHeight
-  if (typeof window === 'undefined') return referenceZoom
-  const raw = window.innerHeight / referenceWorldHeight
+  if (!viewportHeight) return referenceZoom
+  const raw = viewportHeight / referenceWorldHeight
   return Math.min(referenceZoom * 1.3, Math.max(referenceZoom * 0.7, raw))
 }
 
-// Tracks viewport height (not just a large-screen boolean) because the
-// orthographic zoom above needs to react continuously — a window resize
-// changes it, and so does browser zoom, which reports as a `resize` event
-// too since it changes `window.innerHeight` in CSS pixels the same way an
-// actual viewport resize would. Also recomputes whenever `shapeGrowth`
-// changes (live edits from the dev-only tuning panel).
-function useViewportZoom(shapeGrowth: number) {
-  const [zoom, setZoom] = useState(() => computeViewportZoom(shapeGrowth))
-  useEffect(() => {
-    const handler = () => setZoom(computeViewportZoom(shapeGrowth))
-    handler()
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [shapeGrowth])
-  return zoom
+// Recomputes whenever `shapeGrowth` changes (live edits from the dev-only
+// tuning panel) or the settled viewport height changes (a real resize, not
+// mobile address-bar noise — see useSettledViewportHeight). Returns
+// `viewportHeight` too: CameraRig needs the same settled value for its own
+// frustum math, so both stay in agreement instead of each deriving it
+// separately.
+function useViewportZoom(shapeGrowth: number): { zoom: number; viewportHeight: number } {
+  const viewportHeight = useSettledViewportHeight()
+  const zoom = useMemo(() => computeViewportZoom(shapeGrowth, viewportHeight), [shapeGrowth, viewportHeight])
+  return { zoom, viewportHeight }
 }
 
 // `cameraX`/`cameraY` flip instantly whenever the active bucket (see
@@ -258,7 +305,29 @@ function useViewportZoom(shapeGrowth: number) {
 // particle simulation already running here — means whichever camera
 // instance is current always gets a correct frustum within one frame, no
 // matter how or when it was (re)created.
-function CameraRig({ targetX, targetY, zoom }: { targetX: number; targetY: number; zoom: number }) {
+function CameraRig({
+  targetX,
+  targetY,
+  zoom,
+  viewportHeight,
+}: {
+  targetX: number
+  targetY: number
+  // "Pixels per world unit" the orb should render at — smoothed below via
+  // `currentZoom`, the same way targetX/targetY already are, so a bucket
+  // flip (desktop: a resize/scrollbar crossing a breakpoint) transitions
+  // the shape's size instead of popping to it instantly. Before this, only
+  // the camera's position was ever smoothed — zoom was applied as a hard,
+  // immediate value every frame.
+  zoom: number
+  // The settled viewport height from useViewportZoom/useSettledViewportHeight
+  // (filtered to ignore mobile address-bar noise) — passed in instead of
+  // reading window.innerHeight directly here, which is what let that noise
+  // reach the frustum on every single frame regardless of any filtering
+  // upstream.
+  viewportHeight: number
+}) {
+  const currentZoom = useRef(zoom)
   useFrame((state, delta) => {
     // state.camera is typed as the Camera union R3F ships (Perspective |
     // Orthographic, plus its own `manual` convention) — left/right/top/
@@ -274,12 +343,14 @@ function CameraRig({ targetX, targetY, zoom }: { targetX: number; targetY: numbe
     // never runs — `zoom` (the prop, "pixels per world unit") is folded
     // directly into the world-unit spans below instead.
     camera.zoom = 1
-    const halfWidth = state.size.width / (2 * zoom)
+    currentZoom.current += (zoom - currentZoom.current) * smoothing
+    const z = currentZoom.current
+    const halfWidth = state.size.width / (2 * z)
     camera.left = -halfWidth
     camera.right = halfWidth
-    const referenceTop = window.innerHeight / (2 * zoom)
+    const referenceTop = viewportHeight / (2 * z)
     camera.top = referenceTop
-    camera.bottom = referenceTop - state.size.height / zoom
+    camera.bottom = referenceTop - state.size.height / z
     camera.updateProjectionMatrix()
   })
   return null
@@ -546,12 +617,17 @@ export default function PointsToShapes() {
   const programaHref = locale === DEFAULT_LOCALE ? '#programa' : `/${locale}#programa`
   const bucket = useBreakpoint()
   const isLargeScreen = LARGE_BUCKETS.has(bucket)
+  const isLandscape = useIsLandscape()
+  // See useIsLandscape above — a landscape phone at the `md` bucket needs
+  // orbMdLandscape's tuning instead of orb.md, which is dialed in for a
+  // portrait tablet's very different aspect ratio.
+  const isMdLandscapePhone = bucket === 'md' && isLandscape
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const { heroOverlayShiftPx, railMaxWidthRem, orb } = tuning
-  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = orb[bucket]
-  const zoom = useViewportZoom(shapeGrowth)
+  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape } = tuning
+  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = isMdLandscapePhone ? orbMdLandscape : orb[bucket]
+  const { zoom, viewportHeight } = useViewportZoom(shapeGrowth)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [canvasReady, setCanvasReady] = useState(false)
@@ -670,7 +746,7 @@ export default function PointsToShapes() {
         // noticeably while still looking sharp for a soft gradient.
         dpr={[1, 1.5]}
       >
-        <CameraRig targetX={cameraX} targetY={cameraY} zoom={zoom} />
+        <CameraRig targetX={cameraX} targetY={cameraY} zoom={zoom} viewportHeight={viewportHeight} />
         {/* contrast=1 / saturation=1 are the identity values for these two
             shader passes ((c-0.5)*contrast+0.5 and mix(luma,c,saturation)) —
             0 would collapse everything to flat gray / grayscale instead.
@@ -942,7 +1018,7 @@ export default function PointsToShapes() {
 
       {HeroTuningPanel && (
         <Suspense fallback={null}>
-          <HeroTuningPanel onChange={setTuning} bucket={bucket} />
+          <HeroTuningPanel onChange={setTuning} bucket={bucket} isMdLandscapePhone={isMdLandscapePhone} />
         </Suspense>
       )}
     </section>

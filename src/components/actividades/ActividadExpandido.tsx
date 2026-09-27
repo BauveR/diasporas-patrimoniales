@@ -208,36 +208,27 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
               )}
             </div>
 
-            <BookingWidget {...widgetProps} compact dark />
+            {/* Sin popup de confirmación aparte: `inscrito` viene de un
+                listener de Firestore en tiempo real (ver el comentario en
+                useActividadBooking), así que apenas la inscripción se
+                confirma, BookingWidget pasa solo a su propia vista de "ya
+                inscrito" (ticket verde + ✓) — el fade+scale de acá abajo
+                (keyed en `inscrito`) es lo único que marca el cambio, en
+                vez de un modal que haya que cerrar aparte. */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={booking.inscrito ? 'inscrito' : 'form'}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <BookingWidget {...widgetProps} compact dark />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
-
-      <AnimatePresence>
-        {booking.showSuccessPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-black/40 p-6"
-            onClick={() => booking.setShowSuccessPopup(false)}
-          >
-            <div
-              className="rounded-2xl bg-white px-8 py-6 text-center shadow-xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <p className="text-sm font-semibold text-stone-800" style={labelStyle}>Inscripción confirmada ✓</p>
-              <button
-                onClick={() => booking.setShowSuccessPopup(false)}
-                className="mt-3 text-[10px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
-                style={labelStyle}
-              >
-                Cerrar
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   )
 }

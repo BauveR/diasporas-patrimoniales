@@ -4,90 +4,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ShareButton } from '../components/actividades/ShareButton'
 import { BookingWidget } from '../components/actividades/BookingWidget'
 import { useDataContext } from '../contexts/DataContext'
+import { googleMapsUrl } from '../data/sedes'
 import { useActividadBooking } from '../hooks/useActividadBooking'
 import { SITE_URL } from '../components/SeoHead'
 import { labelStyle } from '../lib/styles'
 import { formatFechaLarga } from '../utils/formatMes'
 
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
-
-// ── InscripcionSuccessPopup ───────────────────────────────────────────────────
-
-function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[300] flex items-center justify-center p-6"
-      style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
-      onClick={onClose}
-    >
-      <style>{`
-        @keyframes chc-circle { to { stroke-dashoffset: 0; } }
-        @keyframes chc-check  { to { stroke-dashoffset: 0; } }
-        @media (prefers-reduced-motion: reduce) {
-          .chc-circle-progress, .chc-check-path { animation: none !important; stroke-dashoffset: 0 !important; }
-        }
-      `}</style>
-      <motion.div
-        initial={{ scale: 0.88, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.88, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-        className="rounded-3xl max-w-sm w-full flex flex-col items-center gap-6 px-8 py-10"
-        style={{ backgroundColor: '#50664d' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <span
-          className="text-[10px] tracking-[0.25em] uppercase text-center"
-          style={{ ...labelStyle, color: 'rgba(255,255,255,0.55)' }}
-        >
-          Diásporas Patrimoniales
-        </span>
-
-        <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
-          <circle cx="48" cy="48" r="44" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
-          <circle
-            className="chc-circle-progress"
-            cx="48" cy="48" r="44"
-            stroke="white" strokeWidth="2" strokeLinecap="round"
-            strokeDasharray="277" strokeDashoffset="277"
-            transform="rotate(-90 48 48)"
-            style={{ animation: 'chc-circle 0.65s ease forwards' }}
-          />
-          <path
-            className="chc-check-path"
-            d="M28 48 L42 62 L70 30"
-            stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
-            strokeDasharray="65" strokeDashoffset="65"
-            style={{ animation: 'chc-check 0.4s ease 0.55s forwards' }}
-          />
-        </svg>
-
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span
-            className="text-[10px] tracking-[0.2em] uppercase"
-            style={{ ...labelStyle, color: 'rgba(255,255,255,0.65)' }}
-          >
-            Inscripción confirmada
-          </span>
-          <p className="text-white text-lg leading-snug" style={serifStyle}>
-            {titulo}
-          </p>
-        </div>
-
-        <button
-          onClick={onClose}
-          className="mt-1 px-6 py-2.5 rounded-full text-[10px] tracking-widest uppercase cursor-pointer transition-colors hover:bg-white/20"
-          style={{ ...labelStyle, backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.75)' }}
-        >
-          Cerrar
-        </button>
-      </motion.div>
-    </motion.div>
-  )
-}
 
 // ── ActividadPage ─────────────────────────────────────────────────────────────
 
@@ -166,7 +89,23 @@ export function ActividadPage() {
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-6">
-          <BookingWidget {...widgetProps} compact />
+          {/* Sin popup de confirmación aparte: `booking.inscrito` viene de un
+              listener de Firestore en tiempo real (ver useActividadBooking),
+              así que BookingWidget pasa solo a su vista de "ya inscrito"
+              (ticket verde + palomita animada) apenas se confirma — este
+              fade+scale (keyed en `inscrito`) es lo único que marca el
+              cambio. */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={booking.inscrito ? 'inscrito' : 'form'}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
+              <BookingWidget {...widgetProps} compact />
+            </motion.div>
+          </AnimatePresence>
 
           <div>
             <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4">Detalles de la actividad</p>
@@ -216,15 +155,6 @@ export function ActividadPage() {
 
   // ── Vista principal ──────────────────────────────────────────────────────────
   return (
-    <>
-    <AnimatePresence>
-      {booking.showSuccessPopup && (
-        <InscripcionSuccessPopup
-          titulo={actividad.titulo}
-          onClose={() => booking.setShowSuccessPopup(false)}
-        />
-      )}
-    </AnimatePresence>
     <main className={`${isModal ? 'pt-6' : 'pt-navbar min-h-screen'} bg-white`}>
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
 
@@ -267,10 +197,26 @@ export function ActividadPage() {
 
           {/* Right */}
           <div className={`${!isModal ? 'lg:sticky lg:top-[calc(var(--spacing-navbar)+2rem)]' : ''} self-start flex flex-col gap-4`}>
-            <BookingWidget {...widgetProps} />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={booking.inscrito ? 'inscrito' : 'form'}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <BookingWidget {...widgetProps} />
+              </motion.div>
+            </AnimatePresence>
 
             {sede && (
-              <div className="rounded-2xl border border-stone-200 p-5 flex flex-col gap-2 shadow-sm" style={labelStyle}>
+              <a
+                href={googleMapsUrl(sede)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border border-stone-200 p-5 flex flex-col gap-2 shadow-sm transition-colors hover:border-stone-300 hover:bg-stone-50"
+                style={labelStyle}
+              >
                 <div className="flex items-center gap-2 mb-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0">
                     <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
@@ -279,13 +225,15 @@ export function ActividadPage() {
                 </div>
                 <p className="text-sm text-stone-800">{sede.nombre}</p>
                 <p className="text-[11px] text-stone-400">{sede.municipio}, {sede.isla}</p>
-              </div>
+                <p className="text-[10px] tracking-widest uppercase text-stone-400 underline underline-offset-2 mt-1">
+                  Ver en Google Maps
+                </p>
+              </a>
             )}
           </div>
 
         </div>
       </div>
     </main>
-    </>
   )
 }

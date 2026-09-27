@@ -25,7 +25,6 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
@@ -78,7 +77,6 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     try {
       await inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       setMostrandoTelefono(false)
-      setShowSuccessPopup(true)
       user.getIdToken().then(idToken => {
         fetch('/api/send-email', {
           method: 'POST',
@@ -109,7 +107,6 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,
-    showSuccessPopup, setShowSuccessPopup,
     mostrandoTelefono, setMostrandoTelefono,
     telefono,
     onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },

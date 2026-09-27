@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Sede } from '../../data/sedes'
+import { googleMapsUrl, type Sede } from '../../data/sedes'
 import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
 import { labelStyle } from '../../lib/styles'
 
@@ -11,6 +11,7 @@ type Props = {
 export function SedePanel({ sede }: Props) {
   const { t } = useTranslation()
   const [bibOpen, setBibOpen] = useState(false)
+  const mapsUrl = googleMapsUrl(sede)
 
   return (
     <div className="flex flex-col sm:flex-row">
@@ -18,15 +19,25 @@ export function SedePanel({ sede }: Props) {
       {/* Foto — a la izquierda desde `sm`; `sm:aspect-auto` deja que la
           altura la marque el contenido de texto (flex `align-items: stretch`
           por defecto), en vez del `aspect-16/7` fijo que solo tiene sentido
-          cuando la foto ocupa el ancho completo arriba. */}
-      <div className="relative aspect-16/7 w-full shrink-0 overflow-hidden sm:aspect-auto sm:w-1/2">
+          cuando la foto ocupa el ancho completo arriba. Envuelta en un link
+          a Google Maps (misma ubicación, coordenadas exactas) en vez de la
+          tarjeta entera — evita anidar un link alrededor del botón de
+          bibliografía más abajo, que sí necesita seguir siendo su propio
+          elemento interactivo. */}
+      <a
+        href={mapsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={t('sedes.verEnGoogleMaps')}
+        className="group relative aspect-16/7 w-full shrink-0 overflow-hidden sm:aspect-auto sm:w-1/2"
+      >
         <img
           src={sede.imagen}
           alt={sede.nombre}
           loading="lazy"
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-      </div>
+      </a>
 
       {/* Content — `justify-center`: la columna se estira a la altura de la
           foto (`items-stretch` por defecto del padre `sm:flex-row`), así que
@@ -34,9 +45,20 @@ export function SedePanel({ sede }: Props) {
           de centrado respecto al alto real de la tarjeta. */}
       <div className="flex flex-col justify-center gap-5 px-8 py-7">
 
-        <p className="text-[10px] tracking-[0.25em] uppercase text-white/50" style={labelStyle}>
-          {sede.isla} — {sede.municipio}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-[10px] tracking-[0.25em] uppercase text-white/50" style={labelStyle}>
+            {sede.isla} — {sede.municipio}
+          </p>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] tracking-[0.2em] uppercase text-white/70 underline underline-offset-2 hover:text-white transition-colors"
+            style={labelStyle}
+          >
+            {t('sedes.verEnGoogleMaps')}
+          </a>
+        </div>
 
         <h2 className="font-mattone text-2xl font-normal uppercase tracking-tight leading-tight" style={{ color: '#b19e7b' }}>
           {sede.nombre}

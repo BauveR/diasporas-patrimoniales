@@ -13,6 +13,14 @@ export type Sede = {
   bibliografia?: string[]
 }
 
+// URL universal de Google Maps (funciona sin API key) — un pin exacto en
+// las coordenadas de la sede, en vez de una búsqueda por nombre que podría
+// no encontrar el lugar correcto. Compartida entre SedePanel.tsx y
+// ActividadPage.tsx (las 2 tarjetas de sede del sitio).
+export function googleMapsUrl(sede: Pick<Sede, 'lat' | 'lng'>): string {
+  return `https://www.google.com/maps/search/?api=1&query=${sede.lat},${sede.lng}`
+}
+
 // Una sola sede: el simposio se celebra íntegramente en el TEA. Las otras 8
 // entradas que había acá (heredadas de la plantilla de reservas multi-sede)
 // apuntaban a actividadIds que ya no existen en actividades.ts — datos rotos,

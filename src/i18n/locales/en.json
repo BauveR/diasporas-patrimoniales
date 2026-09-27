@@ -174,7 +174,8 @@
     "fundadaEn": "Founded in {{year}}",
     "actividad_one": "{{count}} activity",
     "actividad_other": "{{count}} activities",
-    "bibliografia": "Bibliography"
+    "bibliografia": "Bibliography",
+    "verEnGoogleMaps": "View on Google Maps"
   },
   "actividadCard": {
     "verDetalle": "View details",
