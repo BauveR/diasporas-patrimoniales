@@ -24,7 +24,7 @@ export function PrivacidadPage() {
           <h1 className="text-4xl uppercase tracking-tight text-stone-800" style={titleStyle}>
             Política de Privacidad y Cookies
           </h1>
-          <p className="text-xs text-stone-400">Última actualización: junio 2026</p>
+          <p className="text-xs text-stone-400">Última actualización: septiembre 2026</p>
         </div>
 
         <div className="w-full h-px bg-stone-100" />
@@ -67,21 +67,25 @@ export function PrivacidadPage() {
             <li><strong>Vercel Inc.</strong> — alojamiento de la plataforma web y funciones de servidor. Política: <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">vercel.com/legal/privacy-policy</a></li>
             <li><strong>Resend</strong> — envío de emails transaccionales de confirmación. Infraestructura en la región EU (Ireland). Política: <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">resend.com/legal/privacy-policy</a></li>
             <li><strong>Cloudinary</strong> — gestión de imágenes (uso exclusivo del equipo administrador). Política: <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">cloudinary.com/privacy</a></li>
+            <li><strong>ImageKit</strong> — alojamiento y entrega de las fotografías de los participantes que se muestran en el sitio. Política: <a href="https://imagekit.io/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">imagekit.io/privacy-policy</a></li>
           </ul>
         </Section>
 
         <Section title="5. Cookies y almacenamiento local">
           <p>
-            Esta plataforma utiliza exclusivamente <strong>cookies técnicas y almacenamiento local estrictamente necesarios</strong> para su funcionamiento:
+            <strong>Este sitio no utiliza cookies.</strong> Utiliza únicamente almacenamiento local del navegador
+            (localStorage/IndexedDB) estrictamente necesario para su funcionamiento:
           </p>
           <ul className="list-disc list-inside flex flex-col gap-1 pl-2">
-            <li><strong>Token de sesión Firebase</strong> — almacenado en IndexedDB/localStorage para mantener la sesión iniciada</li>
-            <li><strong>Caché local de Firestore</strong> — almacenado en IndexedDB para mejorar el rendimiento y el acceso sin conexión</li>
-            <li><strong>Preferencia de cookies</strong> — almacenado en localStorage para recordar que has aceptado este aviso</li>
+            <li><strong>Sesión de Firebase</strong> — almacenada en IndexedDB/localStorage para mantenerte identificado tras iniciar sesión</li>
+            <li><strong>Caché local de Firestore</strong> — almacenada en IndexedDB para mejorar el rendimiento y el acceso sin conexión</li>
+            <li><strong>Preferencia de aviso</strong> — almacenada en localStorage para recordar que ya viste este aviso</li>
           </ul>
           <p>
-            No se utilizan cookies publicitarias, de seguimiento, analíticas ni de terceros con fines comerciales.
-            Al tratarse únicamente de cookies técnicas necesarias, no es posible rechazarlas sin afectar al funcionamiento de la plataforma.
+            No se utilizan cookies, ni tecnologías equivalentes de seguimiento, analíticas ni publicitarias, propias ni de
+            terceros. Al ser almacenamiento estrictamente necesario para el funcionamiento del sitio (inicio de sesión y
+            gestión de inscripciones), la normativa vigente (art. 22.2 LSSI-CE) no exige tu consentimiento para su uso —
+            solo informarte, que es lo que hace este aviso.
           </p>
         </Section>
 

@@ -23,7 +23,7 @@ export function CookieBanner() {
     >
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <p className="text-xs text-stone-500 leading-relaxed flex-1">
-          Este sitio utiliza cookies técnicas estrictamente necesarias para el funcionamiento de la autenticación y la gestión de inscripciones. No se utilizan cookies publicitarias ni de seguimiento.{' '}
+          Este sitio no utiliza cookies. Usa únicamente almacenamiento local estrictamente necesario para el funcionamiento de la autenticación y la gestión de inscripciones. No se utiliza ningún rastreo publicitario ni analítico.{' '}
           <Link to="/privacidad" className="underline underline-offset-2 text-stone-600 hover:text-stone-900 transition-colors">
             Política de privacidad
           </Link>
