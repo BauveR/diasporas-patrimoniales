@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
+import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, ActividadNoEncontradaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 
@@ -98,7 +98,15 @@ export function useActividadBooking(actividad: Actividad | undefined) {
         setInscripcionError('Este evento ha sido cancelado.')
       } else if (err instanceof InscripcionNoAbiertaError) {
         setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
+      } else if (err instanceof ActividadNoEncontradaError) {
+        // No debería pasar nunca en producción — si pasa, es indicio de algo
+        // serio (ej. desajuste de proyecto de Firebase). console.error deja
+        // rastro real para diagnosticarlo, algo que antes de este cambio no
+        // existía (la transacción fallaba en silencio, sin lanzar nada).
+        console.error('inscribirse(): la actividad no existe en Firestore', actividad?.id)
+        setInscripcionError('No pudimos procesar la inscripción. Por favor, contactanos.')
       } else {
+        console.error('inscribirse() falló:', err)
         setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
       }
     } finally {
