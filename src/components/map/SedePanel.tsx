@@ -34,7 +34,7 @@ export function SedePanel({ sede }: Props) {
           de centrado respecto al alto real de la tarjeta. */}
       <div className="flex flex-col justify-center gap-5 px-8 py-7">
 
-        <p className="text-[10px] tracking-[0.25em] uppercase text-stone-400" style={labelStyle}>
+        <p className="text-[10px] tracking-[0.25em] uppercase text-white/50" style={labelStyle}>
           {sede.isla} — {sede.municipio}
         </p>
 
@@ -42,13 +42,13 @@ export function SedePanel({ sede }: Props) {
           {sede.nombre}
         </h2>
 
-        <div className="w-8 h-px bg-stone-200" />
+        <div className="w-8 h-px bg-white/20" />
 
-        <p className="text-sm text-stone-500 leading-relaxed" style={labelStyle}>
+        <p className="text-sm text-white/70 leading-relaxed" style={labelStyle}>
           {sede.descripcion}
         </p>
 
-        <div className="w-full h-px bg-stone-100" />
+        <div className="w-full h-px bg-white/10" />
 
         {/* Logo TEA — el PNG es blanco puro (sin canal alfa parcial en el
             trazo), así que `opacity` sobre un fondo blanco lo dejaría casi
@@ -67,17 +67,17 @@ export function SedePanel({ sede }: Props) {
 
         {/* Bibliografía */}
         {(sede.bibliografia?.length ?? 0) > 0 && (
-          <div className="border border-stone-100 rounded-2xl overflow-hidden">
+          <div className="border border-white/10 rounded-2xl overflow-hidden">
             <button
               onClick={() => setBibOpen(p => !p)}
-              className="w-full flex items-center justify-between px-5 py-3.5 text-left cursor-pointer hover:bg-stone-50 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-3.5 text-left cursor-pointer hover:bg-white/5 transition-colors"
               style={labelStyle}
             >
-              <span className="text-[10px] tracking-[0.25em] uppercase text-stone-400">{t('sedes.bibliografia')}</span>
+              <span className="text-[10px] tracking-[0.25em] uppercase text-white/50">{t('sedes.bibliografia')}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                className={`text-stone-300 shrink-0 transition-transform duration-200 ${bibOpen ? 'rotate-180' : ''}`}
+                className={`text-white/40 shrink-0 transition-transform duration-200 ${bibOpen ? 'rotate-180' : ''}`}
               >
                 <path d="M6 9l6 6 6-6" />
               </svg>
@@ -85,9 +85,9 @@ export function SedePanel({ sede }: Props) {
             {bibOpen && (
               <ul className="flex flex-col gap-2 px-5 pb-5 pt-1">
                 {sede.bibliografia!.map((ref, i) => (
-                  <li key={i} className="text-[11px] text-stone-500 leading-relaxed" style={labelStyle}>
+                  <li key={i} className="text-[11px] text-white/70 leading-relaxed" style={labelStyle}>
                     {ref.startsWith('http') ? (
-                      <a href={ref} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 decoration-stone-300 hover:text-stone-700 break-all">
+                      <a href={ref} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 decoration-white/30 hover:text-white break-all">
                         {ref}
                       </a>
                     ) : ref}

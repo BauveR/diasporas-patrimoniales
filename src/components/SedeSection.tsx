@@ -32,11 +32,11 @@ export function SedeSection() {
           className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
         />
         {/* Sin tope propio (`max-w-*`): ocupa el ancho completo del rail
-            `max-w-7xl` de la sección, hasta los gutters. La card en sí
-            (bg-stone-100, gris claro) contrasta a propósito contra el
-            bg-stone-900 de la sección — mismo gris oscuro que usa el panel
-            de ActividadExpandido para sus tarjetas desplegadas. */}
-        <RevealOnScroll className="w-full overflow-hidden rounded-3xl border border-stone-100 bg-stone-100 shadow-sm">
+            `max-w-7xl` de la sección, hasta los gutters. La card en sí va en
+            gris oscuro (bg-stone-900, sin borde) — mismo gris que usa el
+            panel de ActividadExpandido para sus tarjetas desplegadas, en vez
+            del bg-stone-100 claro que tenía antes. */}
+        <RevealOnScroll className="w-full overflow-hidden rounded-3xl bg-stone-950 shadow-sm">
           <SedePanel sede={sedeTraducida} />
         </RevealOnScroll>
       </div>
