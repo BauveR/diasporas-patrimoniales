@@ -77,31 +77,32 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
           </p>
         )}
 
-        {/* Liberar plaza — solo futuras no canceladas */}
+        {/* Liberar plaza — solo futuras no canceladas. Pills negros (mismo
+            criterio que GridCardWrapper en ProfilePage.tsx), en vez de los
+            links de texto plano que tenía antes. */}
         {!inactiva && !actividad.cancelada && onLiberar && (
           confirmando ? (
-            <div className="flex gap-2 mt-1">
+            <div className="flex gap-2 mt-1.5">
               <button
                 onClick={handleLiberar}
                 disabled={liberando}
-                className="text-[10px] tracking-widest uppercase text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer"
+                className="rounded-full bg-red-500 px-3 py-1 font-mattone text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:bg-red-600 disabled:opacity-40 cursor-pointer"
               >
                 {liberando ? '...' : 'Sí, liberar'}
               </button>
-              <span className="text-stone-200 text-[10px]">·</span>
               <button
                 onClick={() => setConfirmando(false)}
                 disabled={liberando}
-                className="text-[10px] tracking-widest uppercase text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                className="rounded-full bg-stone-900 px-3 py-1 font-mattone text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 disabled:opacity-40 cursor-pointer"
               >
                 Mantener
               </button>
             </div>
           ) : (
-            <div className="flex gap-2 mt-1">
+            <div className="mt-1.5">
               <button
                 onClick={() => setConfirmando(true)}
-                className="w-fit text-[10px] tracking-widest uppercase text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
+                className="w-fit rounded-full bg-stone-900 px-3 py-1 font-mattone text-[11px] font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 cursor-pointer"
               >
                 Liberar plaza
               </button>
