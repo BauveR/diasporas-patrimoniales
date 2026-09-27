@@ -20,7 +20,7 @@ export function AboutSection() {
           revealOnScroll
           className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
         />
-        <RevealGroup className="flex flex-col gap-5 text-base leading-relaxed text-stone-300 md:text-lg lg:text-xl" style={labelStyle}>
+        <RevealGroup className="flex flex-col gap-5 text-sm leading-relaxed text-stone-300 md:text-base lg:text-lg" style={labelStyle}>
           <RevealItem><p>{t('sobreEncuentro.parrafo1')}</p></RevealItem>
           <RevealItem><p>{t('sobreEncuentro.parrafo2')}</p></RevealItem>
           <RevealItem><p>{t('sobreEncuentro.parrafo3')}</p></RevealItem>

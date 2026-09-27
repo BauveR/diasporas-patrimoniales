@@ -54,14 +54,18 @@ export function InscripcionSection() {
   return (
     <section id="sedes" className="scroll-mt-16 w-full bg-brand-red px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
-        <div className="flex flex-col gap-4">
+        {/* Mismo grid 30/70 que AboutSection ("Sobre el encuentro"): título y
+            párrafo lado a lado desde lg:, apilados debajo de ese ancho.
+            `fr` en vez de `%`/`w-[30%]` — así el split se mantiene exacto
+            descontado el gap (ver el comentario de AboutSection). */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[30fr_70fr] lg:gap-16">
           <SlideInText
             text={t('inscripcion.titulo')}
             revealOnScroll
             className="font-mattone text-fluid-title font-bold tracking-tight text-white uppercase"
           />
           <RevealOnScroll>
-            <p className="max-w-2xl text-base leading-relaxed text-white/85 md:text-lg lg:text-xl" style={labelStyle}>
+            <p className="max-w-2xl text-sm leading-relaxed text-white/85 md:text-base lg:text-lg" style={labelStyle}>
               {t('inscripcion.parrafo')}
             </p>
           </RevealOnScroll>
