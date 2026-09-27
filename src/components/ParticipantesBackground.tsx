@@ -173,14 +173,14 @@ function Swarm() {
 
 export function ParticipantesBackground() {
   const containerRef = useRef<HTMLDivElement>(null)
-  // Arranca en `true` (no `false` esperando el primer callback del
-  // observer): el callback de IntersectionObserver es siempre asíncrono, y
-  // si tarda en llegar en algún navegador/dispositivo, `frameloop` se
-  // queda en "never" — con eso ni el primer frame se dibuja, así que la
-  // sección se ve vacía hasta que (si) el observer confirma visibilidad.
-  // Arrancar visible y dejar que el observer recién pause cuando de verdad
-  // sale de pantalla es la dirección segura del error.
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
+  // Una vez `true`, se queda así para siempre — controla si el <Canvas>
+  // llega a montarse. Antes se montaba (y creaba su contexto WebGL) apenas
+  // cargaba la página, aunque el usuario siguiera mirando el hero arriba
+  // del todo; ahora espera a que la sección esté por entrar en pantalla de
+  // verdad. `isVisible` (abajo) sigue controlando el frameloop una vez ya
+  // montado, para pausar/reanudar sin volver a crear el contexto cada vez.
+  const [hasBeenVisible, setHasBeenVisible] = useState(false)
   // Mismo criterio que la versión anterior de este fondo: sin animar si el
   // sistema pide menos movimiento — acá eso significa congelar el
   // frameloop de R3F en vez de parar un requestAnimationFrame manual.
@@ -195,9 +195,15 @@ export function ParticipantesBackground() {
     // cuando la sección sale de pantalla — mismo motivo que documenta
     // PointsToShapes.tsx: sin esto la carga de GPU/CPU sigue mientras se
     // scrollea el resto de la página, y se nota como un tirón al volver.
+    // rootMargin adelanta el disparo ~150px antes de que la sección entre
+    // de verdad, para que el montaje inicial del Canvas no se note como un
+    // pop-in a mitad de scroll.
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0 },
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+        if (entry.isIntersecting) setHasBeenVisible(true)
+      },
+      { threshold: 0, rootMargin: '150px 0px' },
     )
     observer.observe(el)
 
@@ -213,6 +219,7 @@ export function ParticipantesBackground() {
 
   return (
     <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {hasBeenVisible && (
       <Canvas
         // fov 85, no 60: a distancia fija (z=100) un fov más ancho muestra
         // más del ancho de la "tela" sin achicar las partículas alejando la
@@ -242,6 +249,7 @@ export function ParticipantesBackground() {
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.8, 0.4, 0]} />
         </Effects>
       </Canvas>
+      )}
     </div>
   )
 }
