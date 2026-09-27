@@ -1,5 +1,16 @@
+// Fields here can come straight from a user's own display name — a leading
+// =, +, -, @ (or tab) makes Excel/Sheets read the cell as a formula instead
+// of text (CSV/TSV formula injection). Prefixing with a plain quote forces
+// it back to a literal value without changing what's visibly shown.
+const FORMULA_PREFIX_RE = /^[=+\-@\t\r]/
+
+function sanitizeFormulaInjection(field: string): string {
+  return FORMULA_PREFIX_RE.test(field) ? `'${field}` : field
+}
+
 function escapeCsvField(field: string): string {
-  return /[",\r\n]/.test(field) ? `"${field.replace(/"/g, '""')}"` : field
+  const safe = sanitizeFormulaInjection(field)
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe
 }
 
 export function toCsv(rows: string[][]): string {
@@ -7,7 +18,7 @@ export function toCsv(rows: string[][]): string {
 }
 
 export function toTsv(rows: string[][]): string {
-  return rows.map(row => row.join('\t')).join('\n')
+  return rows.map(row => row.map(sanitizeFormulaInjection).join('\t')).join('\n')
 }
 
 export function downloadCsv(filename: string, rows: string[][]): void {

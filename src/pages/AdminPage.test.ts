@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateActividad } from './AdminPage'
+import { validateActividad } from './admin/actividadForm'
 
 // ActividadForm base válido
 const base = {

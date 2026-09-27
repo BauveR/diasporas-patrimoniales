@@ -10,20 +10,28 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:stress": "npx firebase emulators:exec --project demo-stress-test --only firestore,auth \"npx tsx scripts/stress-test-inscripciones.ts\""
+  },
+  "overrides": {
+    "jwks-rsa": "3.2.2",
+    "uuid": "^11.1.1"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.7.0",
     "@tailwindcss/vite": "^4.3.3",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.4.0",
     "framer-motion": "^12.40.0",
     "gsap": "^3.15.0",
-    "jsqr": "^1.4.0",
-    "qrcode.react": "^4.2.0",
+    "i18next": "^26.4.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.13",
     "react-router-dom": "^7.17.0",
+    "resend": "^6.28.1",
     "tailwindcss": "^4.3.3",
     "three": "^0.185.1",
     "three-stdlib": "^2.36.1"
@@ -37,17 +45,19 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.4",
+    "@vercel/node": "^13.0.1",
     "@vitejs/plugin-react": "^6.0.4",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^10.8.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "jsdom": "^22.1.0",
+    "leva": "^0.10.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.65.0",
     "vite": "^8.2.0",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.8"
+    "vitest": "^5.0.1"
   }
 }

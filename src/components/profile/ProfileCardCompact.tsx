@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
-import { TEMATICA_COLORS } from '../../data/tematicas'
 import { useDataContext } from '../../contexts/DataContext'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
+import { labelStyle } from '../../lib/styles'
 
 type Props = {
   actividad: Actividad
@@ -41,12 +39,13 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
       {/* Imagen */}
       <Link
         to={`/actividades/${actividad.id}`}
-        state={{ from: 'perfil', background: location }}
+        state={{ from: 'perfil-mobile', background: location }}
         className="relative shrink-0 w-20 h-20 rounded-2xl overflow-hidden"
       >
         <img
           src={actividad.imagen}
           alt={actividad.titulo}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}
         />
         {(inactiva || actividad.cancelada) && (
@@ -60,15 +59,9 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
 
       {/* Info + acción */}
       <div className="flex flex-col gap-1 min-w-0 flex-1">
-        <span
-          className="w-fit px-2 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-          style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-        >
-          {actividad.tematica}
-        </span>
         <Link
           to={`/actividades/${actividad.id}`}
-          state={{ from: 'perfil', background: location }}
+          state={{ from: 'perfil-mobile', background: location }}
           className="text-sm text-stone-800 leading-snug line-clamp-2 hover:text-stone-500 transition-colors"
         >
           {actividad.titulo}

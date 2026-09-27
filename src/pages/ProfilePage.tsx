@@ -1,20 +1,23 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import type { MockUser } from '../lib/mockAuth'
+import { Link, useNavigate } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
+import type { AppUser } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { useDataContext } from '../contexts/DataContext'
+import { useOpenActividadId } from '../contexts/ActividadInlineContext'
 import { liberarPlaza, YaLiberadaError } from '../lib/db'
 import { ActividadCard } from '../components/actividades/ActividadCard'
+import { ActividadExpandido } from '../components/actividades/ActividadExpandido'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 
 const today = new Date().toISOString().split('T')[0]
 
 type Tab = 'todas' | 'proximas' | 'pasadas'
 
-function getInitials(user: MockUser): string {
+function getInitials(user: AppUser): string {
   if (user.displayName) {
     return user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }
@@ -94,6 +97,8 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 export function ProfilePage() {
   const { user, signOut, inscripcionIds, inscripcionesLoading } = useAuth()
   const { actividades } = useDataContext()
+  const navigate = useNavigate()
+  const openActividadId = useOpenActividadId()
   const [tab, setTab] = useState<Tab>('todas')
 
   const inscritas  = actividades.filter(a => inscripcionIds.includes(a.id))
@@ -102,6 +107,10 @@ export function ProfilePage() {
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
   const visible = tab === 'proximas' ? proximas : tab === 'pasadas' ? [...pasadas, ...canceladas] : [...proximas, ...pasadas, ...canceladas]
+  // Solo abre inline si el id pertenece a esta lista (y por lo tanto es
+  // visible en la pestaña actual) — si viene de otra sección, esto no
+  // encuentra nada y la grilla se muestra normal.
+  const abierta = visible.find(a => a.id === openActividadId)
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
@@ -122,7 +131,7 @@ export function ProfilePage() {
     <main className="min-h-screen bg-white" style={labelStyle}>
 
       {/* Hero header */}
-      <div className="bg-stone-50 border-b border-stone-100 pt-24 pb-10 px-6 sm:px-8 lg:px-10">
+      <div className="bg-stone-50 border-b border-stone-100 pt-[calc(var(--spacing-navbar)+2rem)] pb-10 px-6 sm:px-8 lg:px-10">
         <div className="flex items-center gap-5">
 
           {/* Avatar */}
@@ -195,7 +204,7 @@ export function ProfilePage() {
               <p className="text-sm text-stone-400 max-w-xs">Aún no te has inscrito en ninguna actividad</p>
             </div>
             <Link
-              to="/#actividades"
+              to="/#sedes"
               className="mt-2 px-6 py-2.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors"
             >
               Explorar actividades
@@ -246,16 +255,31 @@ export function ProfilePage() {
                   ))}
                 </div>
 
-                {/* Tablet / Desktop: grid */}
-                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {visible.map(a => (
-                    <GridCardWrapper
-                      key={a.id}
-                      actividadId={a.id}
-                      uid={user!.uid}
-                      inactiva={a.fecha < today || !!a.cancelada}
-                    />
-                  ))}
+                {/* Tablet / Desktop: grid — con una actividad abierta, el
+                    panel horizontal (ActividadExpandido) reemplaza la
+                    grilla en vez de superponerse, igual criterio que
+                    InscripcionSection. */}
+                <div className="hidden sm:block">
+                  <AnimatePresence mode="wait">
+                    {abierta ? (
+                      <ActividadExpandido
+                        key={abierta.id}
+                        actividad={abierta}
+                        onClose={() => navigate(-1)}
+                      />
+                    ) : (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {visible.map(a => (
+                          <GridCardWrapper
+                            key={a.id}
+                            actividadId={a.id}
+                            uid={user!.uid}
+                            inactiva={a.fecha < today || !!a.cancelada}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </>
             )}

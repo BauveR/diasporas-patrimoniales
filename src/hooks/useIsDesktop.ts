@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react'
-
-export const SM_BREAKPOINT = '(min-width: 640px)'
+import { mq } from '../lib/breakpoints'
 
 export function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.matchMedia(SM_BREAKPOINT).matches)
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.matchMedia(mq('sm')).matches)
   useEffect(() => {
-    const mq = window.matchMedia(SM_BREAKPOINT)
+    const mql = window.matchMedia(mq('sm'))
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
   }, [])
   return isDesktop
 }

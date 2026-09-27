@@ -1,21 +1,47 @@
 import { useEffect, useRef } from 'react'
-import Logo from '../assets/diasporas patrimoniales-03.svg?react'
-import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
+import { useTranslation } from 'react-i18next'
+import Logo from '../assets/diasporas nimation-01.svg?react'
 
-// Lines 1–2 ("DIÁSPORAS" / "PATRIMONIALES", white): a dim static fill with a
-// bright traveling stroke "halo" — HALO_COVERAGE of each letter's own
-// perimeter lit at once, looping forever. The halo itself is two layers
-// sharing the exact same dasharray/dashoffset animation so they travel in
-// lockstep: a wider blurred "glow" underneath, and a thin crisp line on top.
+// Per-language hero wordmark with the traveling "halo": a bright dash that
+// runs around each letter's own perimeter, looping forever, made of two
+// layers sharing one dasharray/dashoffset animation — a wide blurred "glow"
+// underneath and a thin crisp line on top.
 //
-// Both halo layers always need to live on their own stroke-only (fill:none)
-// elements: a blur filter softens everything an element renders, so
-// blurring a path that also carries the dim fill would soften the whole
-// letterform, not just the traveling highlight. DIÁSPORAS ships pre-split
-// into `.c` (fill only) and `.e` (stroke only) — the halo layers clone from
-// `.e`. PATRIMONIALES (`.d`) carries fill and stroke on the same paths, so
-// its halo layers clone from `.d` instead, after neutralizing `.d`'s own
-// stroke so it doesn't also render a third, unstyled outline underneath.
+// Source art ("diasporas nimation-01.svg", 2026-09-08) is a single artboard
+// holding every language variant as a named layer group, all in the same
+// coordinate space so the glyphs that don't change sit at identical
+// positions from one language to the next:
+//
+//   #frances    "DIASPORAS" + "patrimoniales", no accent — the base.
+//               22 paths: 9 on line 1, then 13 on line 2, in document order.
+//   #espanol    just the acute accent over the first "A" (1 path).
+//   #portugues  the "-is" ending that stands in for "-les" (2 paths: i, s).
+//   #ingles     "HERITAGE" / "DIASPORAS" — its own separate layout (17 paths).
+//
+// Composition per language:
+//   fr = #frances
+//   es = #frances + #espanol
+//   pt = #frances minus its last 3 paths (l·e·s of "patrimoniales") + #espanol
+//        + #portugues
+//   en = #ingles only
+//
+// Everything is kept in one mounted SVG (rather than swapping whole files) so
+// that a language change only toggles the glyphs that actually differ and
+// only rebuilds the halo for those. The shared letters keep the exact same
+// running animation, uninterrupted, straight through the transition.
+//
+// `buildHalo` inserts its glow/crisp clones as <path>s right inside the same
+// group and tags them `data-halo`; every glyph query here is
+// `:not([data-halo])` so those clones never fold back into the glyph lists.
+// Without that, re-running the query on each switch made `slice(-3)` stop
+// meaning "l·e·s" (it became "s" + its two halo clones) and let halos stack
+// up clone-on-clone, looking different after every switch.
+//
+// (Layer ids survive the build because vite.config.ts turns off SVGO's
+// `cleanupIds` for `?react` imports. The "les" run isn't its own group in the
+// art, so it's taken as the last three paths of #frances by document order.
+// Halo constants are still those tuned against the previous, larger export;
+// re-tuning is a later pass.)
 const FILL_OPACITY = 0.4
 const HALO_COLOR = '#fff'
 const HALO_COVERAGE = 0.6
@@ -23,97 +49,131 @@ const HALO_CRISP_STROKE_WIDTH = 0.6
 const HALO_GLOW_STROKE_WIDTH = 1
 const HALO_GLOW_BLUR_PX = 0.8
 const HALO_LOOP_MS = 13000
+const GLYPH_FADE_MS = 350
 
-// Line 3 ("SIMPOSIO INTERNACIONAL", white, <g id="line3">): stays hidden
-// until the particles finish forming the shape — reuses PointsToShapes' own
-// timing instead of an independent guess, so the two can't drift out of
-// sync. It arrived as pre-outlined paths now (not a <text>+scale() transform
-// like before), so only opacity is touched here — nothing that could
-// distort those letterforms' proportions.
-const LINE3_DELAY_MS = (FORM_START + FORM_DURATION) * 1000
-const LINE3_FADE_MS = 600
+type Lang = 'es' | 'fr' | 'pt' | 'en'
 
-// Builds the glow+crisp halo pair from `templatePath` (already fill:none,
-// stroke:none — either the real .e path or a stroke-only .d clone) and
-// inserts both right after it, in glow-then-crisp paint order.
-function createHaloLayers(templatePath: SVGPathElement, animations: Animation[], clones: SVGPathElement[]) {
+// i18n hands us plain codes ('es'|'en'|'fr'|'pt'), but tolerate region tags
+// ('es-ES') too, and fall back to the default locale for anything else.
+function toLang(raw: string | undefined): Lang {
+  const base = (raw ?? 'es').toLowerCase().split('-')[0]
+  return base === 'fr' || base === 'pt' || base === 'en' ? base : 'es'
+}
+
+// Builds the glow+crisp halo pair from `templatePath` (cloned with fill:none)
+// and inserts both right after it, glow-then-crisp. Returns a teardown that
+// cancels the two animations and removes the two clones.
+function buildHalo(templatePath: SVGPathElement): () => void {
   const length = templatePath.getTotalLength()
   const dasharray = `${length * HALO_COVERAGE} ${length * (1 - HALO_COVERAGE)}`
   const keyframes = [{ strokeDashoffset: 0 }, { strokeDashoffset: -length }]
   const timing = { duration: HALO_LOOP_MS, iterations: Infinity, easing: 'linear' } as const
 
-  const glow = templatePath.cloneNode(false) as SVGPathElement
-  glow.removeAttribute('class')
-  glow.style.fill = 'none'
-  glow.style.stroke = HALO_COLOR
-  glow.style.strokeWidth = String(HALO_GLOW_STROKE_WIDTH)
-  glow.style.strokeDasharray = dasharray
-  glow.style.filter = `blur(${HALO_GLOW_BLUR_PX}px)`
-  templatePath.after(glow)
-  clones.push(glow)
-  animations.push(glow.animate(keyframes, timing))
+  const makeLayer = (strokeWidth: number, blurPx: number) => {
+    const layer = templatePath.cloneNode(false) as SVGPathElement
+    layer.removeAttribute('class')
+    layer.dataset.halo = '' // marks this as a halo clone, not a glyph
+    layer.style.fill = 'none'
+    layer.style.stroke = HALO_COLOR
+    layer.style.strokeWidth = String(strokeWidth)
+    layer.style.strokeDasharray = dasharray
+    layer.style.opacity = '1'
+    layer.style.transition = 'none'
+    if (blurPx) layer.style.filter = `blur(${blurPx}px)`
+    return layer
+  }
 
-  const crisp = templatePath.cloneNode(false) as SVGPathElement
-  crisp.removeAttribute('class')
-  crisp.style.fill = 'none'
-  crisp.style.stroke = HALO_COLOR
-  crisp.style.strokeWidth = String(HALO_CRISP_STROKE_WIDTH)
-  crisp.style.strokeDasharray = dasharray
+  const glow = makeLayer(HALO_GLOW_STROKE_WIDTH, HALO_GLOW_BLUR_PX)
+  const crisp = makeLayer(HALO_CRISP_STROKE_WIDTH, 0)
+  templatePath.after(glow)
   glow.after(crisp)
-  clones.push(crisp)
-  animations.push(crisp.animate(keyframes, timing))
+
+  const animations = [glow.animate(keyframes, timing), crisp.animate(keyframes, timing)]
+
+  return () => {
+    animations.forEach((animation) => animation.cancel())
+    glow.remove()
+    crisp.remove()
+  }
 }
 
 export function HeroWordmark({ className }: { className?: string }) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const { i18n } = useTranslation()
+  const lang = toLang(i18n.language)
 
+  // Halo teardown fns keyed by the glyph <path> each one decorates. Kept in a
+  // ref so it survives renders and language changes — the language effect
+  // diffs against it and leaves a still-active letter's halo untouched.
+  const halosRef = useRef(new Map<SVGPathElement, () => void>())
+
+  // Mount once: dim every glyph's fill and give it an opacity transition for
+  // the crossfade. Halos are torn down here on unmount — the language effect
+  // below has no cleanup of its own on purpose (see there).
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
 
-    const animations: Animation[] = []
-    const clones: SVGPathElement[] = []
+    root
+      .querySelectorAll<SVGPathElement>('.cls-1:not([data-halo])')
+      .forEach((path) => {
+        path.style.fillOpacity = String(FILL_OPACITY)
+        path.style.transition = `opacity ${GLYPH_FADE_MS}ms ease`
+      })
 
-    // DIÁSPORAS: fill (.c) dimmed; halo layers cloned from the pre-built
-    // stroke-only layer (.e), which is then hidden so it doesn't also show
-    // through as a plain, unstyled orange outline underneath the clones.
-    root.querySelectorAll<SVGPathElement>('.c').forEach((path) => {
-      path.style.fillOpacity = String(FILL_OPACITY)
-    })
-    root.querySelectorAll<SVGPathElement>('.e').forEach((path) => {
-      path.style.stroke = 'none'
-      createHaloLayers(path, animations, clones)
-    })
-
-    // PATRIMONIALES: fill and stroke share the same paths (.d). Dim the
-    // fill and strip the default stroke on the original, then clone the
-    // glow+crisp halo layers from it.
-    root.querySelectorAll<SVGPathElement>('.d').forEach((path) => {
-      path.style.fillOpacity = String(FILL_OPACITY)
-      path.style.stroke = 'none'
-      createHaloLayers(path, animations, clones)
-    })
-
-    const line3 = root.querySelector<SVGGElement>('#line3')
-    if (line3) {
-      line3.style.opacity = '0'
-      animations.push(
-        line3.animate(
-          [{ opacity: 0 }, { opacity: 1 }],
-          { duration: LINE3_FADE_MS, delay: LINE3_DELAY_MS, easing: 'ease', fill: 'forwards' },
-        ),
-      )
-    }
-
-    // StrictMode double-invokes effects in dev — without cancelling
-    // animations and removing cloned overlays, the second run would stack a
-    // second set of infinite dashoffset animations and duplicate halo
-    // layers on top of the first.
+    const halos = halosRef.current
     return () => {
-      animations.forEach((animation) => animation.cancel())
-      clones.forEach((clone) => clone.remove())
+      halos.forEach((teardown) => teardown())
+      halos.clear()
     }
   }, [])
+
+  // On language change: pick the active glyph set, crossfade everything else
+  // out, then diff the halo set — tear down halos for glyphs leaving, build
+  // them for glyphs entering, and never touch the ones that stay. Leaving the
+  // stayers alone is what keeps the halo running unbroken across the switch,
+  // so there's no full-rebuild cleanup here on purpose.
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+
+    // `:not([data-halo])` keeps the halo clones buildHalo() inserts into these
+    // same groups out of the glyph lists.
+    const pathsOf = (id: string) =>
+      Array.from(root.querySelectorAll<SVGPathElement>(`#${id} path:not([data-halo])`))
+
+    const frances = pathsOf('frances') // [0..8] line 1, [9..21] line 2
+    const francesLes = frances.slice(-3) // l · e · s of "patrimoniales"
+    const accent = pathsOf('espanol')
+    const portugalTail = pathsOf('portugues')
+    const ingles = pathsOf('ingles')
+
+    const activeByLang: Record<Lang, SVGPathElement[]> = {
+      fr: frances,
+      es: [...frances, ...accent],
+      pt: [...frances.filter((path) => !francesLes.includes(path)), ...accent, ...portugalTail],
+      en: ingles,
+    }
+    const active = activeByLang[lang]
+    const activeSet = new Set(active)
+
+    // Every glyph is shown iff it's in the active set; the opacity transition
+    // set at mount turns each toggle into a crossfade.
+    for (const path of [...frances, ...accent, ...portugalTail, ...ingles]) {
+      path.style.opacity = activeSet.has(path) ? '1' : '0'
+    }
+
+    const halos = halosRef.current
+    halos.forEach((teardown, path) => {
+      if (!activeSet.has(path)) {
+        teardown()
+        halos.delete(path)
+      }
+    })
+    for (const path of active) {
+      if (!halos.has(path)) halos.set(path, buildHalo(path))
+    }
+  }, [lang])
 
   return (
     <div ref={rootRef} className={className}>

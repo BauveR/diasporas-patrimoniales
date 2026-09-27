@@ -1,20 +1,20 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  subscribeMockAuthState,
-  mockSignIn,
-  mockSignUp,
-  mockSignInWithGoogle,
-  mockSignOut,
-  getMockUserRole,
-} from '../lib/mockAuth'
-import type { MockUser, UserRole } from '../lib/mockAuth'
+  subscribeAuthState,
+  signIn as authSignIn,
+  signUp as authSignUp,
+  signInWithGoogle as authSignInWithGoogle,
+  signOutUser,
+  getUserRole,
+} from '../lib/auth'
+import type { AppUser, UserRole } from '../lib/auth'
 import { subscribeInscripcionIds } from '../lib/db'
 
 export type { UserRole }
 
 type AuthContextValue = {
-  user: MockUser | null
+  user: AppUser | null
   userRole: UserRole | null
   loading: boolean
   inscripcionIds: number[]
@@ -27,17 +27,43 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+// signUp() calls firebase/auth's updateProfile() right after creating the
+// account, which mutates the user object in place — but the very first
+// onAuthStateChanged firing for that account (already queued by then) still
+// carries the pre-update snapshot with displayName: null. If that stale
+// event lands in React state after signUp()'s own setUser() already put the
+// real name there, the name regresses back to null. Keep the richer name for
+// the same uid instead of overwriting it with a same-uid-but-blanker one.
+function mergeAuthUser(prev: AppUser | null, next: AppUser | null): AppUser | null {
+  if (prev && next && prev.uid === next.uid && prev.displayName && !next.displayName) {
+    return { ...next, displayName: prev.displayName }
+  }
+  return next
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
   const [rawInscripcionIds, setRawInscripcionIds] = useState<number[]>([])
   const [rawInscripcionesLoading, setRawInscripcionesLoading] = useState(false)
 
   useEffect(() => {
-    const unsub = subscribeMockAuthState(mockUser => {
-      setUser(mockUser)
-      setUserRole(mockUser ? getMockUserRole(mockUser.email) : null)
+    const unsub = subscribeAuthState(async authUser => {
+      setUser(prev => mergeAuthUser(prev, authUser))
+      if (!authUser) {
+        setUserRole(null)
+        setLoading(false)
+        return
+      }
+      // Firestore read, not derived from the auth user itself — role must
+      // never be something the client can assign to its own account. Loading
+      // only clears once this resolves — ProtectedRoute's admin check reads
+      // userRole the instant loading flips false, so setting that too early
+      // (while userRole is still last-run's or null) bounces an admin back
+      // to /perfil for a frame before the real role lands.
+      const role = await getUserRole(authUser.uid).catch(() => 'user' as UserRole)
+      setUserRole(role)
       setLoading(false)
     })
     return unsub
@@ -68,28 +94,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const inscripcionesLoading = user ? rawInscripcionesLoading : false
 
   const signIn = async (email: string, password: string): Promise<UserRole> => {
-    const u = await mockSignIn(email, password)
-    const role = getMockUserRole(u.email)
+    const u = await authSignIn(email, password)
+    setUser(u)
+    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
     setUserRole(role)
     return role
   }
 
   const signUp = async (name: string, email: string, password: string): Promise<UserRole> => {
-    const u = await mockSignUp(name, email, password)
-    const role = getMockUserRole(u.email)
+    const u = await authSignUp(name, email, password)
+    setUser(u)
+    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
     setUserRole(role)
     return role
   }
 
   const signInWithGoogle = async (): Promise<UserRole> => {
-    const u = await mockSignInWithGoogle()
-    const role = getMockUserRole(u.email)
+    const u = await authSignInWithGoogle()
+    setUser(u)
+    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
     setUserRole(role)
     return role
   }
 
   const signOut = async () => {
-    await mockSignOut()
+    await signOutUser()
     setUser(null)
     setUserRole(null)
   }

@@ -1,5 +1,63 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Mattone';
+  src: url('./assets/fonts/Mattone-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mattone';
+  src: url('./assets/fonts/Mattone-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bold italic only — el archivo que hay (ver api/_lib/emailTemplate.ts,
+   donde ya se usa el mismo .woff2 vía @font-face para el email). Acá se
+   declara para el sitio en sí, pensado como acento editorial puntual
+   (citas/títulos de intervención de ponentes), no como tipografía de
+   cuerpo — por eso no hay una versión regular/no-italic. */
+@font-face {
+  font-family: 'Gambetta';
+  src: url('./assets/fonts/Gambetta-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --font-mattone: 'Mattone', sans-serif;
+  --font-gambetta: 'Gambetta', Georgia, 'Times New Roman', serif;
+
+  /* Institutional red + CTA orange — used as literal hex (style={{...}},
+     text-[#9b2923]) in ~12 files today; real utilities (bg-brand-red,
+     text-brand-red, etc.) let each of those switch to a single named
+     source of truth instead of repeating the hex, one component at a
+     time as they're touched. */
+  --color-brand-red: #9b2923;
+  --color-brand-orange: #f04f23;
+
+  /* Replaces the `text-3xl md:text-4xl lg:text-5xl` section-title jump
+     repeated as one literal block across 6 components — 30px at a 320px
+     viewport, 48px from a 1536px one up, interpolated by vw in between
+     instead of snapping at each breakpoint. Same min/max Tailwind's own
+     3xl/5xl already used, so no section's title changes size at its
+     current narrowest/widest — only what happens between them does. */
+  --text-fluid-title: clamp(1.875rem, 1.58rem + 1.48vw, 3rem);
+
+  /* Real total height of the fixed Navbar (its own 4rem/h-16 bar, plus the
+     safe-area padding it adds on a notched phone in portrait) — every page
+     that offsets its content below the fixed navbar uses `pt-navbar`/
+     `top-navbar` instead of a hardcoded `pt-16`, so they stay correct on
+     those devices instead of hiding a strip of content under a navbar that
+     grew taller than 4rem. */
+  --spacing-navbar: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
 body {
   margin: 0;
 }

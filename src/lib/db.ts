@@ -1,14 +1,27 @@
-// Mock backend standing in for Firestore. Exports the exact same public API
-// (function names, parameter shapes, error classes) that a real
-// Firestore-backed implementation would — see the reference project's
-// original `db.ts` — but backed by in-memory state seeded from `data/`
-// instead of live Firestore calls. Nothing that imports from this module
-// needs to change when it's swapped for a real Firestore project later; only
-// the internals here do.
+// Real Firestore backend — the swap-in for the old in-memory mock, replacing
+// every export it had one-for-one so DataContext/AuthContext/AdminPage/
+// ActividadPage didn't need structural changes, just an async
+// getTelefonoForUser (a real read can't be synchronous like the mock's map
+// lookup was — see ActividadPage.tsx for the small effect that adapts to it).
+import {
+  collection,
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  runTransaction,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore'
+import { db } from './firebase'
 import type { Actividad } from '../data/actividades'
-import { ACTIVIDADES } from '../data/actividades'
 import type { Sede } from '../data/sedes'
-import { SEDES } from '../data/sedes'
 
 export type InscritoData = {
   uid: string
@@ -16,99 +29,56 @@ export type InscritoData = {
   displayName: string
   telefono: string
   inscritoEn: Date | null
-  // Acreditación en el evento (check-in por QR) — ver la sección "Acreditación"
-  // más abajo.
-  token: string
-  acreditado: boolean
-  acreditadoEn: Date | null
+  aceptoTerminos: boolean
+  terminosVersion: string | null
 }
 
 type Unsubscribe = () => void
 
-// ── In-memory store ─────────────────────────────────────────────────────────
-// A tiny pub-sub per collection, mirroring Firestore's onSnapshot semantics:
-// subscribers get the current snapshot immediately, then again on every
-// mutation — so admin CRUD and inscriptions reflect live in the UI, same as
-// the real backend would, without a page reload.
-
-function createStore<T>(seed: T[]) {
-  let items = seed
-  const listeners = new Set<(items: T[]) => void>()
-  function notify() {
-    for (const cb of listeners) cb(items)
-  }
-  return {
-    get: () => items,
-    mutate(fn: (items: T[]) => T[]) {
-      items = fn(items)
-      notify()
-    },
-    subscribe(cb: (items: T[]) => void): Unsubscribe {
-      listeners.add(cb)
-      cb(items)
-      return () => listeners.delete(cb)
-    },
-  }
-}
-
-const actividadesStore = createStore<Actividad>(ACTIVIDADES.map(a => ({ ...a })))
-const sedesStore = createStore<Sede>(SEDES.map(s => ({ ...s })))
-
-const _inscritos = new Map<number, Map<string, InscritoData>>()
-const _telefonos = new Map<string, string>()
-// Resuelve un token de QR escaneado directo a su inscripción, sin que el
-// dispositivo que escanea necesite saber de antemano actividadId/uid — mismo
-// rol que cumpliría usar el token como ID de documento en una colección
-// `acreditaciones/{token}` de Firestore real.
-const _tokenIndex = new Map<string, { actividadId: number; uid: string }>()
-const inscripcionListeners = new Set<() => void>()
-function notifyInscripciones() {
-  for (const cb of inscripcionListeners) cb()
-}
+// Versión de /privacidad que el usuario acepta al inscribirse — sube este
+// número (y el texto de la página) si el contenido de esa política cambia
+// de forma sustancial; los registros viejos quedan con la versión que
+// aceptaron en su momento, no se reescriben retroactivamente. `inscritoEn`
+// (mismo serverTimestamp de la inscripción) hace de sello de tiempo de esta
+// aceptación — es el mismo instante, así que no se duplica en un segundo
+// campo. Ver RGPD art. 7(1): el responsable del tratamiento debe poder
+// demostrar que hubo consentimiento, no alcanza con asumirlo.
+export const TERMINOS_VERSION = 'v1'
 
 // ── Subscriptions ────────────────────────────────────────────────────────────
 
 export function subscribeActividades(cb: (data: Actividad[]) => void): Unsubscribe {
-  return actividadesStore.subscribe(items => {
+  return onSnapshot(collection(db, 'actividades'), snap => {
+    const items = snap.docs.map(d => d.data() as Actividad)
     cb([...items].sort((a, b) => a.fecha.localeCompare(b.fecha)))
   })
 }
 
 export function subscribeSedes(cb: (data: Sede[]) => void): Unsubscribe {
-  return sedesStore.subscribe(items => {
+  return onSnapshot(collection(db, 'sedes'), snap => {
+    const items = snap.docs.map(d => d.data() as Sede)
     cb([...items].sort((a, b) => a.id - b.id))
   })
 }
 
-/** Mock-only: live list of actividad ids a given user is inscribed to — stands in for the old `users/{uid}/inscripciones` subcollection subscription. */
+// No `users/{uid}/inscripciones` mirror collection — a collection-group query
+// over every actividad's `inscritos` subcollection, filtered by the `uid`
+// field each doc already carries, gives the same list without a second write
+// per inscripción to keep in sync.
 export function subscribeInscripcionIds(uid: string, cb: (ids: number[]) => void): Unsubscribe {
-  const emit = () => cb(getInscripcionIdsForUser(uid))
-  inscripcionListeners.add(emit)
-  emit()
-  return () => inscripcionListeners.delete(emit)
+  const q = query(collectionGroup(db, 'inscritos'), where('uid', '==', uid))
+  return onSnapshot(q, snap => {
+    const ids = snap.docs
+      .map(d => Number(d.ref.parent.parent?.id))
+      .filter(id => !Number.isNaN(id))
+    cb(ids)
+  })
 }
 
-function getInscripcionIdsForUser(uid: string): number[] {
-  const ids: number[] = []
-  for (const [actividadId, inscritos] of _inscritos) {
-    if (inscritos.has(uid)) ids.push(actividadId)
-  }
-  return ids
-}
-
-/** Mock-only: stands in for the `users/{uid}.telefono` Firestore read used to prefill the phone field. */
-export function getTelefonoForUser(uid: string): string | undefined {
-  return _telefonos.get(uid)
-}
-
-/**
- * A user's own accreditation token for one actividad — for showing them
- * their QR. Scoped to a single (actividadId, uid) pair rather than exposing
- * `getInscritos`' full attendee list: a real Firestore rule would let a user
- * read only their own inscripción doc, never the whole subcollection.
- */
-export function getMiToken(actividadId: number, uid: string): string | undefined {
-  return _inscritos.get(actividadId)?.get(uid)?.token
+/** The user's own saved phone number (users/{uid}.telefono) — prefills the phone field so it isn't asked from scratch every time. */
+export async function getTelefonoForUser(uid: string): Promise<string | undefined> {
+  const snap = await getDoc(doc(db, 'users', uid))
+  return (snap.data()?.telefono as string | undefined) || undefined
 }
 
 // ── Inscription ───────────────────────────────────────────────────────────────
@@ -129,6 +99,15 @@ export class YaLiberadaError extends Error {
   constructor() { super('YA_LIBERADA') }
 }
 
+// Pure — no Firestore involved — so it's unit-testable without an emulator.
+// Both inscribirse() and the tests call this same check.
+export function assertInscribible(actividad: Pick<Actividad, 'cancelada' | 'plazasDisponibles' | 'fechaAperturaInscripciones'>, today: string): void {
+  if (actividad.cancelada) throw new EventoCanceladoError()
+  if ((actividad.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
+  const apertura = actividad.fechaAperturaInscripciones
+  if (apertura && apertura > today) throw new InscripcionNoAbiertaError()
+}
+
 export async function inscribirse(
   actividadId: number,
   uid: string,
@@ -136,95 +115,115 @@ export async function inscribirse(
   displayName: string,
   telefono: string,
 ): Promise<void> {
-  const actividad = actividadesStore.get().find(a => a.id === actividadId)
-  if (!actividad) return
+  const actividadRef = doc(db, 'actividades', String(actividadId))
+  const inscritoRef = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
+  const userRef = doc(db, 'users', uid)
 
-  const inscritosDeActividad = _inscritos.get(actividadId) ?? new Map<string, InscritoData>()
-  if (inscritosDeActividad.has(uid)) return // ya inscrito — no-op, igual que la transacción original
+  await runTransaction(db, async tx => {
+    const [actividadSnap, inscritoSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef)])
+    if (!actividadSnap.exists()) return
+    if (inscritoSnap.exists()) return // ya inscrito — no-op, igual que la transacción original
 
-  if (actividad.cancelada) throw new EventoCanceladoError()
-  if ((actividad.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
-  const apertura = actividad.fechaAperturaInscripciones
-  if (apertura && apertura > new Date().toISOString().slice(0, 10)) throw new InscripcionNoAbiertaError()
+    const actividad = actividadSnap.data() as Actividad
+    const today = new Date().toISOString().slice(0, 10)
+    assertInscribible(actividad, today)
 
-  const token = randomToken()
-  inscritosDeActividad.set(uid, {
-    uid, email, displayName, telefono, inscritoEn: new Date(),
-    token, acreditado: false, acreditadoEn: null,
+    tx.set(inscritoRef, {
+      uid, email, displayName, telefono,
+      inscritoEn: serverTimestamp(),
+      // Llegar a este punto ya implica que se marcó el checkbox de
+      // aceptación en el formulario (BookingWidget lo exige antes de poder
+      // llamar a esta función) — no un booleano recibido por parámetro que
+      // este código tendría que volver a validar.
+      aceptoTerminos: true,
+      terminosVersion: TERMINOS_VERSION,
+    })
+    tx.update(actividadRef, { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
+    tx.set(userRef, { telefono }, { merge: true })
   })
-  _inscritos.set(actividadId, inscritosDeActividad)
-  _telefonos.set(uid, telefono)
-  _tokenIndex.set(token, { actividadId, uid })
+}
 
-  actividadesStore.mutate(items =>
-    items.map(a => (a.id === actividadId ? { ...a, plazasDisponibles: (a.plazasDisponibles ?? 0) - 1 } : a)),
-  )
-  notifyInscripciones()
+// Inscripción combinada a varias actividades (hoy, las 2 jornadas del
+// evento) en una sola transacción: o se reservan las plazas en todas a la
+// vez, o no se reserva ninguna — nunca un registro "a medias" si una de las
+// dos ya se llenó entre que se cargó la página y se confirmó el formulario.
+export async function inscribirseAmbosDias(
+  actividadIds: number[],
+  uid: string,
+  email: string,
+  displayName: string,
+  telefono: string,
+): Promise<void> {
+  const actividadRefs = actividadIds.map(id => doc(db, 'actividades', String(id)))
+  const inscritoRefs = actividadIds.map(id => doc(db, 'actividades', String(id), 'inscritos', uid))
+  const userRef = doc(db, 'users', uid)
+
+  await runTransaction(db, async tx => {
+    const [actividadSnaps, inscritoSnaps] = await Promise.all([
+      Promise.all(actividadRefs.map(ref => tx.get(ref))),
+      Promise.all(inscritoRefs.map(ref => tx.get(ref))),
+    ])
+    if (actividadSnaps.some(snap => !snap.exists())) return
+    if (inscritoSnaps.some(snap => snap.exists())) return // ya inscrito a alguna — no-op
+
+    const today = new Date().toISOString().slice(0, 10)
+    const actividadesData = actividadSnaps.map(snap => snap.data() as Actividad)
+    actividadesData.forEach(actividad => assertInscribible(actividad, today))
+
+    actividadesData.forEach((actividad, i) => {
+      tx.set(inscritoRefs[i], {
+        uid, email, displayName, telefono,
+        inscritoEn: serverTimestamp(),
+        aceptoTerminos: true,
+        terminosVersion: TERMINOS_VERSION,
+      })
+      tx.update(actividadRefs[i], { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
+    })
+    tx.set(userRef, { telefono }, { merge: true })
+  })
+}
+
+export async function liberarAmbosDias(actividadIds: number[], uid: string): Promise<void> {
+  const actividadRefs = actividadIds.map(id => doc(db, 'actividades', String(id)))
+  const inscritoRefs = actividadIds.map(id => doc(db, 'actividades', String(id), 'inscritos', uid))
+
+  await runTransaction(db, async tx => {
+    const [actividadSnaps, inscritoSnaps] = await Promise.all([
+      Promise.all(actividadRefs.map(ref => tx.get(ref))),
+      Promise.all(inscritoRefs.map(ref => tx.get(ref))),
+    ])
+    if (inscritoSnaps.every(snap => !snap.exists())) throw new YaLiberadaError()
+
+    inscritoSnaps.forEach((snap, i) => {
+      if (!snap.exists()) return
+      tx.delete(inscritoRefs[i])
+      const actividadSnap = actividadSnaps[i]
+      if (actividadSnap.exists()) {
+        const actividad = actividadSnap.data() as Actividad
+        tx.update(actividadRefs[i], {
+          plazasDisponibles: Math.min((actividad.plazasDisponibles ?? 0) + 1, actividad.plazas),
+        })
+      }
+    })
+  })
 }
 
 export async function liberarPlaza(actividadId: number, uid: string): Promise<void> {
-  const inscritosDeActividad = _inscritos.get(actividadId)
-  if (!inscritosDeActividad?.has(uid)) throw new YaLiberadaError()
+  const actividadRef = doc(db, 'actividades', String(actividadId))
+  const inscritoRef = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
 
-  // El token de acreditación queda inválido junto con la plaza — si no se
-  // borra acá, un ticket cancelado seguiría acreditando en la puerta.
-  const inscrito = inscritosDeActividad.get(uid)
-  if (inscrito) _tokenIndex.delete(inscrito.token)
-  inscritosDeActividad.delete(uid)
+  await runTransaction(db, async tx => {
+    const [actividadSnap, inscritoSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef)])
+    if (!inscritoSnap.exists()) throw new YaLiberadaError()
 
-  actividadesStore.mutate(items =>
-    items.map(a =>
-      a.id === actividadId
-        ? { ...a, plazasDisponibles: Math.min((a.plazasDisponibles ?? 0) + 1, a.plazas) }
-        : a,
-    ),
-  )
-  notifyInscripciones()
-}
-
-// ── Acreditación (check-in por QR) ──────────────────────────────────────────────
-// El QR de cada inscrito codifica únicamente `token` — un valor aleatorio
-// opaco, no un cálculo/firma sobre actividadId+uid. Con un secreto de firma
-// no habría dónde guardarlo con seguridad en una app 100% cliente (quedaría
-// expuesto en el JS del navegador, anulando la protección), y como acreditar
-// igual requiere una escritura en la base, la ventaja de "validar sin ir a
-// la base" de un token firmado no se aprovecha acá. Random + búsqueda directa
-// por token es el patrón estándar en sistemas de ticketing.
-
-export class TokenInvalidoError extends Error {
-  constructor() { super('TOKEN_INVALIDO') }
-}
-
-export type AcreditarResult = {
-  displayName: string
-  actividadId: number
-  // true si el token ya estaba acreditado antes de este escaneo — permite
-  // que la UI del escáner muestre "ya acreditado" en vez de tratarlo como
-  // error cuando dos dispositivos (o el mismo, dos veces) escanean el mismo
-  // QR casi al mismo tiempo.
-  yaAcreditado: boolean
-  // Momento del primer escaneo válido. Con `yaAcreditado`, le permite al
-  // escáner mostrar "denegado, ya usado a las HH:MM" en un reescaneo —
-  // la señal que necesita quien acredita en persona para no dejar pasar a
-  // una segunda persona con el mismo QR compartido.
-  acreditadoEn: Date
-}
-
-export async function acreditar(token: string): Promise<AcreditarResult> {
-  const ref = _tokenIndex.get(token)
-  if (!ref) throw new TokenInvalidoError()
-
-  const inscrito = _inscritos.get(ref.actividadId)?.get(ref.uid)
-  if (!inscrito) throw new TokenInvalidoError()
-
-  const yaAcreditado = inscrito.acreditado
-  if (!yaAcreditado) {
-    inscrito.acreditado = true
-    inscrito.acreditadoEn = new Date()
-    notifyInscripciones()
-  }
-
-  return { displayName: inscrito.displayName, actividadId: ref.actividadId, yaAcreditado, acreditadoEn: inscrito.acreditadoEn! }
+    tx.delete(inscritoRef)
+    if (actividadSnap.exists()) {
+      const actividad = actividadSnap.data() as Actividad
+      tx.update(actividadRef, {
+        plazasDisponibles: Math.min((actividad.plazasDisponibles ?? 0) + 1, actividad.plazas),
+      })
+    }
+  })
 }
 
 // ── Actividades CRUD ──────────────────────────────────────────────────────────
@@ -233,21 +232,16 @@ function randomId(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0]
 }
 
-function randomToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16)) // 128 bits de entropía
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
-}
-
 export async function addActividad(data: Omit<Actividad, 'id'>): Promise<void> {
   const id = randomId()
-  actividadesStore.mutate(items => [...items, { ...data, id }])
+  await setDoc(doc(db, 'actividades', String(id)), { ...data, id })
 }
 
 export async function updateActividad(
   id: number,
   data: Partial<Omit<Actividad, 'id'>>,
 ): Promise<void> {
-  actividadesStore.mutate(items => items.map(a => (a.id === id ? { ...a, ...data } : a)))
+  await updateDoc(doc(db, 'actividades', String(id)), data)
 }
 
 export async function cancelActividad(id: number): Promise<void> {
@@ -258,38 +252,37 @@ export async function reactivarActividad(id: number): Promise<void> {
   await updateActividad(id, { cancelada: false })
 }
 
+// Nota: Firestore no borra subcolecciones en cascada — esto deja huérfana la
+// subcolección inscritos/ de la actividad borrada. No se implementa un
+// borrado recursivo (necesitaría una Cloud Function, no disponible en el
+// plan Spark) porque esta acción no se usa hoy desde la UI de administración.
 export async function eliminarActividad(id: number): Promise<void> {
-  actividadesStore.mutate(items => items.filter(a => a.id !== id))
-  _inscritos.delete(id)
-  notifyInscripciones()
+  await deleteDoc(doc(db, 'actividades', String(id)))
 }
 
 export async function getInscritos(actividadId: number): Promise<InscritoData[]> {
-  return Array.from(_inscritos.get(actividadId)?.values() ?? [])
+  const snap = await getDocs(collection(db, 'actividades', String(actividadId), 'inscritos'))
+  return snap.docs.map(d => {
+    const data = d.data()
+    return {
+      uid: data.uid as string,
+      email: data.email as string,
+      displayName: data.displayName as string,
+      telefono: data.telefono as string,
+      inscritoEn: data.inscritoEn ? (data.inscritoEn as Timestamp).toDate() : null,
+      aceptoTerminos: (data.aceptoTerminos as boolean | undefined) ?? false,
+      terminosVersion: (data.terminosVersion as string | undefined) ?? null,
+    }
+  })
 }
 
 // ── Sedes CRUD ────────────────────────────────────────────────────────────────
-
-export async function addSede(data: Omit<Sede, 'id' | 'actividadIds'>): Promise<void> {
-  const id = randomId()
-  sedesStore.mutate(items => [...items, { ...data, id, actividadIds: [] }])
-}
+// Solo `updateSede` — el evento tiene una única sede fija; nada da de alta
+// sedes nuevas (por eso no hay `addSede` acá).
 
 export async function updateSede(
   id: number,
   data: Partial<Omit<Sede, 'id'>>,
 ): Promise<void> {
-  sedesStore.mutate(items => items.map(s => (s.id === id ? { ...s, ...data } : s)))
-}
-
-// ── Test-only ─────────────────────────────────────────────────────────────────
-
-/** Resets the in-memory store to its seeded state — for test isolation between cases. */
-export function __resetMockDb(): void {
-  actividadesStore.mutate(() => ACTIVIDADES.map(a => ({ ...a })))
-  sedesStore.mutate(() => SEDES.map(s => ({ ...s })))
-  _inscritos.clear()
-  _telefonos.clear()
-  _tokenIndex.clear()
-  notifyInscripciones()
+  await updateDoc(doc(db, 'sedes', String(id)), data)
 }

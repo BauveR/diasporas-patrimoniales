@@ -1,26 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import type { Tematica } from '../data/tematicas'
-import type { Dificultad, Actividad } from '../data/actividades'
+import type { Actividad } from '../data/actividades'
 import type { Sede } from '../data/sedes'
-import type { FilterState } from '../components/actividades/FilterSheet'
 import { subscribeActividades, subscribeSedes } from '../lib/db'
 
 type DataContextValue = {
   actividades: Actividad[]
   sedes: Sede[]
   dataLoading: boolean
-  tematica: Tematica | null
-  setTematica: (v: Tematica | null) => void
-  isla: string | null
-  setIsla: (v: string | null) => void
-  sedeId: number | null
-  setSedeId: (v: number | null) => void
-  mes: string | null
-  setMes: (v: string | null) => void
-  dificultad: Dificultad | null
-  setDificultad: (v: Dificultad | null) => void
-  applyFilters: (f: FilterState) => void
 }
 
 const DataContext = createContext<DataContextValue | null>(null)
@@ -32,12 +19,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [actividades, setActividades] = useState<Actividad[]>(_actividades)
   const [sedes, setSedes] = useState<Sede[]>(_sedes)
   const [dataLoading, setDataLoading] = useState(true)
-
-  const [tematica, setTematica] = useState<Tematica | null>(null)
-  const [isla, setIsla] = useState<string | null>(null)
-  const [sedeId, setSedeId] = useState<number | null>(null)
-  const [mes, setMes] = useState<string | null>(null)
-  const [dificultad, setDificultad] = useState<Dificultad | null>(null)
 
   useEffect(() => {
     let actLoaded = false
@@ -59,24 +40,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return () => { unsub1(); unsub2() }
   }, [])
 
-  const applyFilters = (f: FilterState) => {
-    setTematica(f.tematica)
-    setIsla(f.isla)
-    setSedeId(f.sedeId)
-    setMes(f.mes)
-    setDificultad(f.dificultad)
-  }
-
   return (
-    <DataContext.Provider value={{
-      actividades, sedes, dataLoading,
-      tematica, setTematica,
-      isla, setIsla,
-      sedeId, setSedeId,
-      mes, setMes,
-      dificultad, setDificultad,
-      applyFilters,
-    }}>
+    <DataContext.Provider value={{ actividades, sedes, dataLoading }}>
       {children}
     </DataContext.Provider>
   )

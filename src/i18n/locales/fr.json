@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "homeTitle": "Diásporas Patrimoniales — Symposium international",
+    "homeDescription": "Symposium international sur la dispersion et la restitution du patrimoine archéologique canarien. 12 et 13 novembre 2026, TEA, Santa Cruz de Tenerife."
+  },
+  "nav": {
+    "inicio": "Accueil",
+    "registro": "Inscription",
+    "participantes": "Intervenants",
+    "programa": "Programme",
+    "contacto": "Contact",
+    "login": "Connexion / Mon compte",
+    "miCuenta": "Mon compte",
+    "salir": "Déconnexion",
+    "admin": "Admin",
+    "cerrarSesion": "Se déconnecter"
+  },
+  "hero": {
+    "headline": "Un regard depuis les îles Canaries sur la dispersion et la restitution des héritages archéologiques",
+    "description": "Une partie du patrimoine archéologique des îles Canaries est aujourd'hui conservée hors de l'archipel. Les 12 et 13 novembre, Tenerife réunira des professionnels de musées et des spécialistes venus d'Europe, d'Afrique et des Amériques afin de retracer l'histoire de ces collections et de réfléchir aux relations qui peuvent aujourd'hui être construites avec leurs territoires d'origine.",
+    "simposio": "Symposium international",
+    "dateLine": "12–13 novembre 2026",
+    "location": "TEA, Santa Cruz de Tenerife",
+    "cta": "S'inscrire",
+    "programCta": "Consulter le programme"
+  },
+  "sobreEncuentro": {
+    "titulo": "À propos du symposium",
+    "parrafo1": "À partir du XVIIIe siècle, des objets archéologiques et des restes humains autochtones provenant des îles Canaries ont intégré des collections en Espagne continentale et à l'étranger. Certaines de ces histoires sont bien connues ; d'autres commencent seulement à être reconstituées.",
+    "parrafo2": "Diásporas Patrimoniales s'inscrit dans le travail engagé par le Gouvernement des îles Canaries autour du programme Legado Canario Disperso. Le symposium réunira des professionnels responsables de collections canariennes conservées hors de l'archipel, des spécialistes ayant participé à des processus de restitution et des institutions qui réexaminent aujourd'hui l'histoire de leurs propres collections.",
+    "parrafo3": "La rencontre s'achèvera par la Déclaration de Santa Cruz de Tenerife, pensée comme un point de départ pour poursuivre ces échanges au-delà du mois de novembre."
+  },
+  "inscripcion": {
+    "titulo": "Inscription",
+    "parrafo": "Les sessions académiques auront lieu en présentiel et nécessitent une inscription préalable, dans la limite des places disponibles. Il est possible de s'inscrire à l'une des deux journées ou aux deux. Un message de confirmation sera envoyé après validation du formulaire.",
+    "encabezado": "2 journées",
+    "jornada1": "Jour 1 — 12 novembre",
+    "jornada2": "Jour 2 — 13 novembre",
+    "ambosDias": "Les deux journées — 12 et 13 novembre",
+    "ambosDiasDescripcion": "Une seule inscription vous donne accès aux deux journées du symposium.",
+    "yaInscritoParcial": "Vous êtes déjà inscrit(e) à {{jornada}}. Pour ajouter l'autre journée, faites-le depuis sa propre carte."
+  },
+  "sedeSection": {
+    "titulo": "Lieu",
+    "descripcion": "TEA Tenerife Espacio de las Artes accueillera les sessions scientifiques. Conçu par Herzog & de Meuron avec Virgilio Gutiérrez, le bâtiment se situe au centre de Santa Cruz de Tenerife, à quelques minutes à pied du MUNA."
+  },
+  "participantes": {
+    "titulo": "Intervenants",
+    "parrafo1": "Le symposium réunira 25 invités issus de musées, d'universités, d'administrations patrimoniales et d'organisations internationales.",
+    "cargoPendiente": "Fonction à confirmer",
+    "bioPendiente": "Biographie à confirmer",
+    "cerrar": "Fermer"
+  },
+  "programa": {
+    "titulo": "Programme",
+    "parrafo": "Chaque intervenant disposera de 10 minutes. Une part importante de chaque panel sera ensuite consacrée à la discussion entre les participants et aux questions du public.",
+    "dia1": "Jour 1 — 12 novembre",
+    "dia2": "Jour 2 — 13 novembre",
+    "moderador": "Modérateur :"
+  },
+  "programaItems": {
+    "d1-1": {
+      "hora": "08h45–09h30",
+      "titulo": "Accueil et accréditations"
+    },
+    "d1-2": {
+      "hora": "09h30–10h15",
+      "titulo": "Séance d'ouverture. Présentation et inauguration",
+      "descripcion": "Participation institutionnelle prévue du Gouvernement des îles Canaries, du Cabildo de Tenerife, de l'Organismo Autónomo de Museos y Centros, du Musée de la Nature et de l'Archéologie et de la Direction scientifique."
+    },
+    "d1-3": {
+      "hora": "10h15–10h45",
+      "titulo": "Pause café"
+    },
+    "d1-4": {
+      "hora": "10h45–12h00",
+      "titulo": "Panel I. Collectionnisme inégal et musées : histoires et pratiques d'appropriation",
+      "participantesCargo": [
+        "Ancien directeur du Musée des Civilisations Noires, Sénégal.",
+        "Directrice du Centro Nacional de Arqueologia (CNA), Instituto do Patrimônio Histórico e Artístico Nacional (IPHAN), Brésil.",
+        "Chargé de mission pour la coopération internationale dans le domaine du patrimoine, ministère de l'Europe et des Affaires étrangères, France.",
+        "Directrice du Museo Nacional de Antropología, Espagne."
+      ]
+    },
+    "d1-5": {
+      "hora": "12h00–12h15",
+      "titulo": "Pause"
+    },
+    "d1-6": {
+      "hora": "12h15–13h30",
+      "titulo": "Panel II. Coopération et restitution : politiques et cadres d'action",
+      "participantesCargo": [
+        "Adjointe au sous-directeur des collections, Service des musées de France, Direction générale des patrimoines et de l'architecture, ministère de la Culture, France.",
+        "Présidente du Conseil intergouvernemental du Programme Ibermuseus et coordinatrice du Réseau portugais des musées, Museus e Monumentos de Portugal, E.P.E., Portugal.",
+        "Senior Advisor, Cultural Heritage Agency of the Netherlands, et co-Chair de l'ICOM Standing Committee on Decolonisation, Pays-Bas.",
+        "Présidente d'ICOM Espagne et conservatrice de musées au Museo de Cádiz, Espagne."
+      ]
+    },
+    "d1-7": {
+      "hora": "13h30–15h30",
+      "titulo": "Pause déjeuner"
+    },
+    "d1-8": {
+      "hora": "15h30–16h45",
+      "titulo": "Panel III. Expériences internationales : Europe, Afrique et Amérique latine",
+      "participantesCargo": [
+        "Directeur du patrimoine culturel, ministère de la Jeunesse, de la Culture et de la Communication – Département de la Culture, Maroc.",
+        "Directrice de la Zone archéologique et du Musée de site du Templo Mayor, INAH ; enseignante-chercheuse à la Direction des études historiques et à l'ENAH, Mexique.",
+        "Secteur de la culture de l'UNESCO : Convention de 1970, lutte contre le trafic illicite de biens culturels et Musée virtuel, France.",
+        "Directeur général de la Culture de l'OEI, Espagne."
+      ]
+    },
+    "d2-1": {
+      "hora": "09h30–10h45",
+      "titulo": "Panel IV. Les îles Canaries comme étude de cas : déplacements, collaborations et perspectives de restitution",
+      "participantesCargo": [
+        "Directeur du Museo Antropológico Montané, Faculté de biologie, Université de La Havane ; chercheur titulaire, Cuba.",
+        "Conservateur général du patrimoine honoraire, Centre Alexandre-Koyré (EHESS–CNRS–MNHN) ; ancien directeur du Musée de l'Homme, France.",
+        "Conservateur de la collection Afrique du Nord, Asie occidentale et centrale et Sibérie, Weltmuseum Wien, Autriche.",
+        "Directeur de la Sociedad Científica El Museo Canario, Espagne."
+      ]
+    },
+    "d2-2": {
+      "hora": "10h45–12h00",
+      "titulo": "Panel V. Trajectoires clés et débats singuliers",
+      "participantesCargo": [
+        "Directeur de l'Institut canarien de bioanthropologie et du Musée archéologique de Tenerife, Museos de Tenerife–Cabildo de Tenerife, Espagne.",
+        "Directrice du Museo Nacional de las Culturas del Mundo, INAH, Mexique.",
+        "Chercheur prédoctoral FPI-UAM, Département de Préhistoire et d'Archéologie, Université autonome de Madrid, Espagne.",
+        "Professeur honoraire, Université autonome de Madrid ; Pausanias. Viajes Arqueológicos y Culturales, Espagne. Coauteur de l'intervention présentée par José Fenoll Cascales.",
+        "Chercheur prédoctoral, Programme DOCTESO, Université de La Laguna, Espagne."
+      ]
+    },
+    "d2-3": {
+      "hora": "12h00–12h30",
+      "titulo": "Pause café"
+    },
+    "d2-4": {
+      "hora": "12h30–13h45",
+      "titulo": "Panel VI. Restes humains et éthique : science, sensibilité et responsabilité publique",
+      "participantesCargo": [
+        "Professeure honoraire, Université de La Laguna, Espagne.",
+        "Directrice du Département de bioarchéologie, ministère du Tourisme et des Antiquités, Égypte.",
+        "Analyste en recherche et analyse bioarchéologiques, Museo Pachacamac, ministère de la Culture du Pérou ; projet « Momies comme microcosmes », Pérou.",
+        "Curator: Bioarchaeology, Department of Egypt and Sudan, The British Museum, Royaume-Uni."
+      ]
+    },
+    "d2-5": {
+      "hora": "13h45–15h45",
+      "titulo": "Pause déjeuner"
+    },
+    "d2-6": {
+      "hora": "15h45–16h30",
+      "titulo": "Séance de clôture",
+      "descripcion": "Lecture de la « Déclaration de Santa Cruz de Tenerife » et clôture institutionnelle."
+    }
+  },
+  "contacto": {
+    "titulo": "Contact",
+    "parrafo": "Pour toute question concernant le symposium ou l'inscription, écrivez-nous à diasporaspatrimoniales@gmail.com."
+  },
+  "footer": {
+    "rights": "© {{year}} Diásporas Patrimoniales. Tous droits réservés.",
+    "legal": "Ce site est soumis à la législation espagnole et à la réglementation spécifique de la Communauté autonome des Canaries.",
+    "privacyLink": "Politique de confidentialité et cookies",
+    "legalPending": "[Mentions légales à venir]",
+    "eventLine": "Diásporas Patrimoniales · Santa Cruz de Tenerife · 12–13 novembre 2026"
+  },
+  "sedes": {
+    "eventosProximos_one": "{{count}} événement à venir",
+    "eventosProximos_other": "{{count}} événements à venir",
+    "verTodas": "Voir tout",
+    "volverAlSlider": "Retour au carrousel",
+    "fundadaEn": "Fondée en {{year}}",
+    "actividad_one": "{{count}} activité",
+    "actividad_other": "{{count}} activités",
+    "bibliografia": "Bibliographie"
+  },
+  "actividadCard": {
+    "verDetalle": "Voir le détail",
+    "cancelado": "Annulé",
+    "agotada": "Complet",
+    "finalizada": "Terminé",
+    "abreEl": "Ouvre le {{fecha}}",
+    "inscripcionesDesde": "Inscriptions à partir du {{fecha}}",
+    "plazasDisponibles": "Places disponibles",
+    "algunasPlazas": "Quelques places disponibles",
+    "pocasPlazas": "Peu de places disponibles"
+  }
+}

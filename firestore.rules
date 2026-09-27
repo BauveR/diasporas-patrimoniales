@@ -1,0 +1,105 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Cross-user read, only to check role — the one place these rules look
+    // outside the document being evaluated.
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      // A new account creates its own doc, always as role 'user' — role
+      // escalation happens by hand in the console (or a future admin UI),
+      // never from the client that owns the doc.
+      allow create: if isOwner(uid) && request.resource.data.role == 'user';
+
+      // Owner can update their own doc (e.g. telefono) but not touch `role`;
+      // an admin can update anything, including promoting another user.
+      allow update: if isAdmin() ||
+        (isOwner(uid) && request.resource.data.role == resource.data.role);
+
+      allow delete: if isAdmin();
+    }
+
+    match /sedes/{sedeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /actividades/{actividadId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+
+      // A signed-in user may only nudge plazasDisponibles by exactly one per
+      // write, bounded to [0, plazas] — every other field, and any other
+      // kind of change to this one, stays admin-only (title, fecha,
+      // cancelada, etc. can't be touched this way). The ±1 alone used to be
+      // enough to pass, letting anyone drain or inflate the counter without
+      // ever registering. existsAfter()/!existsAfter() alone wasn't enough
+      // either — it only looks at the post-write state, so on a path this
+      // write never touches (no accompanying inscritos/ create or delete)
+      // it just reflects whatever the doc already was, and the check passes
+      // for free (e.g. -1 always "passes" for anyone already registered,
+      // +1 always "passes" for anyone who never registered — no real
+      // transition required). Pairing exists() (pre-write) with
+      // existsAfter() (post-write) forces an actual create/delete of the
+      // caller's own inscrito doc to happen in this same write, so the
+      // counter can only move in lockstep with a real
+      // inscribirse()/liberarPlaza().
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plazasDisponibles']) &&
+        request.resource.data.plazasDisponibles >= 0 &&
+        request.resource.data.plazasDisponibles <= resource.data.plazas &&
+        (
+          (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles - 1 &&
+           !exists(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)) &&
+           existsAfter(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid))) ||
+          (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles + 1 &&
+           exists(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)) &&
+           !existsAfter(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)))
+        )
+      );
+
+      match /inscritos/{uid} {
+        allow read: if isOwner(uid) || isAdmin();
+
+        // email must match the caller's own auth token — otherwise the
+        // attendee record (the only check-in reference now that QR
+        // accreditation is gone) could carry a spoofed contact.
+        allow create: if isOwner(uid) &&
+          request.resource.data.uid == uid &&
+          request.resource.data.email == request.auth.token.email;
+
+        // Nothing updates an inscripción after it's created — no QR
+        // accreditation flow (removed 2026-09-22, the admin attendee list
+        // covers it). Only create/delete/read apply.
+        allow delete: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // subscribeInscripcionIds' uid-filtered query spans every actividad's
+    // 'inscritos' subcollection — the nested rule above only governs direct
+    // reads/writes under one specific actividad, not that kind of query.
+    match /{path=**}/inscritos/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

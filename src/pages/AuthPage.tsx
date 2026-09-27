@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { mockSendPasswordReset } from '../lib/mockAuth'
+import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
+import { isValidEmail } from '../utils/validators'
+import { labelStyle } from '../lib/styles'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-
+// user-not-found and wrong-password map to the same message on purpose —
+// distinguishing them tells an attacker which emails have accounts
+// (enumeration). handleReset() below already avoids this same trap for the
+// password-reset flow; this keeps login consistent with it.
 const AUTH_ERRORS: Record<string, string> = {
-  'auth/user-not-found':        'Usuario no encontrado',
-  'auth/wrong-password':        'Contraseña incorrecta',
+  'auth/user-not-found':        'Email o contraseña incorrectos',
+  'auth/wrong-password':        'Email o contraseña incorrectos',
   'auth/invalid-credential':    'Email o contraseña incorrectos',
   'auth/email-already-in-use':  'Este email ya está registrado',
   'auth/weak-password':         'La contraseña debe tener al menos 8 caracteres',
@@ -54,6 +58,10 @@ export function AuthPage({ isModal = false }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!isValidEmail(email)) {
+      setError('Introduce un email válido (revisa que el dominio esté bien escrito)')
+      return
+    }
     if (view === 'register' && password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres')
       return
@@ -79,7 +87,7 @@ export function AuthPage({ isModal = false }: Props) {
     setError('')
     setBusy(true)
     try {
-      await mockSendPasswordReset(email)
+      await sendPasswordReset(email)
       setResetSent(true)
     } catch (err) {
       const code = (err as { code?: string }).code ?? ''
@@ -167,7 +175,7 @@ export function AuthPage({ isModal = false }: Props) {
                 onChange={e => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
 
@@ -210,7 +218,7 @@ export function AuthPage({ isModal = false }: Props) {
         <p className="text-xs text-stone-400 tracking-wide">
           {view === 'login'
             ? 'Accede para inscribirte en actividades'
-            : 'Únete a los sedes históricas de Canarias'}
+            : 'Únete al simposio Diásporas Patrimoniales'}
         </p>
       </div>
 
@@ -244,7 +252,7 @@ export function AuthPage({ isModal = false }: Props) {
               required
               maxLength={60}
               placeholder="Tu nombre completo"
-              className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+              className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
             />
           </div>
         )}
@@ -257,7 +265,7 @@ export function AuthPage({ isModal = false }: Props) {
             onChange={e => setEmail(e.target.value)}
             required
             placeholder="tu@email.com"
-            className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 
@@ -280,7 +288,7 @@ export function AuthPage({ isModal = false }: Props) {
             onChange={e => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            className="border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 

@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react'
-import { useParams, Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { TEMATICA_COLORS } from '../data/tematicas'
-import { DifficultyDots } from '../components/actividades/DifficultyDots'
 import { ShareButton } from '../components/actividades/ShareButton'
-import { useAuth } from '../contexts/AuthContext'
+import { BookingWidget } from '../components/actividades/BookingWidget'
 import { useDataContext } from '../contexts/DataContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, getMiToken, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError } from '../lib/db'
-import { isValidTelefono } from '../utils/validators'
-import { MiQRModal } from '../components/profile/MiQRModal'
-import type { Actividad } from '../data/actividades'
+import { useActividadBooking } from '../hooks/useActividadBooking'
+import { SITE_URL } from '../components/SeoHead'
+import { labelStyle } from '../lib/styles'
+import { formatFechaLarga } from '../utils/formatMes'
 
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
 // ── InscripcionSuccessPopup ───────────────────────────────────────────────────
@@ -29,6 +26,9 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
       <style>{`
         @keyframes chc-circle { to { stroke-dashoffset: 0; } }
         @keyframes chc-check  { to { stroke-dashoffset: 0; } }
+        @media (prefers-reduced-motion: reduce) {
+          .chc-circle-progress, .chc-check-path { animation: none !important; stroke-dashoffset: 0 !important; }
+        }
       `}</style>
       <motion.div
         initial={{ scale: 0.88, opacity: 0 }}
@@ -43,12 +43,13 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
           className="text-[10px] tracking-[0.25em] uppercase text-center"
           style={{ ...labelStyle, color: 'rgba(255,255,255,0.55)' }}
         >
-          Sedes Históricas de Canarias
+          Diásporas Patrimoniales
         </span>
 
         <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
           <circle cx="48" cy="48" r="44" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
           <circle
+            className="chc-circle-progress"
             cx="48" cy="48" r="44"
             stroke="white" strokeWidth="2" strokeLinecap="round"
             strokeDasharray="277" strokeDashoffset="277"
@@ -56,6 +57,7 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
             style={{ animation: 'chc-circle 0.65s ease forwards' }}
           />
           <path
+            className="chc-check-path"
             d="M28 48 L42 62 L70 30"
             stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
             strokeDasharray="65" strokeDashoffset="65"
@@ -87,333 +89,6 @@ function InscripcionSuccessPopup({ titulo, onClose }: { titulo: string; onClose:
   )
 }
 
-// ── BookingWidget ─────────────────────────────────────────────────────────────
-
-type BookingWidgetProps = {
-  actividad: Actividad
-  fecha: string
-  pct: number
-  inscrito: boolean
-  esPasada: boolean
-  esCancelada: boolean
-  noAbierto: boolean
-  isLoggedIn: boolean
-  inscribiendo: boolean
-  inscripcionError: string
-  confirmando: boolean
-  setConfirmando: (v: boolean) => void
-  liberando: boolean
-  onLiberar: () => void
-  onRequestLogin: () => void
-  mostrandoTelefono: boolean
-  setMostrandoTelefono: (v: boolean) => void
-  telefono: string
-  onTelefonoChange: (v: string) => void
-  telefonoError: string
-  onConfirmarInscripcion: () => void
-  onCancelarTelefono: () => void
-  onVerQR?: () => void
-  compact?: boolean
-}
-
-export function BookingWidget({
-  actividad, fecha, pct,
-  inscrito, esPasada, esCancelada, noAbierto, isLoggedIn,
-  inscribiendo, inscripcionError,
-  confirmando, setConfirmando,
-  liberando, onLiberar, onRequestLogin,
-  mostrandoTelefono, setMostrandoTelefono,
-  telefono, onTelefonoChange, telefonoError,
-  onConfirmarInscripcion, onCancelarTelefono,
-  onVerQR,
-  compact = false,
-}: BookingWidgetProps) {
-
-  if (esCancelada) {
-    return (
-      <div className={`rounded-2xl border border-red-200 bg-red-50 flex flex-col gap-2 ${compact ? 'p-5' : 'p-6 shadow-sm'}`} style={labelStyle}>
-        <div className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-red-400 shrink-0">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-          <span className="text-[10px] tracking-widest uppercase text-red-400">Evento cancelado</span>
-        </div>
-        <p className="text-sm text-stone-500">Este evento ha sido cancelado por los organizadores.</p>
-      </div>
-    )
-  }
-
-  const plazasBar = (
-    <div>
-      <div className="flex justify-between text-[11px] text-stone-500 mb-2" style={labelStyle}>
-        <span>{actividad.plazasDisponibles} plazas disponibles</span>
-        <span>{pct}% ocupado</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
-        <div className="h-full rounded-full bg-stone-400 transition-all duration-500" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  )
-
-  if (inscrito && !esPasada) {
-    if (compact) {
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="rounded-2xl overflow-hidden border border-stone-200">
-            <div className="px-5 py-3 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
-              <span className="text-white text-sm leading-none">✓</span>
-              <span className="text-[10px] tracking-widest uppercase text-white/80">Inscripción confirmada</span>
-            </div>
-            <div className="px-5 pt-4 pb-3">{plazasBar}</div>
-            {confirmando ? (
-              <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
-                <p className="text-[11px] text-stone-500 text-center">¿Liberar tu plaza?</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={onLiberar}
-                    disabled={liberando}
-                    className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
-                  >
-                    {liberando ? '...' : 'Sí, liberar'}
-                  </button>
-                  <button
-                    onClick={() => setConfirmando(false)}
-                    disabled={liberando}
-                    className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
-                  >
-                    Mantener
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="px-5 py-4 border-t border-stone-100 flex flex-col gap-2">
-                <button
-                  disabled
-                  className="w-full py-3 rounded-xl text-white text-[11px] tracking-widest uppercase cursor-not-allowed opacity-90"
-                  style={{ backgroundColor: '#50664d' }}
-                >
-                  Ya inscrito ✓
-                </button>
-                {onVerQR && (
-                  <button
-                    onClick={onVerQR}
-                    className="w-full py-2.5 rounded-xl bg-stone-100 text-stone-600 text-[10px] tracking-widest uppercase hover:bg-stone-200 transition-colors cursor-pointer"
-                  >
-                    Ver QR
-                  </button>
-                )}
-                <button
-                  onClick={() => setConfirmando(true)}
-                  className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
-                >
-                  Liberar plaza
-                </button>
-              </div>
-            )}
-          </div>
-          <p className="text-[10px] text-stone-400 text-center">Inscripción gratuita · Se requiere confirmación</p>
-        </div>
-      )
-    }
-
-    // Ticket completo (vista principal)
-    return (
-      <div className="flex flex-col gap-3">
-        <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm">
-          <div className="px-6 py-5 flex flex-col gap-3" style={{ backgroundColor: '#50664d' }}>
-            <div className="flex items-center gap-2">
-              <span className="text-white text-base leading-none">✓</span>
-              <span className="text-[10px] tracking-widest uppercase text-white/80" style={labelStyle}>
-                Inscripción confirmada
-              </span>
-            </div>
-            <span
-              className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-              style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-            >
-              {actividad.tematica}
-            </span>
-            <p className="text-white text-sm leading-snug" style={labelStyle}>{actividad.titulo}</p>
-          </div>
-          <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-            <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
-            <span className="text-sm text-stone-800 capitalize" style={labelStyle}>{fecha}</span>
-            {(actividad.hora || actividad.duracion) && (
-              <span className="text-[11px] text-stone-400" style={labelStyle}>
-                {[actividad.hora, actividad.duracion].filter(Boolean).join(' · ')}
-              </span>
-            )}
-          </div>
-          {actividad.puntoEncuentro && (
-            <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Punto de encuentro</span>
-              <span className="text-sm text-stone-800 leading-snug" style={labelStyle}>{actividad.puntoEncuentro}</span>
-            </div>
-          )}
-          {actividad.organizador && (
-            <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Organizador</span>
-              <span className="text-sm text-stone-800" style={labelStyle}>{actividad.organizador}</span>
-              {actividad.contacto && (
-                <a
-                  href={`mailto:${actividad.contacto}`}
-                  className="text-[11px] text-stone-400 hover:text-stone-600 transition-colors truncate"
-                  style={labelStyle}
-                >
-                  {actividad.contacto}
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-
-        <Link
-          to="/perfil"
-          className="w-full py-3.5 rounded-xl text-[11px] tracking-widest uppercase text-white text-center block transition-opacity hover:opacity-90"
-          style={{ ...labelStyle, backgroundColor: '#3f6395' }}
-        >
-          Ver mis actividades
-        </Link>
-
-        {confirmando ? (
-          <div className="flex flex-col gap-2">
-            <p className="text-[11px] text-stone-500 text-center" style={labelStyle}>¿Liberar tu plaza?</p>
-            <div className="flex gap-2">
-              <button
-                onClick={onLiberar}
-                disabled={liberando}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
-                style={labelStyle}
-              >
-                {liberando ? '...' : 'Sí, liberar'}
-              </button>
-              <button
-                onClick={() => setConfirmando(false)}
-                disabled={liberando}
-                className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
-                style={labelStyle}
-              >
-                Mantener
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
-            style={labelStyle}
-          >
-            Liberar plaza
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  // Formulario de inscripción
-  return (
-    <div className={`rounded-2xl border border-stone-200 flex flex-col ${compact ? 'p-5 gap-4' : 'p-7 gap-5 shadow-sm'}`}>
-      {plazasBar}
-
-      {!compact && (
-        <div>
-          <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-3" style={labelStyle}>
-            Detalles de la actividad
-          </p>
-          <div className="grid grid-cols-2 gap-y-4 gap-x-4">
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
-              <span className="text-sm text-stone-800 capitalize wrap-break-word" style={labelStyle}>{fecha}</span>
-            </div>
-            {actividad.hora && (
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
-                <span className="text-sm text-stone-800" style={labelStyle}>{actividad.hora}</span>
-              </div>
-            )}
-            {actividad.duracion && (
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Duración</span>
-                <span className="text-sm text-stone-800" style={labelStyle}>{actividad.duracion}</span>
-              </div>
-            )}
-            <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Dificultad</span>
-              <DifficultyDots dificultad={actividad.dificultad} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {actividad.plazasDisponibles <= 5 && actividad.plazasDisponibles > 0 && (
-        <p className="text-[11px] text-red-500" style={labelStyle}>
-          ¡Solo quedan {actividad.plazasDisponibles} plazas!
-        </p>
-      )}
-
-      {inscripcionError && (
-        <p className="text-[11px] text-red-500" style={labelStyle}>{inscripcionError}</p>
-      )}
-
-      {noAbierto && actividad.fechaAperturaInscripciones && (
-        <p className="text-[11px] text-stone-500" style={labelStyle}>
-          Las inscripciones abren el {new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      )}
-
-      {mostrandoTelefono ? (
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>
-            Teléfono de contacto
-          </label>
-          <input
-            type="tel"
-            value={telefono}
-            onChange={e => onTelefonoChange(e.target.value)}
-            placeholder="612345678 o +34612345678"
-            className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors"
-            style={labelStyle}
-          />
-          {telefonoError && (
-            <p className="text-[11px] text-red-500" style={labelStyle}>{telefonoError}</p>
-          )}
-          <div className="flex gap-2">
-            <button
-              onClick={onConfirmarInscripcion}
-              disabled={inscribiendo}
-              className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
-              style={labelStyle}
-            >
-              {inscribiendo ? '...' : 'Confirmar y continuar'}
-            </button>
-            <button
-              onClick={onCancelarTelefono}
-              disabled={inscribiendo}
-              className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-500 text-[11px] tracking-widest uppercase hover:bg-stone-50 transition-colors disabled:opacity-40 cursor-pointer"
-              style={labelStyle}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          disabled={actividad.plazasDisponibles === 0 || inscribiendo || esPasada || noAbierto}
-          onClick={() => { if (!isLoggedIn) onRequestLogin(); else setMostrandoTelefono(true) }}
-          className={`w-full ${compact ? 'py-3' : 'py-3.5'} rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
-          style={labelStyle}
-        >
-          {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : noAbierto ? 'Inscripciones aún no abiertas' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
-        </button>
-      )}
-
-      <p className="text-[10px] text-stone-400 text-center" style={labelStyle}>
-        Inscripción gratuita · Se requiere confirmación
-      </p>
-    </div>
-  )
-}
-
 // ── ActividadPage ─────────────────────────────────────────────────────────────
 
 export function ActividadPage() {
@@ -423,168 +98,59 @@ export function ActividadPage() {
   const fromApp = location.key !== 'default'
   const isModal = !!location.state?.background
   const fromPerfil = location.state?.from === 'perfil'
-  const { user, inscripcionIds } = useAuth()
   const { actividades, sedes, dataLoading } = useDataContext()
   const actividad = actividades.find(a => a.id === Number(id))
+  const booking = useActividadBooking(actividad)
 
   useEffect(() => {
     if (!actividad) return
     const prevTitle = document.title
-    document.title = `${actividad.titulo} · Sedes Históricas de Canarias`
+    document.title = `${actividad.titulo} · Diásporas Patrimoniales`
     return () => { document.title = prevTitle }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actividad?.titulo])
 
-  const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
-  const [inscribiendo, setInscribiendo] = useState(false)
-  const [inscripcionError, setInscripcionError] = useState('')
-  const [confirmando, setConfirmando] = useState(false)
-  const [liberando, setLiberando] = useState(false)
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [mostrandoTelefono, setMostrandoTelefono] = useState(false)
-  const [telefono, setTelefono] = useState('')
-  const [telefonoError, setTelefonoError] = useState('')
-  const [showQR, setShowQR] = useState(false)
-
-  // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
-  // getTelefonoForUser is a synchronous in-memory lookup (the real Firestore
-  // read it replaces was async), so the setState is deferred a tick — keeps
-  // it out of the synchronous render/effect cycle rather than settling
-  // immediately, same as the original network read would.
-  useEffect(() => {
-    if (!user) return
-    const uid = user.uid
-    Promise.resolve().then(() => {
-      const guardado = getTelefonoForUser(uid)
-      if (guardado) setTelefono(guardado)
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid])
-
-  const today = new Date().toISOString().split('T')[0]
-  const esPasada    = actividad ? actividad.fecha < today : false
-  const esCancelada = !!actividad?.cancelada
-  const noAbierto   = !!actividad?.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
-
-  const handleLiberar = async () => {
-    if (!user || !actividad) return
-    setLiberando(true)
-    try {
-      await liberarPlaza(actividad.id, user.uid)
-      setConfirmando(false)
-    } catch (err) {
-      if (!(err instanceof YaLiberadaError)) throw err
-    } finally {
-      setLiberando(false)
-    }
-  }
-
-  const handleRequestLogin = () => {
-    navigate('/login', { state: { background: location } })
-  }
-
-  const handleCancelarTelefono = () => {
-    setMostrandoTelefono(false)
-    setTelefonoError('')
-  }
-
-  const handleConfirmarInscripcion = async () => {
-    if (!user || !actividad) return
-    if (!isValidTelefono(telefono)) {
-      setTelefonoError('Introduce un teléfono válido (España o formato internacional +XX...)')
-      return
-    }
-    setInscribiendo(true)
-    setInscripcionError('')
-    setTelefonoError('')
-    try {
-      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
-      setMostrandoTelefono(false)
-      setShowSuccessPopup(true)
-      // Fire-and-forget: enviar email de confirmación
-      user.getIdToken().then(idToken => {
-        const sede = sedes.find(c => c.id === actividad.sedeId)
-        const fechaStr = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-        })
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idToken,
-            email: user.email ?? '',
-            nombre: user.displayName ?? 'participante',
-            titulo: actividad.titulo,
-            fecha: fechaStr,
-            hora: actividad.hora,
-            duracion: actividad.duracion,
-            puntoEncuentro: actividad.puntoEncuentro,
-            organizador: actividad.organizador,
-            contacto: actividad.contacto,
-            sedeNombre: sede?.nombre,
-            sedeIsla: sede?.isla,
-          }),
-        }).catch(() => { /* silencioso — inscripción ya completada */ })
-      }).catch(() => { /* silencioso */ })
-    } catch (err) {
-      if (err instanceof SinPlazasError) {
-        setInscripcionError('Ya no quedan plazas disponibles.')
-      } else if (err instanceof EventoCanceladoError) {
-        setInscripcionError('Este evento ha sido cancelado.')
-      } else if (err instanceof InscripcionNoAbiertaError) {
-        setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
-      } else {
-        setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
-      }
-    } finally {
-      setInscribiendo(false)
-    }
-  }
-
   if (dataLoading) return null
   if (!actividad) return <Navigate to="/" replace />
 
+  const today = new Date().toISOString().split('T')[0]
+  const esPasada    = actividad.fecha < today
+  const esCancelada = !!actividad.cancelada
+  const noAbierto   = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
+
   const sede = sedes.find(c => c.id === actividad.sedeId)
-  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
+  const fecha = formatFechaLarga(actividad.fecha)
   const plazasOcupadas = actividad.plazas - actividad.plazasDisponibles
   const pct = Math.round((plazasOcupadas / actividad.plazas) * 100)
 
   const widgetProps = {
     actividad, fecha, pct,
-    inscrito, esPasada, esCancelada, noAbierto,
-    isLoggedIn: !!user,
-    inscribiendo, inscripcionError,
-    confirmando, setConfirmando,
-    liberando,
-    onLiberar: handleLiberar,
-    onRequestLogin: handleRequestLogin,
-    mostrandoTelefono, setMostrandoTelefono,
-    telefono,
-    onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
-    telefonoError,
-    onConfirmarInscripcion: handleConfirmarInscripcion,
-    onCancelarTelefono: handleCancelarTelefono,
-    onVerQR: fromPerfil ? () => setShowQR(true) : undefined,
+    esPasada, esCancelada, noAbierto,
+    isLoggedIn: booking.isLoggedIn,
+    inscrito: booking.inscrito,
+    inscribiendo: booking.inscribiendo,
+    inscripcionError: booking.inscripcionError,
+    confirmando: booking.confirmando,
+    setConfirmando: booking.setConfirmando,
+    liberando: booking.liberando,
+    onLiberar: booking.handleLiberar,
+    onRequestLogin: booking.handleRequestLogin,
+    mostrandoTelefono: booking.mostrandoTelefono,
+    setMostrandoTelefono: booking.setMostrandoTelefono,
+    telefono: booking.telefono,
+    onTelefonoChange: booking.onTelefonoChange,
+    telefonoError: booking.telefonoError,
+    aceptoTerminos: booking.aceptoTerminos,
+    setAceptoTerminos: booking.setAceptoTerminos,
+    onConfirmarInscripcion: booking.handleConfirmarInscripcion,
+    onCancelarTelefono: booking.handleCancelarTelefono,
   }
 
   // ── Vista fromPerfil (modal estrecho) ───────────────────────────────────────
   if (fromPerfil && isModal) {
-    const token = user ? getMiToken(actividad.id, user.uid) : null
     return (
       <div className="flex flex-col" style={labelStyle}>
-        {showQR && token && (
-          <MiQRModal token={token} titulo={actividad.titulo} onClose={() => setShowQR(false)} />
-        )}
-
         <div className="px-6 pt-6 pb-4 flex flex-col gap-2">
-          <span
-            className="w-fit px-2.5 py-0.5 rounded-full text-[9px] tracking-widest uppercase text-white font-bold"
-            style={{ backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-          >
-            {actividad.tematica}
-          </span>
           <h1 className="text-xl font-light text-stone-900 leading-snug" style={serifStyle}>
             {actividad.titulo}
           </h1>
@@ -596,7 +162,7 @@ export function ActividadPage() {
         </div>
 
         <div className="flex justify-center overflow-hidden bg-stone-50">
-          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[50vh] w-auto object-contain" />
+          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[50svh] w-auto object-contain" />
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-6">
@@ -621,10 +187,6 @@ export function ActividadPage() {
                   <span className="text-sm text-stone-800">{actividad.duracion}</span>
                 </div>
               )}
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Dificultad</span>
-                <DifficultyDots dificultad={actividad.dificultad} />
-              </div>
             </div>
             {actividad.puntoEncuentro && (
               <div className="flex flex-col gap-0.5 mt-5">
@@ -656,14 +218,14 @@ export function ActividadPage() {
   return (
     <>
     <AnimatePresence>
-      {showSuccessPopup && (
+      {booking.showSuccessPopup && (
         <InscripcionSuccessPopup
           titulo={actividad.titulo}
-          onClose={() => setShowSuccessPopup(false)}
+          onClose={() => booking.setShowSuccessPopup(false)}
         />
       )}
     </AnimatePresence>
-    <main className={`${isModal ? 'pt-6' : 'pt-16 min-h-screen'} bg-white`}>
+    <main className={`${isModal ? 'pt-6' : 'pt-navbar min-h-screen'} bg-white`}>
       <div className="max-w-5xl mx-auto px-6 sm:px-8">
 
         {!isModal && (
@@ -679,7 +241,7 @@ export function ActividadPage() {
         )}
 
         <div className="mb-10 flex justify-center overflow-hidden rounded-2xl bg-stone-50">
-          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[70vh] w-auto object-contain" />
+          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[70svh] w-auto object-contain" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 pb-16">
@@ -687,15 +249,9 @@ export function ActividadPage() {
           {/* Left */}
           <div className="flex flex-col gap-8 min-w-0">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <span
-                  className="w-fit px-3 py-1 text-white font-bold text-[10px] tracking-widest uppercase rounded-full"
-                  style={{ ...labelStyle, backgroundColor: TEMATICA_COLORS[actividad.tematica] }}
-                >
-                  {actividad.tematica}
-                </span>
+              <div className="flex items-center justify-end gap-3">
                 <ShareButton
-                  url={`https://sedeshistoricosdecanarias.com/actividades/${actividad.id}`}
+                  url={`${SITE_URL}/actividades/${actividad.id}`}
                   title={actividad.titulo}
                   text={`${fecha}${sede ? ` · ${sede.nombre}, ${sede.isla}` : ''}`}
                 />
@@ -710,7 +266,7 @@ export function ActividadPage() {
           </div>
 
           {/* Right */}
-          <div className={`${!isModal ? 'lg:sticky lg:top-24' : ''} self-start flex flex-col gap-4`}>
+          <div className={`${!isModal ? 'lg:sticky lg:top-[calc(var(--spacing-navbar)+2rem)]' : ''} self-start flex flex-col gap-4`}>
             <BookingWidget {...widgetProps} />
 
             {sede && (

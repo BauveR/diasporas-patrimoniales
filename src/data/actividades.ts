@@ -82,7 +82,7 @@ Raphael Callou – Director General de Cultura de la OEI, España.`,
     plazasDisponibles: 150,
     tematica: 'Arqueología',
     organizador: 'TEA Tenerife Espacio de las Artes',
-    contacto: '[email de contacto]',
+    contacto: 'diasporaspatrimoniales@gmail.com',
     puntoEncuentro: 'TEA Tenerife Espacio de las Artes, Santa Cruz de Tenerife',
   },
   {
@@ -137,10 +137,27 @@ Dirección científica del simposio.`,
     plazasDisponibles: 150,
     tematica: 'Arqueología',
     organizador: 'TEA Tenerife Espacio de las Artes',
-    contacto: '[email de contacto]',
+    contacto: 'diasporaspatrimoniales@gmail.com',
     puntoEncuentro: 'TEA Tenerife Espacio de las Artes, Santa Cruz de Tenerife',
   },
 ]
+
+// Estado público de ocupación — reemplaza el conteo exacto de plazas
+// restantes (lo que antes mostraban ActividadCard/BookingWidget) por 3
+// niveles, como la mayoría de plataformas de registro a eventos: mostrar el
+// número real invita a "contar cupos" y no aporta nada que el usuario pueda
+// actuar distinto. `agotada` es aparte (ya se maneja como "Sin plazas
+// disponibles"/"Aforo completo" en otros lados) — esta función solo cubre
+// el rango con cupo abierto.
+export type PlazasEstado = 'disponibles' | 'algunas' | 'pocas' | 'agotada'
+
+export function getPlazasEstado(actividad: Pick<Actividad, 'plazas' | 'plazasDisponibles'>): PlazasEstado {
+  if (actividad.plazasDisponibles <= 0) return 'agotada'
+  const ratio = actividad.plazas > 0 ? actividad.plazasDisponibles / actividad.plazas : 0
+  if (ratio <= 0.2) return 'pocas'
+  if (ratio <= 0.5) return 'algunas'
+  return 'disponibles'
+}
 
 export function getActividadesBySede(sedeId: number): Actividad[] {
   return ACTIVIDADES.filter(a => a.sedeId === sedeId)

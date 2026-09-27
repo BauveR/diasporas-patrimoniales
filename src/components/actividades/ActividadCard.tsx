@@ -1,116 +1,126 @@
 import { Link, useLocation } from 'react-router-dom'
-import type { Actividad } from '../../data/actividades'
+import { useTranslation } from 'react-i18next'
+import { getPlazasEstado, type Actividad } from '../../data/actividades'
 
-import { DifficultyDots } from './DifficultyDots'
-import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useDataContext } from '../../contexts/DataContext'
-
-const labelStyle = { fontFamily: "'Open Sans', sans-serif" }
-
-function plazasBadge(disponibles: number, total: number) {
-  if (total === 0) return null
-  const pct = disponibles / total
-  if (pct <= 0.10 || pct < 0.40 || pct >= 0.60) return { text: `${disponibles} plazas` }
-  return null
-}
+import { LOCALE_TAGS, type Locale } from '../../i18n/config'
+import { labelStyle } from '../../lib/styles'
 
 type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
 export function ActividadCard({ actividad, inactiva = false, from = 'actividades' }: Props) {
+  const { t, i18n } = useTranslation()
   const location = useLocation()
-  const isDesktop = useIsDesktop()
   const { sedes } = useDataContext()
   const sede = sedes.find(c => c.id === actividad.sedeId)
-  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+  const dateTag = LOCALE_TAGS[i18n.language as Locale] ?? LOCALE_TAGS.es
+  const fecha = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString(dateTag, {
     day: 'numeric',
     month: 'short',
   })
-  const badge = plazasBadge(actividad.plazasDisponibles, actividad.plazas)
+  // actividad.titulo vive hardcodeado en español en actividades.ts (id 1/2 son
+  // las únicas dos jornadas del evento) — acá se traduce solo lo que se
+  // muestra en esta tarjeta, sin tocar el dato en sí (lo usan también
+  // ActividadPage, AdminPage, el <title> del documento, etc.).
+  const tituloTraducido =
+    actividad.id === 1 ? t('inscripcion.jornada1') : actividad.id === 2 ? t('inscripcion.jornada2') : actividad.titulo
+  const plazasEstado = getPlazasEstado(actividad)
+  const plazasEstadoLabel = t(`actividadCard.${plazasEstado === 'algunas' ? 'algunasPlazas' : plazasEstado === 'pocas' ? 'pocasPlazas' : 'plazasDisponibles'}`)
   const today = new Date().toISOString().slice(0, 10)
   const esProximamente = !!actividad.fechaAperturaInscripciones && actividad.fechaAperturaInscripciones > today
   const fechaApertura = esProximamente
-    ? new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    ? new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString(dateTag, { day: 'numeric', month: 'short' })
     : null
 
   return (
     <Link
       to={`/actividades/${actividad.id}`}
-      state={isDesktop ? { from, background: location } : { from }}
-      className={`group flex flex-col gap-3 ${inactiva ? 'opacity-50' : ''}`}
+      // `background` always set now (not just on desktop): mobile used to
+      // navigate for real to the full ActividadPage, which is exactly the
+      // "looks like a whole page" behavior this was meant to replace with a
+      // bottom sheet (see ActividadModal/ActividadSheet). InscripcionSection
+      // gates its own inline-panel swap on isDesktop separately, so this
+      // doesn't make that panel show up on mobile too.
+      state={{ from, background: location }}
+      // Card propia (fondo + sombra) en vez de texto flotando directo sobre
+      // el fondo de la sección que la envuelve — así se lee igual sin
+      // importar de qué color sea la sección debajo. bg-stone-900 (mismo
+      // gris oscuro que ProgramaSection y los popups de Participantes/
+      // Sede), no bg-white: sobre el rojo teja de Inscripción, un gris
+      // oscuro con texto blanco combina mejor que un recuadro blanco.
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-stone-900 shadow-sm ${inactiva ? 'opacity-50' : ''}`}
     >
       {/* Imagen */}
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
+      <div className="relative aspect-[4/3]">
         <img
           src={actividad.imagen}
-          alt={actividad.titulo}
+          alt={tituloTraducido}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}
         />
         {/* Overlay inactiva */}
         {(inactiva || actividad.cancelada) && (
           <div className="absolute inset-0 bg-white/10 flex items-center justify-center">
             <span className="px-3 py-1 bg-white/90 text-stone-500 text-[10px] tracking-widest uppercase rounded-full" style={labelStyle}>
-              {actividad.cancelada ? 'Cancelado' : actividad.plazasDisponibles === 0 ? 'Agotada' : 'Finalizada'}
+              {actividad.cancelada ? t('actividadCard.cancelado') : actividad.plazasDisponibles === 0 ? t('actividadCard.agotada') : t('actividadCard.finalizada')}
             </span>
           </div>
         )}
-        {/* Badge temática */}
+        {/* Badge plazas — mismo estilo (pastilla blanca, borde/texto en
+            naranja) que tenía antes la etiqueta de temática, en ese mismo
+            lugar sobre la imagen; ahora siempre visible, no solo cuando
+            escasea. */}
         <span
           className="absolute top-3 left-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full"
           style={{ ...labelStyle, color: '#cd6a26', backgroundColor: 'white', outline: '1.5px solid #cd6a26' }}
         >
-          {actividad.tematica}
+          {plazasEstadoLabel}
         </span>
-        {/* Badge plazas / próximamente */}
-        {esProximamente ? (
+        {/* Badge próximamente */}
+        {esProximamente && (
           <span
             className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
             style={{ ...labelStyle, backgroundColor: '#595d8d' }}
           >
-            Abre el {fechaApertura}
-          </span>
-        ) : badge && (
-          <span
-            className="absolute top-3 right-3 px-3 py-1 font-bold text-[10px] tracking-widest uppercase rounded-full text-white"
-            style={{ ...labelStyle, backgroundColor: '#cd6a26' }}
-          >
-            {badge.text}
+            {t('actividadCard.abreEl', { fecha: fechaApertura })}
           </span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col gap-1.5 px-1">
-        <h3
-          className="text-sm text-stone-900 leading-snug line-clamp-2 group-hover:text-stone-600 transition-colors"
-          style={labelStyle}
-        >
-          {actividad.titulo}
+      {/* Info. flex-1 + el CTA con mt-auto: con la card ahora a h-full (ver
+          el Link de arriba), esto reparte el alto ganado por flex-wrap's
+          align-items:stretch en vez de dejarlo como hueco after del bloque
+          de texto — así el "Ver detalle" siempre queda pegado abajo,
+          alineado con el de las tarjetas vecinas, tenga o no `sede` esta
+          actividad o el título 1 o 2 líneas. */}
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="font-mattone font-bold text-sm text-white leading-snug line-clamp-2 group-hover:text-white/70 transition-colors">
+          {tituloTraducido}
         </h3>
 
         {sede && (
-          <p className="text-[11px] text-stone-400 tracking-wide" style={labelStyle}>
+          <p className="text-[11px] text-white/60 tracking-wide" style={labelStyle}>
             {sede.nombre} · {sede.isla}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-stone-500" style={labelStyle}>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-white/70" style={labelStyle}>
           <span>{fecha} · {actividad.hora}</span>
-          <span className="text-stone-300">·</span>
+          <span className="text-white/30">·</span>
           <span>{actividad.duracion}</span>
         </div>
-        <DifficultyDots dificultad={actividad.dificultad} />
 
-        <p className="text-[11px] text-stone-400" style={labelStyle}>
+        <p className="text-[11px] text-white/60" style={labelStyle}>
           {esProximamente
-            ? `Inscripciones desde el ${fechaApertura}`
-            : `${actividad.plazasDisponibles} de ${actividad.plazas} plazas disponibles`}
+            ? t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })
+            : plazasEstadoLabel}
         </p>
 
         <span
-          className="mt-1 text-[10px] tracking-widest uppercase text-stone-400 group-hover:text-stone-700 transition-colors duration-200 flex items-center gap-1"
+          className="mt-auto pt-1 text-[10px] tracking-widest uppercase text-white/60 group-hover:text-white transition-colors duration-200 flex items-center gap-1"
           style={labelStyle}
         >
-          Ver detalle
+          {t('actividadCard.verDetalle')}
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="translate-x-0 group-hover:translate-x-0.5 transition-transform duration-200">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
