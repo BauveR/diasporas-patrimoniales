@@ -43,7 +43,6 @@ export default function HeroTuningPanel({
     railMaxWidthRem: { value: HERO_TUNING_DEFAULTS.railMaxWidthRem, min: 60, max: 160, step: 1 },
   })
 
-  const base = useOrbBucketControls('Orb — base (<640)', HERO_TUNING_DEFAULTS.orb.base)
   const sm = useOrbBucketControls('Orb — sm (640)', HERO_TUNING_DEFAULTS.orb.sm)
   const md = useOrbBucketControls('Orb — md (768)', HERO_TUNING_DEFAULTS.orb.md)
   const lg = useOrbBucketControls('Orb — lg (1024)', HERO_TUNING_DEFAULTS.orb.lg)
@@ -58,9 +57,15 @@ export default function HeroTuningPanel({
   // orbLgPortrait comment in heroTuning.ts.
   const lgPortrait = useOrbBucketControls('Orb — lg portrait (tablet)', HERO_TUNING_DEFAULTS.orbLgPortrait)
 
+  // No "Orb — base" folder anymore: PointsToShapes interpolates that
+  // bucket's shiftX/shiftY/scale by height instead of reading orb.base at
+  // all (see HERO_ORB_BASE_BY_HEIGHT in heroTuning.ts, edited directly —
+  // not panel-tunable) — this default is kept only so `orb` still
+  // structurally satisfies Record<BreakpointBucket, ...>, it has no effect
+  // on what actually renders.
   const orb = useMemo<Record<BreakpointBucket, HeroOrbTuning>>(
-    () => ({ base, sm, md, lg, xl, '2xl': xxl }),
-    [base, sm, md, lg, xl, xxl],
+    () => ({ base: HERO_TUNING_DEFAULTS.orb.base, sm, md, lg, xl, '2xl': xxl }),
+    [sm, md, lg, xl, xxl],
   )
   const tuning = useMemo<HeroTuning>(
     () => ({ ...layout, orb, orbMdLandscape: mdLandscape, orbLgPortrait: lgPortrait }),
@@ -84,6 +89,7 @@ export default function HeroTuningPanel({
         Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
         {isMdLandscapePhone && <> — <strong>md landscape (phone)</strong> activo</>}
         {isLgPortraitTablet && <> — <strong>lg portrait (tablet)</strong> activo</>}
+        {bucket === 'base' && <> — interpolado por alto, ver heroTuning.ts</>}
       </div>
       <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
     </>
