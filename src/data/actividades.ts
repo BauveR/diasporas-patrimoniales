@@ -24,10 +24,15 @@ export type Actividad = {
   fechaAperturaInscripciones?: string
 }
 
+// Imagen propia de la tarjeta "Ambos días" — antes reutilizaba dia1.imagen,
+// ahora tiene la suya (AmbosDiasCard.tsx / AmbosDiasExpandido.tsx), ya que
+// no hay un objeto Actividad combinado propio donde guardarla.
+export const IMAGEN_AMBOS_DIAS = 'https://ik.imagekit.io/h6qtszktl/images%20/2.png'
+
 export const ACTIVIDADES: Actividad[] = [
   {
     id: 1,
-    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1787320128/posters_diasporas-06.png',
+    imagen: 'https://ik.imagekit.io/h6qtszktl/images%20/1.png',
     titulo: 'Día 1 — 12 de noviembre',
     sedeId: 1,
     descripcion: `Día 1 — 12 de noviembre
@@ -87,7 +92,7 @@ Raphael Callou – Director General de Cultura de la OEI, España.`,
   },
   {
     id: 2,
-    imagen: 'https://res.cloudinary.com/s6z9q8tc/image/upload/f_auto,q_auto,w_1200/v1787320131/posters_diasporas-02.png',
+    imagen: 'https://ik.imagekit.io/h6qtszktl/images%20/3.png',
     titulo: 'Día 2 — 13 de noviembre',
     sedeId: 1,
     descripcion: `Día 2 — 13 de noviembre
