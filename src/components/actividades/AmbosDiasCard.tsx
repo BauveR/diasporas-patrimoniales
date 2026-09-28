@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { getPlazasEstado, type Actividad, type PlazasEstado } from '../../data/actividades'
+import { getPlazasEstado, IMAGEN_AMBOS_DIAS, type Actividad, type PlazasEstado } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
 import { labelStyle } from '../../lib/styles'
 
@@ -35,7 +35,7 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
     >
       <div className="relative aspect-[4/3]">
         <img
-          src={dia1.imagen}
+          src={IMAGEN_AMBOS_DIAS}
           alt={t('inscripcion.ambosDias')}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

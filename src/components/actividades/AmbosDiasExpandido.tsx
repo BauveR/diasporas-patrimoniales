@@ -6,7 +6,7 @@ import { BookingWidget } from './BookingWidget'
 import { CerrarButton } from './ActividadExpandido'
 import { useDataContext } from '../../contexts/DataContext'
 import { useAmbosDiasBooking } from '../../hooks/useAmbosDiasBooking'
-import type { Actividad } from '../../data/actividades'
+import { IMAGEN_AMBOS_DIAS, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
 import { formatFechaLarga } from '../../utils/formatMes'
 
@@ -122,7 +122,7 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
               prioridad acá es el texto/agenda, no la foto. */}
           <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-stone-800 sm:h-auto sm:aspect-[3/2]">
             <img
-              src={dia1.imagen}
+              src={IMAGEN_AMBOS_DIAS}
               alt={t('inscripcion.ambosDias')}
               loading="lazy"
               className="h-full w-full object-cover"
