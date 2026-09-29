@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { GrainientBackground } from '../GrainientBackground'
 import { WarmupGate } from '../PointsToShapes'
 import { IntroParticleSwarm } from './IntroParticleSwarm'
+import { ORB_TUNING_DEFAULTS, type OrbTuning } from '../../lib/introTuning'
 
 // The /intro page's full-bleed background: the same grainient shader + bloom
 // the Home hero uses (WarmupGate is imported from PointsToShapes — reused
@@ -14,8 +15,8 @@ import { IntroParticleSwarm } from './IntroParticleSwarm'
 // the whole page, so it's always visible and the camera sits centered.
 // The particle swarm itself is IntroParticleSwarm — a fork of
 // PointsToShapes' ParticleSwarm (same shape/params) that loops its
-// form/float/un-form cycle to match `cycleDuration` instead of forming once
-// and staying formed forever.
+// form/float/un-form cycle on its own clock (`orbTuning`, see
+// lib/introTuning.ts) instead of forming once and staying formed forever.
 const GRADIENT_ACCENT = '#9b2923'
 const GRADIENT_DOMINANT = '#000000'
 const GRADIENT_THIRD = '#000000'
@@ -68,7 +69,7 @@ function useIntroZoom() {
   return zoom
 }
 
-export function IntroCanvas({ cycleDuration }: { cycleDuration?: number }) {
+export function IntroCanvas({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTuning?: OrbTuning }) {
   const zoom = useIntroZoom()
   const [ready, setReady] = useState(false)
 
@@ -87,7 +88,7 @@ export function IntroCanvas({ cycleDuration }: { cycleDuration?: number }) {
           contrast={1}
           saturation={1}
         />
-        <IntroParticleSwarm cycleDuration={cycleDuration} />
+        <IntroParticleSwarm orbTuning={orbTuning} />
         {!ready && <WarmupGate onReady={() => setReady(true)} />}
         <Effects disableGamma>
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />

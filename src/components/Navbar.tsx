@@ -10,7 +10,7 @@ import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
 import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
 import { labelStyle } from '../lib/styles'
 
-const NAVBAR_BG = 'var(--color-brand-red)'
+const NAVBAR_BG = '#000000'
 
 type NavEntry = { label: string; to?: string; href?: string }
 
@@ -59,7 +59,7 @@ function LanguageSwitcher({ mobile, onNavigate }: { mobile?: boolean; onNavigate
 }
 
 const linkClass =
-  'relative font-mattone text-xs font-bold tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
+  'relative font-mattone text-[11px] font-bold tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 whitespace-nowrap ' +
   'after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-white after:transition-all after:duration-300 hover:after:w-full'
 
 const mobileLinkClass =
@@ -147,15 +147,15 @@ export function Navbar() {
       // portrait on a phone that has one — the header's own background
       // still fills that padding, so there's no gap, just brand-red instead
       // of page content showing through up there.
-      className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 pt-[env(safe-area-inset-top,0px)]"
-      style={{ backgroundColor: NAVBAR_BG }}
+      className="fixed top-0 left-0 right-0 z-[100] pt-[env(safe-area-inset-top,0px)]"
+      style={{ backgroundImage: `linear-gradient(to bottom, ${NAVBAR_BG}, transparent)` }}
     >
       {/* Barra principal — `mx-auto max-w-7xl`: mismo rail de contenido que
           Footer.tsx, InscripcionSection.tsx y SedeSection.tsx, para que en
           pantallas muy anchas el logo y los links no queden separados por un
           vacío creciente. El `header` en sí sigue ocupando el 100% del ancho
           (fondo edge-to-edge, la convención estándar de un navbar). */}
-      <div className="mx-auto flex max-w-7xl items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-16">
+      <div className="mx-auto flex max-w-7xl items-center pr-8 pl-10 sm:pr-12 sm:pl-16 lg:pr-16 lg:pl-20 h-20">
 
         {/* Logo */}
         <Link to={prefix || '/'} className="shrink-0">
@@ -169,14 +169,14 @@ export function Navbar() {
         </Link>
 
         {/* Links — solo desktop */}
-        <nav className="hidden lg:flex items-center gap-8 flex-1 ml-10">
+        <nav className="hidden lg:flex items-center gap-5 flex-1 ml-10">
           {navLinks.map(entry => (
             <NavLink key={entry.label} entry={entry} />
           ))}
         </nav>
 
         {/* Auth + idioma — solo desktop */}
-        <div className="hidden lg:flex items-center gap-5">
+        <div className="hidden lg:flex items-center gap-4">
           <LanguageSwitcher />
           {user ? (
             <>

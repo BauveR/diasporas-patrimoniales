@@ -33,6 +33,15 @@ function useIsFiveColumns() {
   return isFiveCol
 }
 
+// Las 3 personas de la dirección científica no tienen tarjeta individual en
+// PARTICIPANTES (solo bio conjunta) — nombres/fotos fijos acá, en el mismo
+// orden en que aparecen en el texto de participantes.direccionCientifica.
+const DIRECCION_CIENTIFICA = [
+  { nombre: 'Jorge Onrubia Pintado', foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/%20Jorge%20Onrubia%20Pintado.png' },
+  { nombre: 'Isaac Sastre de Diego', foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Isaac%20Sastre%20de%20Diego.png' },
+  { nombre: 'Jared Carballo Pérez', foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Jared%20Carballo%20Pe%CC%81rez.png' },
+]
+
 function FotoPlaceholder() {
   return (
     <div className="flex h-full w-full items-center justify-center">
@@ -425,6 +434,33 @@ export function ParticipantesSection() {
             </p>
           </RevealOnScroll>
         </div>
+
+        {/* Biografía conjunta de la dirección científica — siempre
+            desplegada (no es una tarjeta clicable como los ponentes de
+            abajo), al inicio de la sección. */}
+        <RevealOnScroll>
+          <div className="rounded-3xl bg-stone-900 p-6 sm:p-10">
+            <h3 className="font-mattone text-lg font-bold tracking-tight text-brand-red uppercase sm:text-xl">
+              {t('participantes.direccionCientifica.titulo')}
+            </h3>
+            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-4">
+              {DIRECCION_CIENTIFICA.map(p => (
+                <div key={p.nombre} className="flex items-center gap-3">
+                  <img
+                    src={p.foto}
+                    alt={p.nombre}
+                    loading="lazy"
+                    className="h-[68px] w-[68px] shrink-0 object-contain sm:h-[77px] sm:w-[77px]"
+                  />
+                  <span className="font-mattone text-sm font-bold text-white sm:text-base">{p.nombre}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-sm leading-relaxed text-stone-300 md:text-base" style={labelStyle}>
+              {t('participantes.direccionCientifica.texto')}
+            </p>
+          </div>
+        </RevealOnScroll>
 
         {/* 25 ponentes → grilla de 5 columnas (5×5 en desktop), sin el
             col-span/col-start manual que usaba la plantilla de referencia

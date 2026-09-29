@@ -49,7 +49,11 @@
     "parrafo1": "The symposium brings together 25 invited participants from museums, universities, heritage administrations and international organisations.",
     "cargoPendiente": "Position to be confirmed",
     "bioPendiente": "Biography to be confirmed",
-    "cerrar": "Close"
+    "cerrar": "Close",
+    "direccionCientifica": {
+      "titulo": "Scientific direction",
+      "texto": "The symposium is scientifically directed by Jorge Onrubia Pintado, Isaac Sastre de Diego and Jared Carballo Pérez, three archaeologists whose careers combine complementary experience in research, heritage management and cultural policy. Jorge Onrubia Pintado is an archaeologist and historian, Associate Professor of Prehistory at the University of Castilla-La Mancha, specialising in the Canary Islands and Amazigh-speaking Africa; from 2015 to 2025 he directed the Laboratory of Archaeology, Heritage and Emerging Technologies at the UCLM Institute for Regional Development. Isaac Sastre de Diego is an archaeologist, art historian and State museum curator specialising in cultural heritage and public management; he served as Director-General for Cultural Heritage and Fine Arts at Spain's Ministry of Culture from 2021 to 2024 and subsequently coordinated the organisation of MONDIACULT 2025 in Spain from the Minister's Cabinet. Jared Carballo Pérez is an archaeologist and bioarchaeologist, a postdoctoral researcher at the University of La Laguna with research affiliations with Leiden University and the National Autonomous University of Mexico; his work focuses on human remains, physical activity, health and mobility, as well as colonial processes and their effects on populations in the Canary Islands, North Africa and the Atlantic world."
+    }
   },
   "programa": {
     "titulo": "Programme",

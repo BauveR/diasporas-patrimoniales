@@ -59,6 +59,25 @@ export const INTRO_TUNING_DEFAULTS: IntroTuning = {
   resolve: 0.9,
 }
 
+// The orb's own form/float/un-form cycle — deliberately its own type/state,
+// separate from IntroTuning above: IntroWordmark rebuilds its whole GSAP
+// timeline (and restarts the language loop) whenever `tuning` changes, so
+// bundling the orb's timing into that object would restart the wordmark
+// every time an orb slider moved. Used to be derived from the wordmark's own
+// tl.duration() (see IntroParticleSwarm's git history) — now fully
+// independent, tunable on its own clock.
+export interface OrbTuning {
+  formStart: number
+  formDuration: number
+  floatDuration: number
+}
+
+export const ORB_TUNING_DEFAULTS: OrbTuning = {
+  formStart: 4,
+  formDuration: 3.3,
+  floatDuration: 31.85,
+}
+
 // The timeline's labels, in order — shared with IntroTuningPanel so its phase
 // picker always matches whatever IntroWordmark actually builds. `0` is the
 // implicit start (ES, held from t=0); everything else is a real GSAP label.

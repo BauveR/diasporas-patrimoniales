@@ -4,16 +4,18 @@ import * as THREE from 'three'
 import shapesSvgRaw from '../../assets/orbit diasporas patrimoniales-03.svg?raw'
 import { generateSvgFillPositions } from '../../lib/generateSvgFillPositions'
 import { createShapeMask } from '../../lib/createShapeMask'
-import { FORM_START, FORM_DURATION } from '../../lib/heroTiming'
+import { ORB_TUNING_DEFAULTS, type OrbTuning } from '../../lib/introTuning'
 
 // A fork of PointsToShapes' ParticleSwarm — same shape, same swirl math,
 // copied rather than shared so /intro can make it loop on its own clock
 // without touching Home's hero (which forms once and stays formed forever).
-// The one real difference: `cycleDuration` (the wordmark's own ES→FR→PT→EN→ES
-// loop length, read live off its GSAP timeline in Intro.tsx) is how long the
-// swarm stays formed and floating — it forms, floats for that whole length,
-// then un-forms back into the free swirl and re-forms, instead of settling
-// into the shape a single time at page load and staying that way forever.
+// The one real difference: `orbTuning` (formStart/formDuration/floatDuration,
+// see lib/introTuning.ts) is how long the swarm stays formed and floating —
+// it forms, floats for `floatDuration`, then un-forms back into the free
+// swirl and re-forms, instead of settling into the shape a single time at
+// page load and staying that way forever. Independent from the wordmark's
+// own language-swap timeline — the two used to be coupled (this floated for
+// exactly one ES→FR→PT→EN→ES lap), now they run on separate clocks.
 const PARAMS = {
   scale: 110,
   speed: 1.35,
@@ -42,7 +44,7 @@ const WANDER_Z_LIMIT = (SHAPE_WORLD_WIDTH * 0.02) / 2
 const FORMED_SCALE = 0.9
 const COLOR_PARTICLE = new THREE.Color(0xffffff)
 
-export function IntroParticleSwarm({ cycleDuration = Infinity }: { cycleDuration?: number }) {
+export function IntroParticleSwarm({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTuning?: OrbTuning }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
@@ -100,31 +102,29 @@ export function IntroParticleSwarm({ cycleDuration = Infinity }: { cycleDuration
     if (!meshRef.current) return
     const time = state.clock.getElapsedTime()
     const { scale, speed, twist, glow, chaos, layers, pulse, gravity } = PARAMS
+    const { formStart, formDuration, floatDuration } = orbTuning
 
     const clampedDelta = Math.min(delta, 1 / 20)
 
-    // The swarm floats formed for the *entire* `cycleDuration` (one whole
-    // ES→FR→PT→EN→ES loop) — forming and un-forming are extra time on top of
-    // that, not carved out of it. So the full particle loop is longer than
-    // the wordmark's own: FORM_START (swirl) + FORM_DURATION (forming) +
-    // cycleDuration (floating) + FORM_DURATION (un-forming). With the
-    // default Infinity (no wordmark duration known yet), `x % Infinity ===
-    // x`, so this still behaves like PointsToShapes' one-shot version until
-    // a real cycle length arrives.
-    const formEnd = FORM_START + FORM_DURATION
-    const floatEnd = formEnd + cycleDuration
-    const totalCycle = floatEnd + FORM_DURATION
+    // The swarm floats formed for the entire `floatDuration` — forming and
+    // un-forming are extra time on top of that, not carved out of it. Full
+    // particle loop: formStart (swirl) + formDuration (forming) +
+    // floatDuration (floating) + formDuration (un-forming, same speed as
+    // forming).
+    const formEnd = formStart + formDuration
+    const floatEnd = formEnd + floatDuration
+    const totalCycle = floatEnd + formDuration
     phaseElapsed.current = (phaseElapsed.current + clampedDelta) % totalCycle
     const p = phaseElapsed.current
     let rawBlend: number
-    if (p < FORM_START) {
+    if (p < formStart) {
       rawBlend = 0 // free swirl
     } else if (p < formEnd) {
-      rawBlend = (p - FORM_START) / FORM_DURATION // forming
+      rawBlend = (p - formStart) / formDuration // forming
     } else if (p < floatEnd) {
-      rawBlend = 1 // formed, floating/wandering — lasts the full cycleDuration
+      rawBlend = 1 // formed, floating/wandering — lasts the full floatDuration
     } else {
-      rawBlend = 1 - (p - floatEnd) / FORM_DURATION // un-forming, back to swirl
+      rawBlend = 1 - (p - floatEnd) / formDuration // un-forming, back to swirl
     }
     const blend = rawBlend * rawBlend * (3 - 2 * rawBlend)
 

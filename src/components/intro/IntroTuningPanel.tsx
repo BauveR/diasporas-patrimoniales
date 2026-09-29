@@ -1,7 +1,13 @@
 import { useEffect } from 'react'
 import type { MutableRefObject } from 'react'
 import { Leva, useControls, folder } from 'leva'
-import { INTRO_TUNING_DEFAULTS, INTRO_PHASES, type IntroTuning } from '../../lib/introTuning'
+import {
+  INTRO_TUNING_DEFAULTS,
+  INTRO_PHASES,
+  ORB_TUNING_DEFAULTS,
+  type IntroTuning,
+  type OrbTuning,
+} from '../../lib/introTuning'
 import type { IntroWordmarkController } from './IntroWordmark'
 
 // Only ever mounted via a dynamic `import()` gated on `import.meta.env.DEV`
@@ -16,11 +22,26 @@ import type { IntroWordmarkController } from './IntroWordmark'
 // this component for it).
 export default function IntroTuningPanel({
   onChange,
+  onOrbChange,
   controllerRef,
 }: {
   onChange: (tuning: IntroTuning) => void
+  onOrbChange: (tuning: OrbTuning) => void
   controllerRef: MutableRefObject<IntroWordmarkController | null>
 }) {
+  // Separate `useControls` call from `tempo` below on purpose — the orb's
+  // form/float/un-form cycle is fully independent from the wordmark's
+  // timeline now (see OrbTuning in lib/introTuning.ts), so moving these
+  // sliders must not rebuild/restart the wordmark's GSAP timeline.
+  const orb = useControls('Intro — orb', {
+    formStart: { value: ORB_TUNING_DEFAULTS.formStart, min: 0, max: 5, step: 0.1 },
+    formDuration: { value: ORB_TUNING_DEFAULTS.formDuration, min: 0.5, max: 6, step: 0.1 },
+    floatDuration: { value: ORB_TUNING_DEFAULTS.floatDuration, min: 2, max: 120, step: 0.5 },
+  })
+  useEffect(() => {
+    onOrbChange(orb as OrbTuning)
+  }, [orb, onOrbChange])
+
   const tempo = useControls('Intro — tempo', {
     Holds: folder({
       hold: { value: INTRO_TUNING_DEFAULTS.hold, min: 1, max: 12, step: 0.1 },
