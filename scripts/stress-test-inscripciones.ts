@@ -48,12 +48,13 @@ function check(label: string, ok: boolean, detail?: string) {
 const adminApp = initAdminApp({ projectId: PROJECT_ID })
 const adminDb = getAdminFirestore(adminApp)
 
-async function seedActividad(id: number, plazas: number) {
+async function seedActividad(id: number, plazas: number, extra: { plazasDisponibles?: number; cancelada?: boolean } = {}) {
   await adminDb.doc(`actividades/${id}`).set({
     id, titulo: `Stress ${id}`, sedeId: 1, descripcion: 'stress test',
     fecha: '2099-01-01', hora: '10:00', duracion: '1h', dificultad: 'Fácil',
     plazas, plazasDisponibles: plazas, tematica: 'Arqueología',
     organizador: '', contacto: '', puntoEncuentro: '', cancelada: false,
+    ...extra,
   })
 }
 
@@ -323,12 +324,60 @@ async function testReglasRechazanTrampa() {
   await borrarActividad(ACTIVIDAD_ID)
 }
 
+async function testReglasRechazanInscritoSinDescontar() {
+  console.log('\n5. Las reglas rechazan crear inscritos/{uid} sin descontar la plaza (sobrecupo)')
+  const LLENA = 910006
+  const ABIERTA = 910007
+  const CANCELADA = 910008
+  await seedActividad(LLENA, 10, { plazasDisponibles: 0 })
+  await seedActividad(ABIERTA, 10)
+  await seedActividad(CANCELADA, 10, { cancelada: true })
+
+  const [tramposo] = await crearUsuarios(1, 'sobrecupo')
+  const inscritoDirecto = (actividadId: number) => setDoc(doc(tramposo.db, 'actividades', String(actividadId), 'inscritos', tramposo.uid), {
+    uid: tramposo.uid, email: tramposo.email, displayName: 'Tramposo', telefono: '600000000',
+    inscritoEn: serverTimestamp(), aceptoTerminos: true, terminosVersion: 'v1',
+  })
+  const esRechazado = async (fn: () => Promise<unknown>) => {
+    try { await fn(); return false } catch (err) { return (err as { code?: string }).code === 'permission-denied' }
+  }
+
+  check('crear inscritos/ directo en una actividad LLENA es rechazado', await esRechazado(() => inscritoDirecto(LLENA)))
+  check('la actividad llena no ganó ningún inscrito', await contarInscritos(LLENA) === 0)
+
+  check('crear inscritos/ directo (sin -1) en una actividad con plazas es rechazado', await esRechazado(() => inscritoDirecto(ABIERTA)))
+  check('ni inscrito ni contador cambiaron', await contarInscritos(ABIERTA) === 0 && (await leerActividad(ABIERTA)).plazasDisponibles === 10)
+
+  // Transacción "legítima" (inscrito + -1 juntos) pero saltándose el
+  // assertInscribible del cliente — la regla tiene que frenarla igual.
+  check('inscribirse a una actividad CANCELADA (inscrito + -1 juntos) es rechazado', await esRechazado(async () => {
+    const actividadRef = doc(tramposo.db, 'actividades', String(CANCELADA))
+    await runTransaction(tramposo.db, async tx => {
+      await tx.get(actividadRef)
+      tx.set(doc(tramposo.db, 'actividades', String(CANCELADA), 'inscritos', tramposo.uid), {
+        uid: tramposo.uid, email: tramposo.email, displayName: 'Tramposo', telefono: '600000000',
+        inscritoEn: serverTimestamp(), aceptoTerminos: true, terminosVersion: 'v1',
+      })
+      tx.update(actividadRef, { plazasDisponibles: 9 })
+    })
+  }))
+
+  // Y el camino normal sigue funcionando después de todo esto.
+  await conReintentoPorBugDelEmulador(() => inscribirseTest(tramposo.db, ABIERTA, tramposo.uid, tramposo.email))
+  check('la inscripción normal (inscrito + -1) sigue funcionando', await contarInscritos(ABIERTA) === 1 && (await leerActividad(ABIERTA)).plazasDisponibles === 9)
+
+  await borrarActividad(LLENA)
+  await borrarActividad(ABIERTA)
+  await borrarActividad(CANCELADA)
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
   await testAmbosDiasCapacidadDispareja()
   await testLiberarConcurrente()
   await testReglasRechazanTrampa()
+  await testReglasRechazanInscritoSinDescontar()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   if (fail > 0) process.exit(1)

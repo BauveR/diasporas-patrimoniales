@@ -66,6 +66,7 @@ service cloud.firestore {
         request.resource.data.plazasDisponibles <= resource.data.plazas &&
         (
           (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles - 1 &&
+           resource.data.get('cancelada', false) != true &&
            !exists(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid)) &&
            existsAfter(/databases/$(database)/documents/actividades/$(actividadId)/inscritos/$(request.auth.uid))) ||
           (request.resource.data.plazasDisponibles == resource.data.plazasDisponibles + 1 &&
@@ -80,9 +81,19 @@ service cloud.firestore {
         // email must match the caller's own auth token — otherwise the
         // attendee record (the only check-in reference now that QR
         // accreditation is gone) could carry a spoofed contact.
+        //
+        // El contador tiene que bajar en 1 en esta misma escritura
+        // (getAfter vs get) — sin esto, cualquiera con sesión podía crear
+        // su inscrito directo desde la consola sin tocar plazasDisponibles
+        // y quedar inscrito con la actividad llena/cancelada, sin descontar
+        // plaza (sobrecupo). La regla de update de la actividad (arriba) ya
+        // exige el lado inverso (-1 solo si se crea el inscrito), y además
+        // que no esté cancelada y que no baje de 0.
         allow create: if isOwner(uid) &&
           request.resource.data.uid == uid &&
-          request.resource.data.email == request.auth.token.email;
+          request.resource.data.email == request.auth.token.email &&
+          getAfter(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles ==
+            get(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles - 1;
 
         // Nothing updates an inscripción after it's created — no QR
         // accreditation flow (removed 2026-09-22, the admin attendee list
