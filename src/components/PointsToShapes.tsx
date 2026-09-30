@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState, useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Canvas, useFrame, extend, type ThreeElement } from '@react-three/fiber'
 import { Effects } from '@react-three/drei'
 import { UnrealBloomPass } from 'three-stdlib'
@@ -609,8 +609,13 @@ export default function PointsToShapes() {
   const { t } = useTranslation()
   const location = useLocation()
   const locale = getLocaleFromPathname(location.pathname)
-  const sedesHref = locale === DEFAULT_LOCALE ? '#sedes' : `/${locale}#sedes`
-  const programaHref = locale === DEFAULT_LOCALE ? '#programa' : `/${locale}#programa`
+  // <Link> de react-router (no <a href="#..."> nativo): así la navegación
+  // pasa por el scroll de App.tsx (scrollToSection), que espera a la sección
+  // y corrige si la página crece mientras baja. Con el ancla nativa el
+  // navegador saltaba de golpe a donde estaba la sección en ese instante y,
+  // en móvil sobre todo, quedaba corto. Mismo formato de URL que el navbar.
+  const sedesHref = locale === DEFAULT_LOCALE ? '/#sedes' : `/${locale}#sedes`
+  const programaHref = locale === DEFAULT_LOCALE ? '/#programa' : `/${locale}#programa`
   const bucket = useBreakpoint()
   const isLargeScreen = LARGE_BUCKETS.has(bucket)
   const isLandscape = useIsLandscape()
@@ -936,19 +941,19 @@ export default function PointsToShapes() {
                   necesitaban 359px — se envolvían en dos líneas. Medido en
                   vivo. */}
               <div className="flex flex-wrap items-center gap-4 xl:gap-2">
-                <a
-                  href={sedesHref}
+                <Link
+                  to={sedesHref}
                   className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
                   style={{ backgroundColor: '#f04f23' }}
                 >
                   {t('hero.cta')}
-                </a>
-                <a
-                  href={programaHref}
+                </Link>
+                <Link
+                  to={programaHref}
                   className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
                 >
                   {t('hero.programCta')}
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -999,19 +1004,19 @@ export default function PointsToShapes() {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <a
-            href={sedesHref}
+          <Link
+            to={sedesHref}
             className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
             style={{ backgroundColor: '#f04f23' }}
           >
             {t('hero.cta')}
-          </a>
-          <a
-            href={programaHref}
+          </Link>
+          <Link
+            to={programaHref}
             className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10"
           >
             {t('hero.programCta')}
-          </a>
+          </Link>
         </div>
 
         {/* Colaboradores/patrocinadores — una sola fila horizontal sin wrap;
