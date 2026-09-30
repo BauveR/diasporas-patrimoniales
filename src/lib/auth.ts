@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  getAdditionalUserInfo,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -74,10 +75,13 @@ export async function signUp(name: string, email: string, password: string): Pro
   return toAppUser(user)
 }
 
-export async function signInWithGoogle(): Promise<AppUser> {
-  const { user } = await signInWithPopup(auth, new GoogleAuthProvider())
-  await ensureUserDoc(user)
-  return toAppUser(user)
+// isNewUser: el mismo popup sirve para entrar y para crear cuenta — la
+// pantalla de bienvenida de AuthPage lo usa para decir "¡Cuenta creada!" o
+// "Hola de nuevo" según el caso.
+export async function signInWithGoogle(): Promise<{ user: AppUser; isNewUser: boolean }> {
+  const cred = await signInWithPopup(auth, new GoogleAuthProvider())
+  await ensureUserDoc(cred.user)
+  return { user: toAppUser(cred.user), isNewUser: getAdditionalUserInfo(cred)?.isNewUser ?? false }
 }
 
 export async function signOutUser(): Promise<void> {

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, ActividadNoEncontradaError } from '../lib/db'
 import { isValidTelefono } from '../utils/validators'
+import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import type { Actividad } from '../data/actividades'
 
 // Todo el estado y los handlers de inscripción/liberación de plaza, sacados
@@ -23,6 +24,15 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
   const [aceptoTerminos, setAceptoTerminos] = useState(false)
+
+  // Volviendo del login lanzado desde "Inscribirme" de ESTA actividad (ver
+  // lib/inscripcionPendiente.ts): el formulario se muestra ya abierto, con un
+  // aviso de que la sesión está iniciada. Derivado, no un setState en un
+  // efecto — la marca se limpia al inscribirse o al cancelar.
+  // `descartado`: estado local para que "Cancelar" cierre el formulario
+  // abierto así (limpiar la marca de módulo sola no re-renderiza).
+  const [descartado, setDescartado] = useState(false)
+  const continuarTrasLogin = !!user && !!actividad && !inscrito && !descartado && getInscripcionPendiente() === actividad.id
 
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
   useEffect(() => {
@@ -50,10 +60,13 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   }
 
   const handleRequestLogin = () => {
+    if (actividad) marcarInscripcionPendiente(actividad.id)
     navigate('/login', { state: { background: location } })
   }
 
   const handleCancelarTelefono = () => {
+    limpiarInscripcionPendiente()
+    setDescartado(true)
     setMostrandoTelefono(false)
     setTelefonoError('')
     setAceptoTerminos(false)
@@ -73,6 +86,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     setTelefonoError('')
     try {
       await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
       // `inscrito` (arriba) viene de un listener de Firestore en tiempo real
       // (ver subscribeInscripcionIds en AuthContext) — apenas la escritura
@@ -120,7 +134,9 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,
-    mostrandoTelefono, setMostrandoTelefono,
+    mostrandoTelefono: mostrandoTelefono || continuarTrasLogin,
+    setMostrandoTelefono,
+    avisoSesionIniciada: continuarTrasLogin,
     telefono,
     onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
     telefonoError,

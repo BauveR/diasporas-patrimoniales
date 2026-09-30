@@ -4,6 +4,9 @@ import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { isValidEmail } from '../utils/validators'
 import { labelStyle } from '../lib/styles'
+import { limpiarInscripcionPendiente } from '../lib/inscripcionPendiente'
+import { getLocaleFromPathname } from '../i18n/routing'
+import { DEFAULT_LOCALE } from '../i18n/config'
 
 // user-not-found and wrong-password map to the same message on purpose —
 // distinguishing them tells an attacker which emails have accounts
@@ -25,12 +28,12 @@ function parseError(err: unknown): string {
   return AUTH_ERRORS[code] ?? 'Algo salió mal, intenta de nuevo'
 }
 
-type View = 'login' | 'register' | 'reset'
+type View = 'login' | 'register' | 'reset' | 'bienvenida'
 
 type Props = { isModal?: boolean }
 
 export function AuthPage({ isModal = false }: Props) {
-  const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { user, signIn, signUp, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const fromApp = location.key !== 'default'
@@ -44,12 +47,34 @@ export function AuthPage({ isModal = false }: Props) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [cuentaNueva, setCuentaNueva] = useState(false)
 
-  const handleSuccess = (role: string) => {
+  const locale = getLocaleFromPathname(location.pathname)
+  const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
+
+  // Tres recorridos distintos:
+  //  - returnTo (ProtectedRoute — ej. link a "Mi perfil" del email): directo
+  //    a donde se quería ir.
+  //  - "Login / Mi cuenta" del navbar (redirectAfterLogin) o /login abierto a
+  //    mano: pantalla de bienvenida con las dos cosas que se hacen en el
+  //    sitio — inscribirse o ver tus actividades. El admin va a /admin.
+  //  - Botón "Inscribirme" de una tarjeta (sin flags): volver a la tarjeta,
+  //    que reabre sola el formulario (lib/inscripcionPendiente.ts).
+  // En los dos primeros se limpia la marca de inscripción pendiente: si
+  // alguien abrió el login desde una tarjeta, lo cerró y después entró por
+  // el navbar, esa tarjeta no tiene que abrirse sola más tarde.
+  const handleSuccess = (role: string, esNueva: boolean) => {
     if (returnTo) {
+      limpiarInscripcionPendiente()
       navigate(returnTo, { replace: true })
     } else if (redirectAfterLogin || !fromApp) {
-      navigate(role === 'admin' ? '/admin' : '/perfil', { replace: true })
+      limpiarInscripcionPendiente()
+      if (role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        setCuentaNueva(esNueva)
+        setView('bienvenida')
+      }
     } else {
       navigate(-1)
     }
@@ -70,10 +95,10 @@ export function AuthPage({ isModal = false }: Props) {
     try {
       if (view === 'login') {
         const role = await signIn(email, password)
-        handleSuccess(role)
+        handleSuccess(role, false)
       } else {
         const role = await signUp(name, email, password)
-        handleSuccess(role)
+        handleSuccess(role, true)
       }
     } catch (err) {
       setError(parseError(err))
@@ -105,13 +130,64 @@ export function AuthPage({ isModal = false }: Props) {
     setError('')
     setBusy(true)
     try {
-      const role = await signInWithGoogle()
-      handleSuccess(role)
+      const { role, isNewUser } = await signInWithGoogle()
+      handleSuccess(role, isNewUser)
     } catch (err) {
       setError(parseError(err))
     } finally {
       setBusy(false)
     }
+  }
+
+  if (view === 'bienvenida') {
+    const nombre = user?.displayName?.trim().split(/\s+/)[0] || name.trim().split(/\s+/)[0]
+    // replace: el login no queda en el historial — "atrás" desde la
+    // sección de inscripción o desde el perfil no vuelve a esta pantalla.
+    return (
+      <PageShell isModal={isModal}>
+      <div
+        className={`flex flex-col gap-6 px-8 py-8 ${isModal ? '' : 'max-w-sm mx-auto pt-32'}`}
+        style={labelStyle}
+      >
+        <div className="flex flex-col gap-2">
+          <div className="w-11 h-11 rounded-full bg-emerald-50 flex items-center justify-center" aria-hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </div>
+          <h2
+            className="mt-2 text-2xl font-thin text-stone-900 uppercase tracking-tight"
+            style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
+          >
+            {cuentaNueva ? '¡Cuenta creada!' : 'Hola de nuevo'}
+          </h2>
+          <p className="text-sm text-stone-600">
+            {nombre ? `Te damos la bienvenida, ${nombre}.` : 'Te damos la bienvenida.'} ¿Qué quieres hacer?
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(prefix ? `${prefix}#sedes` : '/#sedes', { replace: true })}
+            className="w-full rounded-xl px-5 py-4 text-left text-white transition-opacity hover:opacity-90 cursor-pointer"
+            style={{ backgroundColor: '#f04f23' }}
+          >
+            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">Inscribirme</span>
+            <span className="mt-0.5 block text-xs text-white/85">Elige tu jornada del simposio</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(`${prefix}/perfil`, { replace: true })}
+            className="w-full rounded-xl border border-stone-300 px-5 py-4 text-left text-stone-900 transition-colors hover:border-stone-500 hover:bg-stone-50 cursor-pointer"
+          >
+            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">Ver mis actividades</span>
+            <span className="mt-0.5 block text-xs text-stone-500">Tus inscripciones y tu cuenta</span>
+          </button>
+        </div>
+      </div>
+      </PageShell>
+    )
   }
 
   if (view === 'reset') {

@@ -58,6 +58,7 @@ const baseProps = {
   setAceptoTerminos: vi.fn(),
   onConfirmarInscripcion: vi.fn(),
   onCancelarTelefono: vi.fn(),
+  avisoSesionIniciada: false,
 }
 
 function renderWidget(props: Partial<typeof baseProps> & { compact?: boolean } = {}) {
@@ -194,6 +195,16 @@ describe('BookingWidget — paso de teléfono', () => {
     renderWidget({ mostrandoTelefono: true, aceptoTerminos: false, setAceptoTerminos })
     fireEvent.click(screen.getByRole('checkbox'))
     expect(setAceptoTerminos).toHaveBeenCalledWith(true)
+  })
+
+  it('muestra el aviso de sesión iniciada al volver del login', () => {
+    renderWidget({ mostrandoTelefono: true, avisoSesionIniciada: true })
+    expect(screen.getByRole('status')).toHaveTextContent(/completa tu inscripción/i)
+  })
+
+  it('sin volver del login no muestra el aviso de sesión iniciada', () => {
+    renderWidget({ mostrandoTelefono: true })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
   it('incluye un link a la política de privacidad', () => {

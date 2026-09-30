@@ -114,10 +114,15 @@ export function ProfilePage() {
   const canceladas = inscritas.filter(a => !!a.cancelada)
 
   const visible = tab === 'proximas' ? proximas : [...proximas, ...pasadas, ...canceladas]
-  // Solo abre inline si el id pertenece a esta lista (y por lo tanto es
-  // visible en la pestaña actual) — si viene de otra sección, esto no
-  // encuentra nada y la grilla se muestra normal.
-  const abierta = visible.find(a => a.id === openActividadId)
+  // Jornadas a las que todavía se puede inscribir — las que muestra la
+  // bienvenida de abajo cuando la cuenta aún no tiene inscripciones.
+  const disponibles = actividades
+    .filter(a => a.fecha >= today && !a.cancelada)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+  // Solo abre inline si el id pertenece a la lista que se está mostrando —
+  // si viene de otra sección, esto no encuentra nada y la grilla se muestra
+  // normal.
+  const abierta = (inscritas.length === 0 ? disponibles : visible).find(a => a.id === openActividadId)
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'todas',    label: 'Todas',    count: inscritas.length },
@@ -187,22 +192,49 @@ export function ProfilePage() {
           </div>
 
         ) : inscritas.length === 0 ? (
-          <div className="flex flex-col items-center gap-5 py-24 text-center">
-            <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-stone-300">
-                <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
-              </svg>
+          // Cuenta sin inscripciones (típicamente recién creada): en vez de
+          // un "Sin actividades" que manda a otra página, la bienvenida y
+          // las jornadas acá mismo — la tarjeta abre el mismo panel de
+          // inscripción que en Home (inline en desktop, sheet en móvil).
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-2">
+              <p className="font-mattone text-[10px] font-bold tracking-widest uppercase text-brand-red">Tu cuenta está lista</p>
+              <h2 className="font-mattone text-lg font-bold text-stone-900 sm:text-xl">
+                Te damos la bienvenida{user?.displayName ? `, ${user.displayName.trim().split(/\s+/)[0]}` : ''}
+              </h2>
+              <p className="max-w-xl text-sm leading-relaxed text-stone-600">
+                {disponibles.length > 0
+                  ? 'Aún no tienes inscripciones. Elige tu jornada del simposio para reservar tu plaza:'
+                  : 'Aún no tienes inscripciones.'}
+              </p>
             </div>
-            <div className="flex flex-col gap-1">
-              <p className="text-[10px] tracking-widest uppercase text-stone-400">Sin actividades</p>
-              <p className="text-sm text-stone-400 max-w-xs">Aún no te has inscrito en ninguna actividad</p>
-            </div>
-            <Link
-              to="/#sedes"
-              className="mt-2 px-6 py-2.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors"
-            >
-              Explorar actividades
-            </Link>
+
+            {disponibles.length > 0 ? (
+              <AnimatePresence mode="wait">
+                {abierta ? (
+                  <ActividadExpandido
+                    key={abierta.id}
+                    actividad={abierta}
+                    onClose={() => navigate(-1)}
+                  />
+                ) : (
+                  <div key="disponibles" className="flex flex-wrap gap-6">
+                    {disponibles.map(a => (
+                      <div key={a.id} className="w-full sm:w-[calc(50%-0.75rem)] lg:w-96">
+                        <ActividadCard actividad={a} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
+            ) : (
+              <Link
+                to="/#programa"
+                className="w-fit px-6 py-2.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors"
+              >
+                Ver el programa
+              </Link>
+            )}
           </div>
 
         ) : (

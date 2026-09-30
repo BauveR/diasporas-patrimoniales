@@ -36,6 +36,9 @@ type BookingWidgetProps = {
   setAceptoTerminos: (v: boolean) => void
   onConfirmarInscripcion: () => void
   onCancelarTelefono: () => void
+  // Se volvió del login lanzado desde "Inscribirme" (useActividadBooking):
+  // el formulario ya viene abierto y esto muestra el aviso encima.
+  avisoSesionIniciada?: boolean
   compact?: boolean
   // El fondo negro de la card desplegada (ActividadExpandido/
   // AmbosDiasExpandido) — desacoplado de `compact` a propósito: la vista
@@ -54,6 +57,7 @@ export function BookingWidget({
   telefono, onTelefonoChange, telefonoError,
   aceptoTerminos, setAceptoTerminos,
   onConfirmarInscripcion, onCancelarTelefono,
+  avisoSesionIniciada = false,
   compact = false,
   dark = false,
 }: BookingWidgetProps) {
@@ -370,6 +374,14 @@ export function BookingWidget({
 
       {mostrandoTelefono ? (
         <div className="flex flex-col gap-2">
+          {avisoSesionIniciada && (
+            <p role="status" className={`mb-1 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs ${dark ? 'bg-emerald-500/15 text-emerald-200' : 'bg-emerald-50 text-emerald-800'}`} style={textFont}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden>
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Ya has iniciado sesión. Completa tu inscripción:
+            </p>
+          )}
           <label className={`text-[10px] tracking-widest uppercase ${dark ? 'text-stone-400' : 'text-stone-400'}`} style={textFont}>
             Teléfono de contacto
           </label>

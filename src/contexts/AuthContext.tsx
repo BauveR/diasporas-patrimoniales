@@ -21,7 +21,7 @@ type AuthContextValue = {
   inscripcionesLoading: boolean
   signIn: (email: string, password: string) => Promise<UserRole>
   signUp: (name: string, email: string, password: string) => Promise<UserRole>
-  signInWithGoogle: () => Promise<UserRole>
+  signInWithGoogle: () => Promise<{ role: UserRole; isNewUser: boolean }>
   signOut: () => Promise<void>
 }
 
@@ -109,12 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return role
   }
 
-  const signInWithGoogle = async (): Promise<UserRole> => {
-    const u = await authSignInWithGoogle()
+  const signInWithGoogle = async (): Promise<{ role: UserRole; isNewUser: boolean }> => {
+    const { user: u, isNewUser } = await authSignInWithGoogle()
     setUser(u)
     const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
     setUserRole(role)
-    return role
+    return { role, isNewUser }
   }
 
   const signOut = async () => {
