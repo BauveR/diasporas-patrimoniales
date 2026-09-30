@@ -10,6 +10,15 @@ import { motion, type Transition, type Variants } from 'framer-motion'
 interface BreathingTextProps extends HTMLAttributes<HTMLElement> {
   children: string
   as?: ElementType
+  /**
+   * 'letter' (default) anima cada carácter — funciona bien para una frase
+   * corta como una pastilla, pero un texto largo no tiene dónde cortar
+   * línea (cada letra es un inline-block sin espacio real entre medio, así
+   * que el navegador no puede saltar de línea). 'word' anima palabra por
+   * palabra dejando los espacios como texto normal entre ellas, así el
+   * párrafo sigue haciendo wrap como cualquier texto.
+   */
+  splitBy?: 'letter' | 'word'
   fromOpacity?: number
   toOpacity?: number
   fromScale?: number
@@ -23,6 +32,7 @@ interface BreathingTextProps extends HTMLAttributes<HTMLElement> {
 export function BreathingText({
   children,
   as = 'span',
+  splitBy = 'letter',
   fromOpacity = 0.4,
   toOpacity = 1,
   fromScale = 0.94,
@@ -62,8 +72,35 @@ export function BreathingText({
     }
   }
 
+  const ElementTag = as as ElementType<HTMLAttributes<HTMLElement>>
+
+  if (splitBy === 'word') {
+    const tokens = children.split(/(\s+)/).filter(t => t.length > 0)
+    const totalWords = tokens.filter(t => !/^\s+$/.test(t)).length
+    let wordIndex = 0
+    return (
+      <ElementTag className={className} {...props}>
+        {tokens.map((token, i) => {
+          if (/^\s+$/.test(token)) return token
+          const idx = wordIndex++
+          return (
+            <motion.span
+              key={i}
+              className="inline-block"
+              variants={letterVariants}
+              initial="initial"
+              animate="animate"
+              custom={getCustomIndex(idx, totalWords)}
+            >
+              {token}
+            </motion.span>
+          )
+        })}
+      </ElementTag>
+    )
+  }
+
   const letters = children.split('')
-  const ElementTag = as
 
   return (
     <ElementTag className={className} {...props}>

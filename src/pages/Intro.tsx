@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { IntroCanvas } from '../components/intro/IntroCanvas'
 import { IntroWordmark, type IntroWordmarkController } from '../components/intro/IntroWordmark'
 import { IntroLiveBadge } from '../components/intro/IntroLiveBadge'
+import { IntroTicker } from '../components/intro/IntroTicker'
+import { IntroHeadlineTicker } from '../components/intro/IntroHeadlineTicker'
+import { IntroCycleFade } from '../components/intro/IntroCycleFade'
 import { SeoHead } from '../components/SeoHead'
 import { INTRO_TUNING_DEFAULTS, ORB_TUNING_DEFAULTS } from '../lib/introTuning'
 
@@ -47,6 +50,16 @@ const IntroTuningPanel = import.meta.env.DEV
   ? lazy(() => import('../components/intro/IntroTuningPanel'))
   : null
 
+// Timing de aparición/desaparición del wordmark y del grupo badge+franjas
+// dentro de cada superciclo (ver IntroCycleFade.tsx / getIntroSuperCycle en
+// lib/introTuning.ts). El orb tiene el suyo propio en OrbTuning
+// (appearDelay) + IntroParticleSwarm.tsx (INTRO_ORB_DISAPPEAR_SECONDS).
+const WORDMARK_APPEAR_FADE_SECONDS = 7
+const WORDMARK_DISAPPEAR_BEFORE_END_SECONDS = 3
+const OVERLAYS_APPEAR_AT_SECONDS = 6
+const OVERLAYS_APPEAR_FADE_SECONDS = 1.8
+const OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS = 3
+
 // Chrome-less full-screen route (see App.tsx: /intro renders without Navbar/
 // Footer). Just the animated particle background and the wordmark, centered.
 // Spanish only for now; a dedicated language-transition animation for this
@@ -67,6 +80,10 @@ export function Intro() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
       <SeoHead title={t('meta.homeTitle')} description={t('meta.homeDescription')} />
+      {/* El orb tiene su propio appear (mount delay, orbTuning.appearDelay
+          en IntroCanvas.tsx) + disappear (opacity de material,
+          IntroParticleSwarm.tsx) — no pasa por IntroCycleFade porque
+          comparte canvas con el fondo, que siempre queda visible. */}
       <IntroCanvas orbTuning={orbTuning} />
       {/* Wordmark nudged right of centre — the particle shape sits left (see
           CAMERA_SHIFT_X in IntroCanvas). `translate-x-[16vw]` is the nudge:
@@ -74,13 +91,29 @@ export function Intro() {
           `-translate-y-[6vh]` raises it above vertical centre — more negative
           pushes it further up, 0 to re-center. */}
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-8">
-        <IntroWordmark
-          className="h-auto w-[min(80vw,60rem)] translate-x-[16vw] -translate-y-[6vh]"
-          tuning={tuning}
-          controllerRef={controllerRef}
-        />
+        <IntroCycleFade
+          orbTuning={orbTuning}
+          appearAtSeconds={orbTuning.appearDelay}
+          appearFadeSeconds={WORDMARK_APPEAR_FADE_SECONDS}
+          disappearBeforeEndSeconds={WORDMARK_DISAPPEAR_BEFORE_END_SECONDS}
+        >
+          <IntroWordmark
+            className="h-auto w-[min(80vw,60rem)] translate-x-[16vw] -translate-y-[6vh]"
+            tuning={tuning}
+            controllerRef={controllerRef}
+          />
+        </IntroCycleFade>
       </div>
-      <IntroLiveBadge />
+      <IntroCycleFade
+        orbTuning={orbTuning}
+        appearAtSeconds={OVERLAYS_APPEAR_AT_SECONDS}
+        appearFadeSeconds={OVERLAYS_APPEAR_FADE_SECONDS}
+        disappearBeforeEndSeconds={OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS}
+      >
+        <IntroLiveBadge />
+        <IntroHeadlineTicker />
+        <IntroTicker />
+      </IntroCycleFade>
       <YoutubeFrameGuide />
       {IntroTuningPanel && (
         <Suspense fallback={null}>

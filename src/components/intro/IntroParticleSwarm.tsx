@@ -4,7 +4,12 @@ import * as THREE from 'three'
 import shapesSvgRaw from '../../assets/orbit diasporas patrimoniales-03.svg?raw'
 import { generateSvgFillPositions } from '../../lib/generateSvgFillPositions'
 import { createShapeMask } from '../../lib/createShapeMask'
-import { ORB_TUNING_DEFAULTS, type OrbTuning } from '../../lib/introTuning'
+import {
+  ORB_TUNING_DEFAULTS,
+  getIntroSuperCycle,
+  INTRO_ORB_DISAPPEAR_SECONDS,
+  type OrbTuning,
+} from '../../lib/introTuning'
 
 // A fork of PointsToShapes' ParticleSwarm — same shape, same swirl math,
 // copied rather than shared so /intro can make it loop on its own clock
@@ -88,7 +93,15 @@ export function IntroParticleSwarm({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTun
   const phaseElapsed = useRef(0)
 
   const material = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+    // depthWrite: false — sin esto, las instancias semitransparentes siguen
+    // escribiendo profundidad, y con tantas partículas superpuestas eso se
+    // ve como parpadeo/artefactos raros apenas opacity empieza a bajar de 1.
+    () => new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+    }),
     [],
   )
   const geometry = useMemo(() => {
@@ -98,6 +111,9 @@ export function IntroParticleSwarm({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTun
     return geo
   }, [])
 
+  // Mutates `material` in place each frame (opacity fade below) — the
+  // standard R3F pattern, see the comment at that line.
+  // eslint-disable-next-line react-hooks/immutability
   useFrame((state, delta) => {
     if (!meshRef.current) return
     const time = state.clock.getElapsedTime()
@@ -127,6 +143,40 @@ export function IntroParticleSwarm({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTun
       rawBlend = 1 - (p - floatEnd) / formDuration // un-forming, back to swirl
     }
     const blend = rawBlend * rawBlend * (3 - 2 * rawBlend)
+
+    // Últimos INTRO_ORB_DISAPPEAR_SECONDS del superciclo: el material se
+    // desvanece a 0 (lineal) — al envolver de nuevo a 0, vuelve a opacity 1
+    // de un corte (mismo criterio que la aparición inicial: sin fade al
+    // aparecer, solo al desaparecer).
+    // `state.clock` (no un ref acumulado desde el montaje de ESTE
+    // componente) — arranca cuando monta el <Canvas> (IntroCanvas.tsx, sin
+    // delay), el mismo instante t=0 que usan las animaciones CSS del
+    // wordmark/badge/franjas (IntroCycleFade, siempre montados desde el
+    // load). Usar un acumulador propio acá los desincronizaba por
+    // exactamente `appearDelay` segundos — el desfase que hacía que el
+    // final se empalmara con el inicio del siguiente ciclo.
+    const superCycle = getIntroSuperCycle(orbTuning)
+    const superElapsed = time % superCycle
+    // Hueco de `appearDelay` segundos DESPUÉS de que el superciclo se
+    // reinicia, antes de que vuelva a aparecer — sin esto, opacity llegaba a
+    // 0 justo en el instante en que el ciclo corto (phaseElapsed) también
+    // arrancaba de nuevo, así que se veía re-aparecer casi de inmediato, sin
+    // ningún hueco real en blanco. Reutiliza el mismo valor que ya usa para
+    // su primera aparición (mount delay en IntroCanvas.tsx) — en el primer
+    // ciclo este hueco ya queda cubierto por el propio delay de montaje.
+    let opacity: number
+    if (superElapsed < orbTuning.appearDelay) {
+      opacity = 0
+    } else {
+      const timeIntoDisappear = superElapsed - (superCycle - INTRO_ORB_DISAPPEAR_SECONDS)
+      opacity = timeIntoDisappear > 0 ? Math.max(0, 1 - timeIntoDisappear / INTRO_ORB_DISAPPEAR_SECONDS) : 1
+    }
+    // `material` is a useMemo'd Three.js object, not a ref — same pattern as
+    // GrainientBackground.tsx's uniform mutations, which need the same
+    // disable: mutating it in place each frame is the standard R3F way to
+    // drive a material from a value computed in useFrame.
+    // eslint-disable-next-line react-hooks/immutability
+    material.opacity = opacity
 
     const smoothing = 1 - Math.pow(0.9, clampedDelta * 60)
 

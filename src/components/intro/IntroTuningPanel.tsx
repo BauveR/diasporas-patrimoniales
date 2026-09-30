@@ -34,6 +34,7 @@ export default function IntroTuningPanel({
   // timeline now (see OrbTuning in lib/introTuning.ts), so moving these
   // sliders must not rebuild/restart the wordmark's GSAP timeline.
   const orb = useControls('Intro — orb', {
+    appearDelay: { value: ORB_TUNING_DEFAULTS.appearDelay, min: 0, max: 10, step: 0.1 },
     formStart: { value: ORB_TUNING_DEFAULTS.formStart, min: 0, max: 5, step: 0.1 },
     formDuration: { value: ORB_TUNING_DEFAULTS.formDuration, min: 0.5, max: 6, step: 0.1 },
     floatDuration: { value: ORB_TUNING_DEFAULTS.floatDuration, min: 2, max: 120, step: 0.5 },
@@ -159,5 +160,8 @@ export default function IntroTuningPanel({
     },
   })
 
-  return <Leva collapsed titleBar={{ title: 'Intro tuning' }} />
+  // TEMPORAL — oculto mientras se graba/revisa la pantalla; los controles
+  // siguen funcionando (solo se esconde la UI). Sacar `hidden` para volver
+  // a verlo.
+  return <Leva hidden collapsed titleBar={{ title: 'Intro tuning' }} />
 }

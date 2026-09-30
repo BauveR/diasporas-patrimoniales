@@ -72,13 +72,30 @@ function useIntroZoom() {
 export function IntroCanvas({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTuning?: OrbTuning }) {
   const zoom = useIntroZoom()
   const [ready, setReady] = useState(false)
+  // El canvas en sí (y por lo tanto el fondo, GrainientBackground) se monta
+  // siempre de una — solo IntroParticleSwarm (el orb) espera `appearDelay`
+  // antes de montarse. Antes se retrasaba el <Canvas> entero, lo que también
+  // ocultaba el fondo pausado durante esos segundos; el fondo tiene que
+  // verse siempre, y solo el orb necesita su propio arranque retrasado.
+  // phaseElapsed en IntroParticleSwarm sigue arrancando limpio en cero: es
+  // un ref que se inicializa al montar ESE componente, no al montar el
+  // canvas, así que da igual que el reloj global de R3F ya venga corriendo.
+  const [orbAppeared, setOrbAppeared] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setOrbAppeared(true), orbTuning.appearDelay * 1000)
+    return () => clearTimeout(timer)
+  }, [orbTuning.appearDelay])
 
   return (
     <div className="absolute inset-0">
       <Canvas
         orthographic
         camera={{ zoom, position: [CAMERA_SHIFT_X, 0, 100], rotation: [0, 0, 0] }}
-        style={{ opacity: ready ? 1 : 0, transition: 'opacity 0.5s ease' }}
+        // TEMPORAL — sin transición: salto instantáneo en vez de fade, para
+        // que no haya ningún efecto de aparición mientras se replantea la
+        // orquestación. El `ready`-gate (WarmupGate) se mantiene igual,
+        // evita el flash de shaders sin compilar.
+        style={{ opacity: ready ? 1 : 0 }}
         dpr={[1, 1.5]}
       >
         <GrainientBackground
@@ -87,8 +104,9 @@ export function IntroCanvas({ orbTuning = ORB_TUNING_DEFAULTS }: { orbTuning?: O
           color3={GRADIENT_THIRD}
           contrast={1}
           saturation={1}
+          timeSpeed={0} // TEMPORAL — fondo pausado, sacar para reactivar el movimiento
         />
-        <IntroParticleSwarm orbTuning={orbTuning} />
+        {orbAppeared && <IntroParticleSwarm orbTuning={orbTuning} />}
         {!ready && <WarmupGate onReady={() => setReady(true)} />}
         <Effects disableGamma>
           <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0.35]} />

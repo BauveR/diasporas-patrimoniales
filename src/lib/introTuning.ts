@@ -67,15 +67,38 @@ export const INTRO_TUNING_DEFAULTS: IntroTuning = {
 // tl.duration() (see IntroParticleSwarm's git history) — now fully
 // independent, tunable on its own clock.
 export interface OrbTuning {
+  // Segundos antes de MONTAR el canvas del orb (no solo mostrarlo) — así el
+  // reloj de la animación (swirl + form/float/unform) arranca en cero justo
+  // cuando aparece, en vez de haber estado corriendo en silencio de fondo
+  // mientras estaba oculto. Ver IntroCanvas.tsx.
+  appearDelay: number
   formStart: number
   formDuration: number
   floatDuration: number
 }
 
 export const ORB_TUNING_DEFAULTS: OrbTuning = {
+  appearDelay: 3,
   formStart: 4,
   formDuration: 3.3,
   floatDuration: 31.85,
+}
+
+export function getOrbCycle(orbTuning: OrbTuning) {
+  return orbTuning.formStart + orbTuning.formDuration + orbTuning.floatDuration + orbTuning.formDuration
+}
+
+// El "loop" completo de /intro (para poder cortar una grabación sin que se
+// note) dura varias vueltas del orb, no una sola — ver IntroCycleFade.tsx
+// (wordmark, badge, franjas) e IntroParticleSwarm.tsx (fade del propio orb,
+// que no puede usar el mismo truco CSS porque comparte canvas con el fondo).
+export const INTRO_SUPER_CYCLE_MULTIPLIER = 3
+// Cuántos segundos antes de que termine el superciclo empieza a
+// desvanecerse el orb — ver IntroParticleSwarm.tsx.
+export const INTRO_ORB_DISAPPEAR_SECONDS = 3
+
+export function getIntroSuperCycle(orbTuning: OrbTuning) {
+  return getOrbCycle(orbTuning) * INTRO_SUPER_CYCLE_MULTIPLIER
 }
 
 // The timeline's labels, in order — shared with IntroTuningPanel so its phase
