@@ -408,6 +408,47 @@ function ParticipanteExpandido({
   )
 }
 
+// Texto largo (~1.400 caracteres) colapsado por defecto con un previo de
+// unas líneas que se desvanece hacia abajo + "Leer más", mismo criterio que
+// las filas del Programa (ProgramaTimeline): colapsado de entrada para no
+// abrir la sección con una pared de texto, mismo chevron que rota al abrir.
+// Sin animación de altura, igual que el Programa.
+function DireccionCientificaTexto() {
+  const { t } = useTranslation()
+  const [abierto, setAbierto] = useState(false)
+  const textoId = 'direccion-cientifica-texto'
+
+  return (
+    <div className="mt-6">
+      <div className="relative">
+        <p
+          id={textoId}
+          className={`text-sm leading-relaxed text-stone-300 md:text-base ${abierto ? '' : 'line-clamp-5 sm:line-clamp-4'}`}
+          style={labelStyle}
+        >
+          {t('participantes.direccionCientifica.texto')}
+        </p>
+        {!abierto && (
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-stone-900 to-transparent" />
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => setAbierto(a => !a)}
+        aria-expanded={abierto}
+        aria-controls={textoId}
+        className="group mt-3 inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-bold tracking-widest text-white/70 uppercase transition-colors hover:text-brand-orange"
+        style={labelStyle}
+      >
+        {t(abierto ? 'participantes.direccionCientifica.leerMenos' : 'participantes.direccionCientifica.leerMas')}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-4 w-4 transition-transform duration-200 ${abierto ? 'rotate-180' : ''}`}>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 export function ParticipantesSection() {
   const { t, i18n } = useTranslation()
   const locale = i18n.language as Locale
@@ -435,9 +476,9 @@ export function ParticipantesSection() {
           </RevealOnScroll>
         </div>
 
-        {/* Biografía conjunta de la dirección científica — siempre
-            desplegada (no es una tarjeta clicable como los ponentes de
-            abajo), al inicio de la sección. */}
+        {/* Biografía conjunta de la dirección científica, al inicio de la
+            sección — el texto arranca colapsado con un previo (ver
+            DireccionCientificaTexto). */}
         <RevealOnScroll>
           <div className="rounded-3xl bg-stone-900 p-6 sm:p-10">
             <h3 className="font-mattone text-lg font-bold tracking-tight text-brand-red uppercase sm:text-xl">
@@ -456,9 +497,7 @@ export function ParticipantesSection() {
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-sm leading-relaxed text-stone-300 md:text-base" style={labelStyle}>
-              {t('participantes.direccionCientifica.texto')}
-            </p>
+            <DireccionCientificaTexto />
           </div>
         </RevealOnScroll>
 
