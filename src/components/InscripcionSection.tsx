@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -7,9 +6,6 @@ import { useOpenActividadId } from '../contexts/ActividadInlineContext'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ActividadCard } from './actividades/ActividadCard'
 import { ActividadExpandido } from './actividades/ActividadExpandido'
-import { AmbosDiasCard } from './actividades/AmbosDiasCard'
-import { AmbosDiasExpandido } from './actividades/AmbosDiasExpandido'
-import { AmbosDiasSheet } from './actividades/AmbosDiasSheet'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { labelStyle } from '../lib/styles'
@@ -28,7 +24,6 @@ export function InscripcionSection() {
   const openActividadId = useOpenActividadId()
   const isDesktop = useIsDesktop()
   const sede = sedes[0]
-  const [comboAbierto, setComboAbierto] = useState(false)
 
   if (!sede) return null
 
@@ -36,10 +31,6 @@ export function InscripcionSection() {
   const sesiones = actividades
     .filter(a => a.sedeId === sede.id && !a.cancelada && a.fecha >= today)
     .sort((a, b) => a.fecha.localeCompare(b.fecha))
-  // La card "Ambos días" solo tiene sentido con las 2 jornadas todavía
-  // disponibles para inscripción — si una ya pasó (se filtró arriba), un
-  // registro combinado ya no es una opción real.
-  const [dia1, dia2] = sesiones
 
   // Solo abre inline la que de verdad es una de las sesiones de esta
   // sección — si el id abierto pertenece a otra sección (ej. la grilla de
@@ -103,13 +94,6 @@ export function InscripcionSection() {
                   actividad={abierta}
                   onClose={() => navigate(-1)}
                 />
-              ) : comboAbierto && dia1 && dia2 && isDesktop ? (
-                <AmbosDiasExpandido
-                  key="combo"
-                  dia1={dia1}
-                  dia2={dia2}
-                  onClose={() => setComboAbierto(false)}
-                />
               ) : (
                 <RevealGroup key="cards" className="flex flex-wrap gap-8 lg:gap-6" amount={0.05} staggerChildren={0.12}>
                   {/* `lg:w-96` (24rem = 384px), no `lg:w-[28rem]`: en el peor
@@ -122,26 +106,9 @@ export function InscripcionSection() {
                       <ActividadCard actividad={a} />
                     </RevealItem>
                   ))}
-                  {dia1 && dia2 && (
-                    <RevealItem key="ambos-dias" className="w-full sm:w-[25.2rem] lg:w-96">
-                      <AmbosDiasCard dia1={dia1} dia2={dia2} onClick={() => setComboAbierto(true)} />
-                    </RevealItem>
-                  )}
                 </RevealGroup>
               )}
             </AnimatePresence>
-            {/* Mobile: la card "Ambos días" abre un sheet propio (no depende
-                de la ruta `/actividades/:id`, a diferencia de ActividadCard/
-                ActividadModal) — se monta siempre y se muestra/oculta con
-                `open`, igual que el sheet mobile de AdminPage.tsx. */}
-            {!isDesktop && dia1 && dia2 && (
-              <AmbosDiasSheet
-                dia1={dia1}
-                dia2={dia2}
-                open={comboAbierto}
-                onClose={() => setComboAbierto(false)}
-              />
-            )}
           </div>
         )}
       </div>
