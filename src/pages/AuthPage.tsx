@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
@@ -116,6 +116,7 @@ export function AuthPage({ isModal = false }: Props) {
 
   if (view === 'reset') {
     return (
+      <PageShell isModal={isModal}>
       <div
         className={`flex flex-col gap-6 px-8 py-8 ${isModal ? '' : 'max-w-sm mx-auto pt-32'}`}
         style={labelStyle}
@@ -199,10 +200,12 @@ export function AuthPage({ isModal = false }: Props) {
           </form>
         )}
       </div>
+      </PageShell>
     )
   }
 
   return (
+    <PageShell isModal={isModal}>
     <div
       className={`flex flex-col gap-6 px-8 py-8 ${isModal ? '' : 'max-w-sm mx-auto pt-32'}`}
       style={labelStyle}
@@ -317,7 +320,19 @@ export function AuthPage({ isModal = false }: Props) {
         </button>
       </p>
     </div>
+    </PageShell>
   )
+}
+
+// Todo este formulario está diseñado para fondo blanco (texto stone-800/
+// stone-400, bordes stone-200). En el modal (AuthModal) ese blanco lo pone
+// la propia tarjeta; como página completa (/login — ej. el link a "Mi
+// perfil" del email de confirmación sin sesión iniciada, vía
+// ProtectedRoute) quedaba sobre el negro del <body> y el texto gris casi no
+// se leía. Mismo fondo blanco a pantalla completa que Perfil/Privacidad.
+function PageShell({ isModal, children }: { isModal: boolean; children: ReactNode }) {
+  if (isModal) return <>{children}</>
+  return <main className="min-h-screen bg-white">{children}</main>
 }
 
 function GoogleIcon() {
