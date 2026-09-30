@@ -172,9 +172,21 @@ describe('BookingWidget — paso de teléfono', () => {
     expect(screen.getByRole('button', { name: /cancelar/i })).toBeDisabled()
   })
 
-  it('deshabilita "Confirmar y continuar" si no se aceptó la política de privacidad', () => {
-    renderWidget({ mostrandoTelefono: true, aceptoTerminos: false })
-    expect(screen.getByRole('button', { name: /confirmar y continuar/i })).toBeDisabled()
+  it('sin aceptar la política, "Confirmar y continuar" avisa en vez de inscribir', () => {
+    const onConfirmarInscripcion = vi.fn()
+    renderWidget({ mostrandoTelefono: true, aceptoTerminos: false, onConfirmarInscripcion })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /confirmar y continuar/i }))
+    expect(onConfirmarInscripcion).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent(/aceptar la política de privacidad/i)
+  })
+
+  it('con la política aceptada, "Confirmar y continuar" inscribe', () => {
+    const onConfirmarInscripcion = vi.fn()
+    renderWidget({ mostrandoTelefono: true, aceptoTerminos: true, onConfirmarInscripcion })
+    fireEvent.click(screen.getByRole('button', { name: /confirmar y continuar/i }))
+    expect(onConfirmarInscripcion).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('habilita "Confirmar y continuar" al marcar el checkbox de política de privacidad', () => {

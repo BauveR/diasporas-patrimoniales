@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPlazasEstado, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
@@ -61,6 +62,13 @@ export function BookingWidget({
   // que lo envuelve — eso deja el modo no-compact (la página completa)
   // exactamente como estaba, ya que ahí `textFont` sigue siendo `labelStyle`.
   const textFont = compact ? undefined : labelStyle
+
+  // Aviso de "falta aceptar la política": el botón de confirmar ya no se
+  // deshabilita sin el checkbox (un botón gris no explica por qué no
+  // funciona) — se deja clickear, y si falta la aceptación se resalta el
+  // recuadro en rojo con un mensaje en vez de inscribir.
+  const [avisoTerminos, setAvisoTerminos] = useState(false)
+  const faltaAceptar = avisoTerminos && !aceptoTerminos
 
   if (esCancelada) {
     return (
@@ -376,31 +384,53 @@ export function BookingWidget({
           {telefonoError && (
             <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>{telefonoError}</p>
           )}
-          <label className={`flex items-start gap-2 text-[11px] leading-snug cursor-pointer ${dark ? 'text-stone-300' : 'text-stone-500'}`} style={textFont}>
+          {/* Todo el recuadro es el <label>: tocar en cualquier parte marca
+              el checkbox, no solo el cuadradito — área táctil cómoda en
+              móvil. */}
+          <label
+            className={`mt-1 flex items-center gap-3 rounded-xl border px-3.5 py-3 text-xs sm:text-[13px] leading-snug cursor-pointer transition-colors ${
+              faltaAceptar
+                ? (dark ? 'border-red-400 bg-red-500/10 text-red-200' : 'border-red-400 bg-red-50 text-red-700')
+                : aceptoTerminos
+                  ? (dark ? 'border-white/40 bg-white/10 text-white' : 'border-stone-500 bg-stone-50 text-stone-800')
+                  : (dark ? 'border-white/20 text-stone-200 hover:border-white/40' : 'border-stone-300 text-stone-600 hover:border-stone-400')
+            }`}
+            style={textFont}
+          >
             <input
               type="checkbox"
               checked={aceptoTerminos}
-              onChange={e => setAceptoTerminos(e.target.checked)}
-              className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-brand-orange"
+              onChange={e => { setAceptoTerminos(e.target.checked); if (e.target.checked) setAvisoTerminos(false) }}
+              aria-invalid={faltaAceptar || undefined}
+              aria-describedby={faltaAceptar ? `aviso-terminos-${actividad.id}` : undefined}
+              className="h-5 w-5 shrink-0 cursor-pointer accent-brand-orange"
             />
             <span>
-              Acepto la{' '}
-              <Link to="/privacidad" target="_blank" rel="noopener noreferrer" className={`underline underline-offset-2 ${dark ? 'hover:text-white' : 'hover:text-stone-800'}`}>
+              He leído y acepto la{' '}
+              <Link to="/privacidad" target="_blank" rel="noopener noreferrer" className={`underline underline-offset-2 ${dark ? 'hover:text-white' : 'hover:text-stone-900'}`}>
                 política de privacidad
               </Link>
             </span>
           </label>
+          {faltaAceptar && (
+            <p id={`aviso-terminos-${actividad.id}`} role="alert" className={`-mt-1 text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>
+              Para inscribirte tienes que aceptar la política de privacidad.
+            </p>
+          )}
           <div className="flex gap-2">
             <button
-              onClick={onConfirmarInscripcion}
-              disabled={inscribiendo || !aceptoTerminos}
+              onClick={() => {
+                if (!aceptoTerminos) { setAvisoTerminos(true); return }
+                onConfirmarInscripcion()
+              }}
+              disabled={inscribiendo}
               className={`flex-1 py-3 rounded-xl text-white text-[11px] tracking-widest uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${dark ? 'bg-brand-orange hover:opacity-90' : 'bg-stone-900 hover:bg-stone-700'}`}
               style={textFont}
             >
               {inscribiendo ? '...' : 'Confirmar y continuar'}
             </button>
             <button
-              onClick={onCancelarTelefono}
+              onClick={() => { setAvisoTerminos(false); onCancelarTelefono() }}
               disabled={inscribiendo}
               className={`flex-1 py-3 rounded-xl text-[11px] tracking-widest uppercase transition-colors disabled:opacity-40 cursor-pointer ${dark ? 'border border-white/15 text-stone-300 hover:bg-white/5' : 'border border-stone-200 text-stone-500 hover:bg-stone-50'}`}
               style={textFont}
