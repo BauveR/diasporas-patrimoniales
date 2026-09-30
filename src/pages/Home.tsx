@@ -29,14 +29,10 @@ export function Home() {
     if (saved !== undefined) window.scrollTo({ top: saved, behavior: 'instant' })
   }, [])
 
-  useEffect(() => {
-    if (!location.hash || navType === 'POP') return
-    const id = location.hash.slice(1)
-    const timer = setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-    }, 260)
-    return () => clearTimeout(timer)
-  }, [location.hash, navType])
+  // El scroll a secciones por hash ("/#programa") NO vive acá sino en
+  // App.tsx: Home se renderiza dentro de <Routes location={...}>, y ahí
+  // React Router reporta useNavigationType() siempre como 'POP', así que un
+  // efecto acá no puede distinguir un click en el navbar de un back/forward.
 
   useEffect(() => {
     const key = location.key

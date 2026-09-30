@@ -66,20 +66,12 @@ const mobileLinkClass =
   'block font-mattone text-xs font-bold tracking-widest uppercase text-white/70 hover:text-white transition-colors duration-200 py-4 border-b border-white/10'
 
 function NavLink({ entry, mobile, onClick }: { entry: NavEntry; mobile?: boolean; onClick?: () => void }) {
-  const location = useLocation()
   const cls = mobile ? mobileLinkClass : linkClass
 
-  if (entry.to?.includes('#')) {
-    const [pagePath, sectionId] = entry.to.split('#')
-    const handleClick = () => {
-      onClick?.()
-      if (location.pathname === (pagePath || '/')) {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
-    return <Link to={entry.to} className={cls} onClick={handleClick}>{entry.label}</Link>
-  }
-
+  // Links a secciones de Home ("/#programa") solo navegan: el scroll lo hace
+  // el efecto de hash de Home.tsx (scrollToSection), tanto si ya estabas en
+  // Home como si venías de otra página. Antes este click también scrolleaba
+  // por su cuenta, y los dos scrolls se pisaban.
   if (entry.to) {
     return <Link to={entry.to} className={cls} onClick={onClick}>{entry.label}</Link>
   }

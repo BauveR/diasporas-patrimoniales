@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Routes, Route, useLocation, useMatch, useNavigationType } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
@@ -15,8 +15,9 @@ import { DataProvider } from './contexts/DataContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { ActividadInlineProvider } from './contexts/ActividadInlineContext'
 import { pageVariants } from './utils/pageTransition'
-import { getLocaleFromPathname } from './i18n/routing'
-import { LOCALE_TAGS } from './i18n/config'
+import { scrollToSection } from './lib/scrollToSection'
+import { getLocaleFromPathname, localizePathname } from './i18n/routing'
+import { DEFAULT_LOCALE, LOCALE_TAGS } from './i18n/config'
 import './App.css'
 
 // Candado de prelanzamiento — pensado para la rama `main` (producción),
@@ -128,6 +129,35 @@ export default function App() {
     if (i18n.language !== urlLocale) i18n.changeLanguage(urlLocale)
     document.documentElement.lang = LOCALE_TAGS[urlLocale]
   }, [urlLocale, i18n])
+
+  // Todo el scroll por navegación vive acá, no en las páginas: debajo de
+  // <Routes location={...}> React Router reporta useNavigationType()
+  // siempre como 'POP', así que solo este nivel sabe si fue un click
+  // (PUSH/REPLACE) o un back/forward.
+  //  - Link con hash ("/#programa", navbar/hero): scroll a esa sección de
+  //    Home, venga de Home o de otra página (scrollToSection espera a que
+  //    la sección lazy exista y corrige si la página crece mientras tanto).
+  //  - Cambio de página (ej. Home → /perfil desde "Mi cuenta"): arrancar
+  //    arriba — sin esto se heredaba el scroll de Home y, como /perfil es
+  //    mucho más corta, se caía directo en el footer.
+  //  - Misma URL otra vez (ej. "Inicio" o el logo estando ya en Home):
+  //    subir en suave.
+  // No aplica a back/forward (POP — Home restaura su propio scroll), a
+  // modales con `background` (la página de fondo no cambia), ni a un cambio
+  // de idioma solo (/perfil → /en/perfil es la misma página).
+  const pathSinIdioma = localizePathname(location.pathname, DEFAULT_LOCALE)
+  const prevRef = useRef({ pathSinIdioma, pathname: location.pathname, key: location.key })
+  useEffect(() => {
+    const prev = prevRef.current
+    prevRef.current = { pathSinIdioma, pathname: location.pathname, key: location.key }
+    if (navType === 'POP' || background) return
+    if (location.hash) return scrollToSection(location.hash.slice(1))
+    if (prev.pathSinIdioma !== pathSinIdioma) {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+    } else if (prev.pathname === location.pathname && prev.key !== location.key) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [pathSinIdioma, location.pathname, location.key, navType, background, location.hash])
 
   // Todos los hooks de arriba tienen que correr siempre, en el mismo orden,
   // así que este return recién puede ir acá — antes de esto rompería las
