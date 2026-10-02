@@ -120,6 +120,6 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
     id: 'd2-6',
     hora: '15:45–16:30',
     titulo: 'Sesión de clausura',
-    descripcion: 'Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional.',
+    descripcion: 'Lectura de la «Declaración de Tenerife» y clausura institucional.',
   },
 ]
