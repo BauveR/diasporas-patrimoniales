@@ -6,8 +6,14 @@ import type { Sede } from '../../data/sedes'
 // Evita que el drawer toque Firestore/Firebase de verdad al guardar — el
 // resto de db.ts (que inicializa la app de Firebase con las env vars) ni se
 // ejecuta gracias a este mock del módulo entero.
-const updateActividad = vi.fn().mockResolvedValue(undefined)
-vi.mock('../../lib/db', () => ({ updateActividad: (...args: unknown[]) => updateActividad(...args) }))
+const actualizarActividadConPlazas = vi.fn().mockResolvedValue(undefined)
+vi.mock('../../lib/db', () => ({
+  actualizarActividadConPlazas: (...args: unknown[]) => actualizarActividadConPlazas(...args),
+  PlazasPorDebajoDeInscritosError: class extends Error {
+    inscritos: number
+    constructor(inscritos: number) { super('PLAZAS_POR_DEBAJO_DE_INSCRITOS'); this.inscritos = inscritos }
+  },
+}))
 
 // useIsDesktop usa window.matchMedia, que jsdom no implementa — se fija en
 // "desktop" en vez de polyfillear matchMedia, ya que el layout mobile/
@@ -60,7 +66,7 @@ function renderDrawer(overrides: Partial<Actividad> = {}) {
 
 describe('EditActividadDrawer — campos escribibles', () => {
   beforeEach(() => {
-    updateActividad.mockClear()
+    actualizarActividadConPlazas.mockClear()
   })
 
   it('precarga el título actual de la actividad', () => {
@@ -92,7 +98,7 @@ describe('EditActividadDrawer — campos escribibles', () => {
 
 describe('EditActividadDrawer — validación al guardar', () => {
   beforeEach(() => {
-    updateActividad.mockClear()
+    actualizarActividadConPlazas.mockClear()
   })
 
   it('muestra el error de título corto y no guarda', async () => {
@@ -101,7 +107,7 @@ describe('EditActividadDrawer — validación al guardar', () => {
     fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
 
     expect(await screen.findByText('Mínimo 5 caracteres')).toBeInTheDocument()
-    expect(updateActividad).not.toHaveBeenCalled()
+    expect(actualizarActividadConPlazas).not.toHaveBeenCalled()
   })
 
   it('el error de un campo desaparece en cuanto se vuelve a escribir en él', async () => {
@@ -122,7 +128,7 @@ describe('EditActividadDrawer — validación al guardar', () => {
     fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
 
     expect(await screen.findByText(/mínimo 12 \(hay 12 inscritos\)/i)).toBeInTheDocument()
-    expect(updateActividad).not.toHaveBeenCalled()
+    expect(actualizarActividadConPlazas).not.toHaveBeenCalled()
   })
 
   it('rechaza un contacto con formato inválido', async () => {
@@ -132,7 +138,7 @@ describe('EditActividadDrawer — validación al guardar', () => {
     fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
 
     expect(await screen.findByText(/email o teléfono español/i)).toBeInTheDocument()
-    expect(updateActividad).not.toHaveBeenCalled()
+    expect(actualizarActividadConPlazas).not.toHaveBeenCalled()
   })
 
   it('guarda cuando el formulario es válido, con los datos editados', async () => {
@@ -142,10 +148,30 @@ describe('EditActividadDrawer — validación al guardar', () => {
     fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
 
     expect(await screen.findByText('✓ Guardado')).toBeInTheDocument()
-    expect(updateActividad).toHaveBeenCalledTimes(1)
-    expect(updateActividad).toHaveBeenCalledWith(
+    expect(actualizarActividadConPlazas).toHaveBeenCalledTimes(1)
+    // El total va aparte: las disponibles las calcula la transacción con
+    // los números del servidor, no el panel.
+    expect(actualizarActividadConPlazas).toHaveBeenCalledWith(
       actividad.id,
-      expect.objectContaining({ titulo: 'Título nuevo y válido', plazas: 20, plazasDisponibles: 12 }),
+      expect.objectContaining({ titulo: 'Título nuevo y válido' }),
+      20,
     )
+    expect(actualizarActividadConPlazas.mock.calls[0][1]).not.toHaveProperty('plazasDisponibles')
+  })
+
+  it('muestra cuántas plazas quedarán disponibles con el nuevo total', () => {
+    // 12 inscritos
+    renderDrawer({ plazas: 20, plazasDisponibles: 8 })
+    fireEvent.change(screen.getByDisplayValue('20'), { target: { value: '40' } })
+    expect(screen.getByText(/quedarán 28 disponibles \(12 inscritos\)/i)).toBeInTheDocument()
+  })
+
+  it('si se inscribió gente mientras el panel estaba abierto y el total ya no alcanza, avisa con el número real', async () => {
+    const { PlazasPorDebajoDeInscritosError } = await import('../../lib/db')
+    actualizarActividadConPlazas.mockRejectedValueOnce(new PlazasPorDebajoDeInscritosError(15))
+    renderDrawer({ plazas: 20, plazasDisponibles: 8 })
+    fireEvent.change(screen.getByDisplayValue('20'), { target: { value: '13' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
+    expect(await screen.findByText(/mínimo 15 \(hay 15 inscritos\)/i)).toBeInTheDocument()
   })
 })

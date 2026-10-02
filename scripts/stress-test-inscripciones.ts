@@ -373,9 +373,10 @@ async function testReglasRechazanInscritoSinDescontar() {
 
 // ── Cambio de plazas desde el admin ───────────────────────────────────────
 
-// Espeja EditActividadDrawer.handleSave() TAL COMO ESTÁ HOY: calcula con los
-// datos que el admin tiene en pantalla (`vista`) y escribe el número final
-// de disponibles — no es una transacción.
+// Cómo guardaba EditActividadDrawer ANTES del arreglo: calculaba con los
+// datos que el admin tenía en pantalla (`vista`) y escribía el número final
+// de disponibles, sin transacción. Se deja como referencia para demostrar
+// el fallo que el arreglo cierra.
 async function guardarPlazasComoHoy(db: Firestore, actividadId: number, vista: { plazas: number; plazasDisponibles: number }, nuevoTotal: number) {
   const inscritos = vista.plazas - vista.plazasDisponibles
   if (nuevoTotal < inscritos) throw new Error('POR_DEBAJO_DE_INSCRITOS')
@@ -385,8 +386,9 @@ async function guardarPlazasComoHoy(db: Firestore, actividadId: number, vista: {
   })
 }
 
-// La alternativa propuesta (todavía NO está en la app): lo mismo, pero
-// leyendo los números del servidor dentro de una transacción.
+// Espeja actualizarActividadConPlazas() de src/lib/db.ts (lo que usa el
+// panel ahora): recalcula dentro de una transacción con los números del
+// servidor.
 async function guardarPlazasConTransaccion(db: Firestore, actividadId: number, nuevoTotal: number) {
   const ref = doc(db, 'actividades', String(actividadId))
   await runTransaction(db, async tx => {
@@ -448,22 +450,22 @@ async function testCambioDePlazas() {
 
   // 6c. Carrera: el admin tiene los datos en pantalla, entran 5
   // inscripciones, y recién ahí guarda.
-  for (const variante of ['como hoy (sin transacción)', 'con transacción (propuesta)'] as const) {
+  for (const variante of ['lógica anterior (sin transacción)', 'lógica actual (con transacción)'] as const) {
     await seedActividad(ID, 100)
     await rellenarInscritos(ID, 30, 'previo')
     const vistaVieja = await leerActividad(ID)
-    const gente = await crearUsuarios(5, `carrera-${variante.startsWith('como') ? 'hoy' : 'tx'}`)
+    const gente = await crearUsuarios(5, `carrera-${variante.startsWith('lógica anterior') ? 'antes' : 'ahora'}`)
     await Promise.all(gente.map(u => conReintentoPorBugDelEmulador(() => inscribirseTest(u.db, ID, u.uid, u.email))))
-    if (variante.startsWith('como')) await guardarPlazasComoHoy(admin.db, ID, vistaVieja, 140)
+    if (variante.startsWith('lógica anterior')) await guardarPlazasComoHoy(admin.db, ID, vistaVieja, 140)
     else await guardarPlazasConTransaccion(admin.db, ID, 140)
     a = await leerActividad(ID)
     const reales = await contarInscritos(ID)
     const descuadre = a.plazasDisponibles - (a.plazas - reales)
     console.log(`    [${variante}] plazas=${a.plazas} disponibles=${a.plazasDisponibles} inscritos reales=${reales} → plazas de más: ${descuadre}`)
-    if (variante.startsWith('como')) {
-      check('lógica actual: se reproduce el fallo — quedan 5 plazas de más (permitiría 145 inscritos)', descuadre === 5, `descuadre=${descuadre}`)
+    if (variante.startsWith('lógica anterior')) {
+      check('lógica anterior: se reproduce el fallo — quedan 5 plazas de más (permitiría 145 inscritos)', descuadre === 5, `descuadre=${descuadre}`)
     } else {
-      check('con transacción: sin descuadre, disponibles = 140 − 35 = 105', descuadre === 0 && a.plazasDisponibles === 105, `descuadre=${descuadre}`)
+      check('lógica actual (transacción): sin descuadre, disponibles = 140 − 35 = 105', descuadre === 0 && a.plazasDisponibles === 105, `descuadre=${descuadre}`)
     }
     await borrarActividad(ID)
   }
@@ -479,7 +481,10 @@ async function main() {
   await testCambioDePlazas()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
-  if (fail > 0) process.exit(1)
+  // exit explícito también en éxito: las N apps de Firebase siguen con
+  // conexiones abiertas y, sin esto, el proceso no termina — y
+  // `emulators:exec` deja los emuladores levantados ocupando 9099/8080.
+  process.exit(fail > 0 ? 1 : 0)
 }
 
 main().catch(err => {

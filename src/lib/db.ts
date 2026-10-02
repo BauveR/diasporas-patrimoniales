@@ -257,6 +257,38 @@ export async function updateActividad(
   await updateDoc(doc(db, 'actividades', String(id)), data)
 }
 
+// Guardado desde el panel de admin de una actividad que puede cambiar su
+// número de plazas. Antes el panel calculaba `plazasDisponibles` con los
+// datos que tenía en pantalla y escribía el número final: si entraba una
+// inscripción entre ese dato y el guardado, se pisaba su descuento y
+// quedaban plazas de más (reproducido en scripts/stress-test-inscripciones.ts,
+// caso 6). Acá se recalcula dentro de una transacción con los números del
+// servidor en ese instante — si una inscripción cambia la actividad en el
+// medio, Firestore reintenta la transacción con el dato nuevo.
+export class PlazasPorDebajoDeInscritosError extends Error {
+  inscritos: number
+  constructor(inscritos: number) {
+    super('PLAZAS_POR_DEBAJO_DE_INSCRITOS')
+    this.inscritos = inscritos
+  }
+}
+
+export async function actualizarActividadConPlazas(
+  id: number,
+  data: Partial<Omit<Actividad, 'id' | 'plazas' | 'plazasDisponibles'>>,
+  plazasTotales: number,
+): Promise<void> {
+  const ref = doc(db, 'actividades', String(id))
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(ref)
+    if (!snap.exists()) throw new ActividadNoEncontradaError()
+    const actual = snap.data() as Actividad
+    const inscritos = actual.plazas - actual.plazasDisponibles
+    if (plazasTotales < inscritos) throw new PlazasPorDebajoDeInscritosError(inscritos)
+    tx.update(ref, { ...data, plazas: plazasTotales, plazasDisponibles: plazasTotales - inscritos })
+  })
+}
+
 export async function cancelActividad(id: number): Promise<void> {
   await updateActividad(id, { cancelada: true })
 }

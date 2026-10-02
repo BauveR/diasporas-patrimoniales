@@ -6,7 +6,7 @@ import type { Actividad, Dificultad } from '../../data/actividades'
 import type { Sede } from '../../data/sedes'
 import { TEMATICAS, type Tematica } from '../../data/tematicas'
 import { DIFICULTADES } from '../../data/islas'
-import { updateActividad } from '../../lib/db'
+import { actualizarActividadConPlazas, PlazasPorDebajoDeInscritosError } from '../../lib/db'
 import { labelStyle } from '../../lib/styles'
 import { openCloudinaryPicker } from './cloudinary'
 import { FieldLabel, Input, Select, FieldError, Textarea, DuracionField, SaveButton } from './fields'
@@ -63,7 +63,7 @@ function EditActividadDrawer({
     setSaving(true)
     setSaveError('')
     try {
-      await updateActividad(actividad.id, {
+      await actualizarActividadConPlazas(actividad.id, {
         titulo: form.titulo,
         sedeId: Number(form.sedeId),
         tematica: form.tematica as Tematica,
@@ -71,19 +71,23 @@ function EditActividadDrawer({
         hora: form.hora,
         duracion: form.duracion,
         dificultad: form.dificultad as Dificultad,
-        plazas: newPlazas,
-        plazasDisponibles: newPlazas - inscritos,
         organizador: form.organizador,
         contacto: form.contacto,
         puntoEncuentro: form.puntoEncuentro,
         descripcion: form.descripcion,
         imagen: form.imagen || DEFAULT_IMAGE,
         fechaAperturaInscripciones: form.fechaAperturaInscripciones,
-      })
+      }, newPlazas)
       setSuccess(true)
       setTimeout(() => { setSuccess(false); onClose() }, 1500)
-    } catch {
-      setSaveError('Error al guardar. Inténtalo de nuevo.')
+    } catch (err) {
+      if (err instanceof PlazasPorDebajoDeInscritosError) {
+        // Se inscribió gente mientras el panel estaba abierto y el nuevo
+        // total ya no alcanza — el número real viene de la transacción.
+        setErrors(e => ({ ...e, plazas: `Mínimo ${err.inscritos} (hay ${err.inscritos} inscrito${err.inscritos !== 1 ? 's' : ''})` }))
+      } else {
+        setSaveError('Error al guardar. Inténtalo de nuevo.')
+      }
     } finally {
       setSaving(false)
     }
@@ -217,9 +221,16 @@ function EditActividadDrawer({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <FieldLabel>Plazas *</FieldLabel>
+                    <FieldLabel>Plazas totales *</FieldLabel>
                     <Input value={form.plazas} onChange={set('plazas')} type="number" error={!!errors.plazas} />
                     <FieldError msg={errors.plazas} />
+                    {/* Vista previa: deja claro que es el TOTAL (no "plazas a
+                        sumar") y cuántas quedarán libres al guardar. */}
+                    {!errors.plazas && Number.isInteger(Number(form.plazas)) && Number(form.plazas) >= inscritos && form.plazas !== '' && (
+                      <p className="text-[10px] text-stone-400">
+                        Quedarán {Number(form.plazas) - inscritos} disponibles ({inscritos} inscrito{inscritos !== 1 ? 's' : ''})
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <FieldLabel>Dificultad</FieldLabel>
