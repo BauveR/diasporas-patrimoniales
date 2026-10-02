@@ -371,6 +371,104 @@ async function testReglasRechazanInscritoSinDescontar() {
   await borrarActividad(CANCELADA)
 }
 
+// ── Cambio de plazas desde el admin ───────────────────────────────────────
+
+// Espeja EditActividadDrawer.handleSave() TAL COMO ESTÁ HOY: calcula con los
+// datos que el admin tiene en pantalla (`vista`) y escribe el número final
+// de disponibles — no es una transacción.
+async function guardarPlazasComoHoy(db: Firestore, actividadId: number, vista: { plazas: number; plazasDisponibles: number }, nuevoTotal: number) {
+  const inscritos = vista.plazas - vista.plazasDisponibles
+  if (nuevoTotal < inscritos) throw new Error('POR_DEBAJO_DE_INSCRITOS')
+  await updateDoc(doc(db, 'actividades', String(actividadId)), {
+    plazas: nuevoTotal,
+    plazasDisponibles: nuevoTotal - inscritos,
+  })
+}
+
+// La alternativa propuesta (todavía NO está en la app): lo mismo, pero
+// leyendo los números del servidor dentro de una transacción.
+async function guardarPlazasConTransaccion(db: Firestore, actividadId: number, nuevoTotal: number) {
+  const ref = doc(db, 'actividades', String(actividadId))
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(ref)
+    const a = snap.data() as { plazas: number; plazasDisponibles: number }
+    const inscritos = a.plazas - a.plazasDisponibles
+    if (nuevoTotal < inscritos) throw new Error('POR_DEBAJO_DE_INSCRITOS')
+    tx.update(ref, { plazas: nuevoTotal, plazasDisponibles: nuevoTotal - inscritos })
+  })
+}
+
+async function crearAdmin(nombre: string): Promise<UsuarioTest> {
+  const u = await crearUsuario(nombre)
+  await adminDb.doc(`users/${u.uid}`).set({ role: 'admin' }, { merge: true })
+  return u
+}
+
+// Inscritos "de relleno" escritos con el Admin SDK (sin pasar por reglas),
+// descontando el contador igual que una inscripción real — para llegar a
+// 30 o 135 inscritos sin crear 135 cuentas en el emulador.
+async function rellenarInscritos(actividadId: number, n: number, prefijo: string) {
+  const batch = adminDb.batch()
+  for (let i = 0; i < n; i++) {
+    batch.set(adminDb.doc(`actividades/${actividadId}/inscritos/${prefijo}-${i}`), { uid: `${prefijo}-${i}`, email: `${prefijo}-${i}@test.local` })
+  }
+  const a = await leerActividad(actividadId)
+  batch.update(adminDb.doc(`actividades/${actividadId}`), { plazasDisponibles: a.plazasDisponibles - n })
+  await batch.commit()
+}
+
+async function testCambioDePlazas() {
+  console.log('\n6. Cambio de plazas desde el admin (100 → 140) — nunca se duplican plazas')
+  const ID = 910010
+  const admin = await crearAdmin('admin-plazas')
+
+  // 6a. Cambio normal
+  await seedActividad(ID, 100)
+  await rellenarInscritos(ID, 30, 'previo')
+  const vista = await leerActividad(ID)
+  await guardarPlazasComoHoy(admin.db, ID, vista, 140)
+  let a = await leerActividad(ID)
+  check('100 plazas con 30 inscritos → poner 140 deja 140 plazas totales (no 240)', a.plazas === 140, `plazas=${a.plazas}`)
+  check('quedan 110 disponibles (140 − 30), los 30 inscritos se mantienen', a.plazasDisponibles === 110 && await contarInscritos(ID) === 30, `disp=${a.plazasDisponibles}`)
+
+  let rechazado = false
+  try { await guardarPlazasComoHoy(admin.db, ID, await leerActividad(ID), 20) } catch (e) { rechazado = (e as Error).message === 'POR_DEBAJO_DE_INSCRITOS' }
+  check('bajar a 20 con 30 inscritos se rechaza', rechazado)
+
+  // 6b. El cupo nuevo se respeta: llevamos a 135 inscritos y 20 personas
+  // compiten por las 5 últimas plazas.
+  await rellenarInscritos(ID, 105, 'despues')
+  const usuarios = await crearUsuarios(20, 'cupo140')
+  const res = await Promise.allSettled(usuarios.map(u => conReintentoPorBugDelEmulador(() => inscribirseTest(u.db, ID, u.uid, u.email))))
+  a = await leerActividad(ID)
+  const total = await contarInscritos(ID)
+  check('de 20 intentos simultáneos por las 5 últimas plazas, ganan exactamente 5', res.filter(r => r.status === 'fulfilled').length === 5, `ganaron ${res.filter(r => r.status === 'fulfilled').length}`)
+  check('total final: 140 inscritos, 0 disponibles — nunca más de 140', total === 140 && a.plazasDisponibles === 0, `inscritos=${total} disp=${a.plazasDisponibles}`)
+  await borrarActividad(ID)
+
+  // 6c. Carrera: el admin tiene los datos en pantalla, entran 5
+  // inscripciones, y recién ahí guarda.
+  for (const variante of ['como hoy (sin transacción)', 'con transacción (propuesta)'] as const) {
+    await seedActividad(ID, 100)
+    await rellenarInscritos(ID, 30, 'previo')
+    const vistaVieja = await leerActividad(ID)
+    const gente = await crearUsuarios(5, `carrera-${variante.startsWith('como') ? 'hoy' : 'tx'}`)
+    await Promise.all(gente.map(u => conReintentoPorBugDelEmulador(() => inscribirseTest(u.db, ID, u.uid, u.email))))
+    if (variante.startsWith('como')) await guardarPlazasComoHoy(admin.db, ID, vistaVieja, 140)
+    else await guardarPlazasConTransaccion(admin.db, ID, 140)
+    a = await leerActividad(ID)
+    const reales = await contarInscritos(ID)
+    const descuadre = a.plazasDisponibles - (a.plazas - reales)
+    console.log(`    [${variante}] plazas=${a.plazas} disponibles=${a.plazasDisponibles} inscritos reales=${reales} → plazas de más: ${descuadre}`)
+    if (variante.startsWith('como')) {
+      check('lógica actual: se reproduce el fallo — quedan 5 plazas de más (permitiría 145 inscritos)', descuadre === 5, `descuadre=${descuadre}`)
+    } else {
+      check('con transacción: sin descuadre, disponibles = 140 − 35 = 105', descuadre === 0 && a.plazasDisponibles === 105, `descuadre=${descuadre}`)
+    }
+    await borrarActividad(ID)
+  }
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
@@ -378,6 +476,7 @@ async function main() {
   await testLiberarConcurrente()
   await testReglasRechazanTrampa()
   await testReglasRechazanInscritoSinDescontar()
+  await testCambioDePlazas()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   if (fail > 0) process.exit(1)
