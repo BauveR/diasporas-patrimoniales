@@ -18,6 +18,7 @@ export function Footer() {
   const location = useLocation()
   const locale = getLocaleFromPathname(location.pathname)
   const privacyPath = locale === DEFAULT_LOCALE ? '/privacidad' : `/${locale}/privacidad`
+  const legalPath = locale === DEFAULT_LOCALE ? '/aviso-legal' : `/${locale}/aviso-legal`
   // contacto.parrafo trae el email incrustado en la oración (así lo pide el
   // documento en las 4 lenguas) — se parte por ese string para que siga
   // siendo un mailto clicable en vez de mostrarlo dos veces.
@@ -117,7 +118,9 @@ export function Footer() {
             <Link to={privacyPath} className="transition-colors hover:text-white">
               {t('footer.privacyLink')}
             </Link>
-            <span className="text-white/40">{t('footer.legalPending')}</span>
+            <Link to={legalPath} className="transition-colors hover:text-white">
+              {t('footer.legalLink')}
+            </Link>
           </div>
         </div>
       </div>
