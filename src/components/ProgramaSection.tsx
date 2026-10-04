@@ -4,9 +4,21 @@ import { ProgramaTimeline } from './ProgramaTimeline'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll } from './RevealOnScroll'
 import { labelStyle } from '../lib/styles'
+import { DEFAULT_LOCALE, type Locale } from '../i18n/config'
+
+// PDF del programa por idioma — alojados en Google Drive (compartidos como
+// "cualquier persona con el enlace"). Se abren en el visor de Drive en una
+// pestaña nueva.
+const PROGRAMA_PDF: Record<Locale, string> = {
+  es: 'https://drive.google.com/file/d/1Rb25GjzF5BJEdJdMfeY2fFGKcaMl5RG1/view?usp=sharing',
+  en: 'https://drive.google.com/file/d/1B9a1HUEeFG__V64Mk3U8NvUzi1Rng62F/view?usp=sharing',
+  fr: 'https://drive.google.com/file/d/14gpTI13WWrSnSg0vlIthqVZTGtBdeJih/view?usp=sharing',
+  pt: 'https://drive.google.com/file/d/1gTrd4WkWTbbt0IDVFlyut6ReHGwLPlAB/view?usp=sharing',
+}
 
 export function ProgramaSection() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const pdfHref = PROGRAMA_PDF[i18n.language as Locale] ?? PROGRAMA_PDF[DEFAULT_LOCALE]
 
   return (
     <section id="programa" className="scroll-mt-16 w-full bg-stone-900 px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
@@ -24,6 +36,16 @@ export function ProgramaSection() {
             <p className="max-w-2xl text-sm leading-relaxed text-stone-300 md:text-base lg:text-lg" style={labelStyle}>
               {t('programa.parrafo')}
             </p>
+            {/* Mismo estilo que el botón "Inscribirme" del hero. */}
+            <a
+              href={pdfHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-block w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#f04f23' }}
+            >
+              {t('programa.descargar')}
+            </a>
           </RevealOnScroll>
         </div>
 
