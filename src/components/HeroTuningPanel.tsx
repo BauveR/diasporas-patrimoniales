@@ -60,11 +60,13 @@ export default function HeroTuningPanel({
   onChange,
   bucket,
   isMdLandscapePhone,
+  isSmLandscapePhone,
   isLgPortraitTablet,
 }: {
   onChange: (tuning: HeroTuning) => void
   bucket: BreakpointBucket
   isMdLandscapePhone: boolean
+  isSmLandscapePhone: boolean
   isLgPortraitTablet: boolean
 }) {
   const layout = useControls('Hero — layout', {
@@ -72,19 +74,31 @@ export default function HeroTuningPanel({
     railMaxWidthRem: { value: HERO_TUNING_DEFAULTS.railMaxWidthRem, min: 60, max: 160, step: 1 },
   })
 
-  const sm = useOrbBucketControls('Orb — sm (640)', HERO_TUNING_DEFAULTS.orb.sm)
-  const md = useOrbBucketControls('Orb — md (768)', HERO_TUNING_DEFAULTS.orb.md)
   const lg = useOrbBucketControls('Orb — lg (1024)', HERO_TUNING_DEFAULTS.orb.lg)
   const xl = useOrbBucketControls('Orb — xl (1280)', HERO_TUNING_DEFAULTS.orb.xl)
   const xxl = useOrbBucketControls('Orb — 2xl (1536)', HERO_TUNING_DEFAULTS.orb['2xl'])
-  // Only takes effect at the `md` bucket while the viewport is landscape
-  // (a rotated phone, not a portrait tablet) — see the orbMdLandscape
-  // comment in heroTuning.ts.
-  const mdLandscape = useOrbBucketControls('Orb — md landscape (phone)', HERO_TUNING_DEFAULTS.orbMdLandscape)
   // Only takes effect at the `lg` bucket while the viewport is portrait (a
   // large iPad, not a landscape tablet/narrow laptop) — see the
   // orbLgPortrait comment in heroTuning.ts.
   const lgPortrait = useOrbBucketControls('Orb — lg portrait (tablet)', HERO_TUNING_DEFAULTS.orbLgPortrait)
+
+  // Calibración de todo lo que está por debajo de `lg` (base, sm, md — vertical
+  // u horizontal): con "Usar estos valores" activo, reemplaza la tabla por
+  // alto (o el valor fijo de sm horizontal) en la medida actual. Una sola
+  // carpeta para todos: las tablas viven en heroTuning.ts.
+  const orbBaseOverride = useControls('Orb — móvil/tablet (medida actual)', {
+    enabled: { value: HERO_TUNING_DEFAULTS.orbBaseOverride.enabled, label: 'Usar estos valores' },
+    shiftX: { value: HERO_TUNING_DEFAULTS.orbBaseOverride.shiftX, min: -300, max: 300, step: 1 },
+    shiftY: { value: HERO_TUNING_DEFAULTS.orbBaseOverride.shiftY, min: -300, max: 300, step: 1 },
+    scale: { value: HERO_TUNING_DEFAULTS.orbBaseOverride.scale, min: 0.1, max: 5, step: 0.05 },
+  })
+
+  // Por defecto lg y xl (orb + bloques) y el shiftX de 2xl salen de tablas
+  // por medida (heroTuning.ts) y sus carpetas no tienen efecto; activar esto
+  // vuelve a usar los sliders para calibrar una medida nueva.
+  const { desktopManual } = useControls('Desktop — modo', {
+    desktopManual: { value: HERO_TUNING_DEFAULTS.desktopManual, label: 'Usar sliders lg/xl/2xl' },
+  })
 
   const desktopLg = useDesktopBucketControls('Desktop — lg (1024)', HERO_TUNING_DEFAULTS.desktop.lg)
   const desktopXl = useDesktopBucketControls('Desktop — xl (1280)', HERO_TUNING_DEFAULTS.desktop.xl)
@@ -97,18 +111,20 @@ export default function HeroTuningPanel({
   // structurally satisfies Record<BreakpointBucket, ...>, it has no effect
   // on what actually renders.
   const orb = useMemo<Record<BreakpointBucket, HeroOrbTuning>>(
-    () => ({ base: HERO_TUNING_DEFAULTS.orb.base, sm, md, lg, xl, '2xl': xxl }),
-    [sm, md, lg, xl, xxl],
+    () => ({ base: HERO_TUNING_DEFAULTS.orb.base, sm: HERO_TUNING_DEFAULTS.orb.sm, md: HERO_TUNING_DEFAULTS.orb.md, lg, xl, '2xl': xxl }),
+    [lg, xl, xxl],
   )
   const tuning = useMemo<HeroTuning>(
     () => ({
       ...layout,
       orb,
-      orbMdLandscape: mdLandscape,
+      orbSmLandscape: HERO_TUNING_DEFAULTS.orbSmLandscape,
       orbLgPortrait: lgPortrait,
       desktop: { lg: desktopLg, xl: desktopXl, '2xl': desktop2xl },
+      orbBaseOverride,
+      desktopManual,
     }),
-    [layout, orb, mdLandscape, lgPortrait, desktopLg, desktopXl, desktop2xl],
+    [layout, orb, lgPortrait, desktopLg, desktopXl, desktop2xl, orbBaseOverride, desktopManual],
   )
 
   // "Copiar valores": deja en el portapapeles (y en la consola) el objeto
@@ -139,8 +155,16 @@ export default function HeroTuningPanel({
       <div className="pointer-events-none fixed right-4 bottom-4 z-[10000] rounded-md bg-black/80 px-3 py-1.5 font-mono text-xs text-white">
         {viewport.w}×{viewport.h} · Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
         {isMdLandscapePhone && <> — <strong>md landscape (phone)</strong> activo</>}
+        {isSmLandscapePhone && <> — <strong>sm landscape (phone)</strong> activo</>}
+        {(bucket === 'lg' || bucket === 'xl' || bucket === '2xl') && (desktopManual
+          ? <> — <strong>sliders manuales</strong></>
+          : <> — {bucket === 'xl' ? 'tabla por alto' : bucket === '2xl' ? 'tabla por ancho (shiftX)' : isLgPortraitTablet ? 'valores fijos' : 'tabla por ancho'}, ver heroTuning.ts</>)}
         {isLgPortraitTablet && <> — <strong>lg portrait (tablet)</strong> activo</>}
-        {bucket === 'base' && <> — interpolado por alto, ver heroTuning.ts</>}
+        {(bucket === 'base' || bucket === 'sm' || bucket === 'md') && (orbBaseOverride.enabled
+          ? <> — <strong>valores manuales</strong> (Orb — móvil/tablet)</>
+          : isSmLandscapePhone
+            ? <> — valor fijo, ver heroTuning.ts</>
+            : <> — interpolado por alto, ver heroTuning.ts</>)}
       </div>
       <Leva collapsed titleBar={{ title: 'Hero tuning' }} />
     </>

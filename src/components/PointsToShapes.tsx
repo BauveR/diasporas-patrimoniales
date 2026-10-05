@@ -11,7 +11,19 @@ import { createShapeMask } from '../lib/createShapeMask'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { FORM_START, FORM_DURATION } from '../lib/heroTiming'
-import { HERO_TUNING_DEFAULTS, HERO_ORB_BASE_BY_HEIGHT, interpolateOrbByHeight } from '../lib/heroTuning'
+import {
+  HERO_TUNING_DEFAULTS,
+  HERO_ORB_BASE_BY_HEIGHT,
+  HERO_ORB_SM_BY_HEIGHT,
+  HERO_ORB_MD_BY_HEIGHT,
+  HERO_ORB_MD_LANDSCAPE_BY_HEIGHT,
+  HERO_XL_BY_HEIGHT,
+  HERO_LG_BY_WIDTH,
+  HERO_LG_PORTRAIT_OFFSETS,
+  HERO_ORB_2XL_SHIFTX_BY_WIDTH,
+  interpolateOrbByHeight,
+  interpolatePoints,
+} from '../lib/heroTuning'
 import { useBreakpoint, type BreakpointBucket } from '../hooks/useBreakpoint'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
@@ -178,6 +190,18 @@ const HEIGHT_CHANGE_IGNORE_THRESHOLD_PX = 100
 // same settled value, instead of each reading window.innerHeight on its
 // own (CameraRig used to do that directly, every frame, with no filtering
 // at all — the main source of the scroll-zoom bug).
+// Ancho del viewport, para el extra de shiftX que el orb necesita dentro de
+// 2xl (ver HERO_ORB_2XL_SHIFTX_BY_WIDTH en heroTuning.ts).
+function useViewportWidth(): number {
+  const [width, setWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0))
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 function useSettledViewportHeight(): number {
   const widthRef = useRef(typeof window !== 'undefined' ? window.innerWidth : 0)
   const [height, setHeight] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 0))
@@ -620,12 +644,13 @@ export default function PointsToShapes() {
   const isLargeScreen = LARGE_BUCKETS.has(bucket)
   const isLandscape = useIsLandscape()
   // See useIsLandscape above — a landscape phone at the `md` bucket needs
-  // orbMdLandscape's tuning instead of orb.md, which is dialed in for a
+  // its own height table (HERO_ORB_MD_LANDSCAPE_BY_HEIGHT) instead of md's, which is dialed in for a
   // portrait tablet's very different aspect ratio. Same split one bucket
   // up: orb.lg is tuned for a landscape tablet/narrow laptop (confirmed
   // live), so a large iPad in *portrait* at that same width needs its own
   // override instead — orbLgPortrait.
   const isMdLandscapePhone = bucket === 'md' && isLandscape
+  const isSmLandscapePhone = bucket === 'sm' && isLandscape
   const isLgPortraitTablet = bucket === 'lg' && !isLandscape
   // Needed before shiftX/shiftY/scale are picked below (the `base` bucket
   // interpolates against it), not just for zoom — see useZoom further down.
@@ -633,24 +658,50 @@ export default function PointsToShapes() {
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape, orbLgPortrait, desktop } = tuning
+  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbSmLandscape, orbLgPortrait, desktop, orbBaseOverride, desktopManual } = tuning
   // `base` spans real phones from ~500px to ~950px tall with no natural
   // step in between (confirmed live: one fixed value overlapped the
   // wordmark on some real devices and not others, all inside the same
   // <640px-wide bucket) — interpolated by height instead of a single fixed
   // value. See HERO_ORB_BASE_BY_HEIGHT's comment in heroTuning.ts for the
   // calibration points and how to add more.
-  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = isMdLandscapePhone
-    ? orbMdLandscape
-    : isLgPortraitTablet
-      ? orbLgPortrait
-      : bucket === 'base'
-        ? interpolateOrbByHeight(HERO_ORB_BASE_BY_HEIGHT, viewportHeight)
-        : orb[bucket]
+  const viewportWidth = useViewportWidth()
+  // Por debajo de `lg` todo sale de tablas por alto (o un valor fijo para sm
+  // horizontal), y el override del panel (solo dev) las reemplaza a todas.
+  const isBelowLg = bucket === 'base' || bucket === 'sm' || bucket === 'md'
+  // xl: orb + bloques salen de una tabla por alto; lg horizontal, por ancho
+  // (salvo modo manual del panel, solo dev).
+  // lg horizontal: tabla por ancho (lg vertical sigue con orbLgPortrait).
+  const deskPoint = desktopManual
+    ? null
+    : bucket === 'xl'
+      ? interpolatePoints(HERO_XL_BY_HEIGHT, 'height', viewportHeight)
+      : bucket === 'lg' && !isLgPortraitTablet
+        ? interpolatePoints(HERO_LG_BY_WIDTH, 'width', viewportWidth)
+        : null
+  const { shiftX: rawCameraX, shiftY: cameraY, scale: shapeGrowth } = deskPoint ?? (isBelowLg && orbBaseOverride.enabled
+    ? orbBaseOverride
+    : isMdLandscapePhone
+      ? interpolateOrbByHeight(HERO_ORB_MD_LANDSCAPE_BY_HEIGHT, viewportHeight)
+      : isSmLandscapePhone
+        ? orbSmLandscape
+        : isLgPortraitTablet
+          ? orbLgPortrait
+          : bucket === 'base'
+            ? interpolateOrbByHeight(HERO_ORB_BASE_BY_HEIGHT, viewportHeight)
+            : bucket === 'sm'
+              ? interpolateOrbByHeight(HERO_ORB_SM_BY_HEIGHT, viewportHeight)
+              : bucket === 'md'
+                ? interpolateOrbByHeight(HERO_ORB_MD_BY_HEIGHT, viewportHeight)
+                : orb[bucket])
+  const cameraX = bucket === '2xl' && !desktopManual
+    ? interpolatePoints(HERO_ORB_2XL_SHIFTX_BY_WIDTH, 'width', viewportWidth).shiftX
+    : rawCameraX
   const zoom = useZoom(shapeGrowth, viewportHeight)
   // Desplazamientos por bloque del hero desktop (ver HeroDesktopOffsets) —
   // solo se usan dentro del bloque `isLargeScreen`, donde bucket es lg/xl/2xl.
-  const off = desktop[bucket === 'xl' || bucket === '2xl' ? bucket : 'lg']
+  const off = deskPoint
+    ?? (isLgPortraitTablet && !desktopManual ? HERO_LG_PORTRAIT_OFFSETS : desktop[bucket === 'xl' || bucket === '2xl' ? bucket : 'lg'])
   const shift = (x: number, y: number) => (x || y ? { translate: `${x}px ${y}px` } : undefined)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -929,8 +980,8 @@ export default function PointsToShapes() {
                 texto ocupa casi todo el alto, se queda arriba sin salirse
                 del hero — un margen fijo empujaba los botones fuera. Sin
                 margen superior: solo actúa cuando esta columna es la más
-                alta (ej. 1024×768), y ahí el `mt-14` de antes sacaba los
-                botones ~25px por debajo del hero. */}
+                alta (ej. 1024×768), y ahí el `mt-14` de antes bajaba los
+                botones ~25px más. */}
             <div className="pointer-events-auto flex min-w-0 flex-col items-start gap-5 self-end text-white">
               <div style={shift(off.textosX, off.textosY)}>
                 <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
@@ -941,26 +992,32 @@ export default function PointsToShapes() {
                   <br />
                   {t('hero.location')}
                 </p>
-                <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
+                {/* `text-sm` en lg, `text-base` desde xl: en lg la columna
+                    mide ~220px y los botones van en dos filas; con el texto
+                    a 16px los botones quedaban por debajo del primer
+                    pantallazo a 1024×690 (hasta ~57px en francés). */}
+                <p className="mt-4 text-sm leading-relaxed text-white/80 xl:text-base">
                   {t('hero.description')}
                 </p>
               </div>
-              {/* `xl:` padding/tracking/gap más chicos: en el peor caso de
-                  `xl` (1280px) la columna de texto mide ~268px y los dos
-                  botones con su tamaño normal (135px + 208px + gap-4)
-                  necesitaban 359px — se envolvían en dos líneas. Medido en
-                  vivo. */}
-              <div className="flex flex-wrap items-center gap-4 xl:gap-2" style={shift(off.botonesX, off.botonesY)}>
+              {/* Padding/tracking/gap compactos en todo desktop (desde `lg`,
+                  antes solo desde `xl`): en `lg` la columna de texto mide
+                  ~220px a 1024 y con el tamaño normal (135px + 208px +
+                  gap-4) "Consultar programa" se partía en dos líneas y se
+                  deformaba. `whitespace-nowrap`: el texto de cada botón
+                  nunca se parte; si no entran los dos en una fila, el
+                  segundo baja entero (flex-wrap). */}
+              <div className="flex flex-wrap items-center gap-2" style={shift(off.botonesX, off.botonesY)}>
                 <Link
                   to={sedesHref}
-                  className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
+                  className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 whitespace-nowrap lg:px-2.5 lg:py-2 lg:text-[10px] lg:tracking-normal"
                   style={{ backgroundColor: '#f04f23' }}
                 >
                   {t('hero.cta')}
                 </Link>
                 <Link
                   to={programaHref}
-                  className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"
+                  className="w-fit rounded-full border border-white/60 px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-white/10 whitespace-nowrap lg:px-2.5 lg:py-2 lg:text-[10px] lg:tracking-normal"
                 >
                   {t('hero.programCta')}
                 </Link>
@@ -1045,6 +1102,7 @@ export default function PointsToShapes() {
             onChange={setTuning}
             bucket={bucket}
             isMdLandscapePhone={isMdLandscapePhone}
+            isSmLandscapePhone={isSmLandscapePhone}
             isLgPortraitTablet={isLgPortraitTablet}
           />
         </Suspense>
