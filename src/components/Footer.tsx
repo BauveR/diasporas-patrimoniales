@@ -37,27 +37,23 @@ export function Footer() {
             breakpoint. */}
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-x-12 sm:gap-y-6">
 
-          {/* Mobile (<sm): 3 filas — marca propia, Gobierno+Cabildo,
-              TEA+MUNA — sin la línea vertical (separador pensado para una
-              sola fila larga, no para filas de 2). Cada fila centra su
-              par de logos con flex items-center justify-center, y la
-              columna que las envuelve las centra a su vez entre sí, así
-              que cambiar el tamaño de cualquiera no descentra nada.
-              Alturas: Diásporas TEA a -30% (h-14) sobre su tamaño de
-              desktop de antes; Patrimonio Cultural a -20% (h-16, igual
-              que en el bloque desktop de abajo); Gobierno+Cabildo parten
-              de -20% sobre desktop y luego +20% sobre ese valor (quedan
-              en h-[5.04rem]/h-[4.032rem]); TEA+MUNA se quedan en el
-              -20% original sobre desktop (ver esos 2 en el bloque sm+
-              más abajo). */}
+          {/* Mobile (<sm): 3 filas — marca propia sola, Gobierno +
+              Patrimonio Cultural + Cabildo, TEA+MUNA — mismo orden que el
+              hero, sin la línea vertical (separador pensado para una sola
+              fila larga, no para filas cortas). Cada fila centra sus logos
+              con flex items-center justify-center, y la columna que las
+              envuelve las centra a su vez entre sí, así que cambiar el
+              tamaño de cualquiera no descentra nada. La fila de 3 lleva
+              alturas y gap más chicos que el resto para entrar en ~327px
+              (375px menos el padding): ~265px medidos sobre el ancho
+              natural de cada logo. TEA+MUNA se quedan en el -20% original
+              sobre desktop (ver esos 2 en el bloque sm+ más abajo). */}
           <div className="flex flex-col items-center gap-6 sm:hidden">
-            <div className="flex items-center justify-center gap-8">
-              <img src={logoDiasporasTea} alt="Diásporas Patrimoniales — TEA Tenerife" width={600} height={220} loading="lazy" className="h-14 w-auto object-contain" />
-              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="h-16 w-auto object-contain" />
-            </div>
-            <div className="flex items-center justify-center gap-8">
-              <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-[5.04rem] w-auto -translate-x-4 object-contain" />
-              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.032rem] w-auto object-contain" />
+            <img src={logoDiasporasTea} alt="Diásporas Patrimoniales — TEA Tenerife" width={600} height={220} loading="lazy" className="h-14 w-auto object-contain" />
+            <div className="flex items-center justify-center gap-5">
+              <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-14 w-auto object-contain" />
+              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="h-11 w-auto object-contain" />
+              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-12 w-auto object-contain" />
             </div>
             <div className="flex items-center justify-center gap-8">
               <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[3.36rem] w-auto object-contain" />
@@ -65,7 +61,10 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Desktop (sm+): la fila única con línea vertical, sin cambios. */}
+          {/* Desktop (sm+): fila única — marca propia sola a la izquierda
+              de la línea vertical; a la derecha los colaboradores en el
+              mismo orden que el hero (Gobierno · Patrimonio Cultural ·
+              Cabildo · TEA · MUNA). */}
           <div className="hidden items-center gap-x-10 gap-y-4 sm:flex sm:flex-wrap">
             <img
               src={logoDiasporasTea}
@@ -75,6 +74,8 @@ export function Footer() {
               loading="lazy"
               className="h-20 w-auto object-contain"
             />
+            <div className="h-14 w-px bg-white/20" />
+            <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-[5.25rem] w-auto object-contain" />
             {/* h-14 (3.5rem) = 70% de los h-20 (5rem) de antes */}
             <img
               src={logoDiasporasPoster}
@@ -84,10 +85,8 @@ export function Footer() {
               loading="lazy"
               className="h-14 w-auto object-contain"
             />
-            <div className="h-14 w-px bg-white/20" />
-            <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-[5.25rem] w-auto object-contain" />
-            <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.2rem] w-auto object-contain" />
-            <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[4.2rem] w-auto object-contain" />
+            <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />
+            <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />
             <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} loading="lazy" className="h-[3.375rem] w-auto object-contain" />
           </div>
 

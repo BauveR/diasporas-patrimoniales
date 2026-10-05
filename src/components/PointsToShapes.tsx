@@ -891,35 +891,39 @@ export default function PointsToShapes() {
               {/* Colaboradores/patrocinadores — una sola fila horizontal, ya
                   en blanco/claro en el propio archivo, así que se apoyan
                   directamente sobre el fondo oscuro sin tratamiento extra.
-                  En `lg` la columna es más angosta que en xl/2xl (ver
-                  `clamp()` de más arriba) y los tamaños originales no entran
-                  en una sola línea ahí — `lg:` los achica y pasa a
-                  `flex-nowrap`/`justify-start` solo en ese bucket. `gap-1`
-                  (en vez de `gap-2`) libera los px que el `lg:ml-3` de TEA
-                  usa para separar el par TEA/MUNA del par GobCan/Cabildo —
-                  calculado al límite del ancho disponible en el peor caso de
-                  `lg` (1024px, ~389px de columna): ~383px necesarios, ~6px
-                  de margen — no da para separarlos más sin envolver en el
-                  extremo angosto del bucket. `xl` hereda esos mismos
-                  tamaños/gap de `lg` por cascada (sin `xl:` no había nada
-                  que los distinguiera) — con más columna disponible ahí
-                  (~477px en el peor caso de `xl`, 1280px) entran +20% más
-                  grandes y con más separación (`gap-3`): ~467px necesarios,
-                  ~10px de margen, medido en vivo. Desde ahí el espacio crece
-                  con el viewport: la columna gana ~0.4px por px de viewport
-                  (medido en vivo), y lo repartimos en 3 gaps × 0.06 (12px →
-                  24px) + un margen extra de TEA × 0.15 (0 → 32px) que separa
-                  el par TEA/MUNA del par GobCan/Cabildo = 0.33px por px —
-                  nunca crece más rápido que el espacio libre. */}
-              <div className="flex w-full flex-wrap items-center justify-between gap-6 lg:flex-nowrap lg:justify-start lg:gap-1 xl:gap-[clamp(0.75rem,calc(0.75rem_+_(100vw_-_1280px)_*_0.06),1.5rem)]">
-                <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-21.75 w-auto object-contain lg:h-16 xl:h-[4.8rem]" />
-                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-17.25 w-auto object-contain lg:h-12 xl:h-[3.6rem]" />
-                <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-16 w-auto object-contain lg:h-11 lg:ml-3 xl:h-[3.3rem] xl:ml-[clamp(0px,calc((100vw_-_1280px)_*_0.15),2rem)]" />
-                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-10 w-auto object-contain lg:h-8 xl:h-[2.4rem]" />
+                  Mismo orden que el cartel: GobCan · Patrimonio Cultural ·
+                  Cabildo · TEA · MUNA. Con 5 logos la fila no entra con
+                  tamaños fijos en el extremo angosto de `lg`/`xl`, así que
+                  todo (alturas, gaps y el margen extra de TEA que separa el
+                  par TEA/MUNA) está en `cqw` de un wrapper con
+                  `container-type: inline-size` (no la fila misma: el `gap`
+                  de un elemento resuelve `cqw` contra su contenedor *padre*,
+                  así que en la fila caería al viewport): escala proporcional al
+                  ancho disponible y nunca puede envolver ni desbordar. Los
+                  valores salen de los tamaños de `xl` sobre la fila más
+                  ancha (~666px), con Patrimonio un 10% más chico: logos ≈
+                  78.9cqw + 4 gaps × 2.8cqw + 3.2cqw de TEA + 3.5cqw de Cabildo − 0.8cqw de Patrimonio ≈ 96cqw. */}
+              <div className="w-full [container-type:inline-size]">
+              <div className="flex flex-nowrap items-center gap-[2.8cqw]">
+                <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
+                <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[7.1cqw] w-auto object-contain" />
+                <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="ml-[3.5cqw] h-[8.65cqw] w-auto object-contain" />
+                <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="ml-[3.2cqw] h-[7.9cqw] w-auto object-contain" />
+                <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />
+              </div>
               </div>
             </div>
 
-            <div className="pointer-events-auto mt-14 flex min-w-0 flex-col items-start gap-5 text-white">
+            {/* `self-end`: el borde inferior de esta columna (los botones)
+                se alinea con el de la columna izquierda (la fila de logos).
+                En pantallas altas eso baja el texto hacia el wordmark; en
+                las bajas (ej. 1280×800), donde la columna es angosta y el
+                texto ocupa casi todo el alto, se queda arriba sin salirse
+                del hero — un margen fijo empujaba los botones fuera. Sin
+                margen superior: solo actúa cuando esta columna es la más
+                alta (ej. 1024×768), y ahí el `mt-14` de antes sacaba los
+                botones ~25px por debajo del hero. */}
+            <div className="pointer-events-auto flex min-w-0 flex-col items-start gap-5 self-end text-white">
               <div>
                 <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
                   {t('hero.simposio')}
@@ -929,13 +933,6 @@ export default function PointsToShapes() {
                   <br />
                   {t('hero.location')}
                 </p>
-                <img
-                  src={logoPatrimonioCultural}
-                  alt="Patrimonio Cultural de Canarias"
-                  width={700}
-                  height={350}
-                  className="mt-4 h-[3.9rem] w-auto object-contain"
-                />
                 <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
                   {t('hero.description')}
                 </p>
@@ -997,13 +994,6 @@ export default function PointsToShapes() {
             <br />
             {t('hero.location')}
           </p>
-          <img
-            src={logoPatrimonioCultural}
-            alt="Patrimonio Cultural de Canarias"
-            width={700}
-            height={350}
-            className="mx-auto mt-3 h-[3.15rem] w-auto object-contain"
-          />
           <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
             {t('hero.description')}
           </p>
@@ -1024,19 +1014,19 @@ export default function PointsToShapes() {
           </Link>
         </div>
 
-        {/* Colaboradores/patrocinadores — una sola fila horizontal sin wrap;
-            tamaños reducidos por debajo de `sm` (y `gap-2`, no `gap-6`) son
-            lo que hace que las 4 quepan en una línea. Ajustado para caber
-            con margen desde 375px (los cuatro tamaños + gaps ~318px contra
-            ~327px disponibles) — un teléfono de exactamente 320px (ya raro
-            en 2026) puede alcanzar a envolver. `sm` propiamente tiene mucho
-            más ancho disponible (~620px libres), así que ahí los tamaños son
-            +20% respecto a los originales en vez de solo volver a ellos. */}
-        <div className="flex flex-nowrap items-center justify-center gap-2 sm:gap-6">
-          <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-12 w-auto object-contain sm:h-[4.2rem]" />
-          <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-10 w-auto object-contain sm:h-[3.3rem]" />
-          <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-9 w-auto object-contain sm:h-12" />
-          <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-7 w-auto object-contain sm:h-[2.1rem]" />
+        {/* Colaboradores/patrocinadores — mismos 5 logos y mismo orden
+            que la versión desktop, con el mismo sistema en `cqw` de la
+            fila: escala con el ancho disponible (tope 620px desde `sm`)
+            en vez de tamaños fijos, que con 5 logos ya no entraban en una
+            línea a 375px. */}
+        <div className="w-full max-w-[620px] [container-type:inline-size]">
+        <div className="flex flex-nowrap items-center justify-center gap-[2.8cqw]">
+          <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
+          <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[7.1cqw] w-auto object-contain" />
+          <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="ml-[3.5cqw] h-[8.65cqw] w-auto object-contain" />
+          <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="ml-[3.2cqw] h-[7.9cqw] w-auto object-contain" />
+          <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />
+        </div>
         </div>
       </div>
       )}
