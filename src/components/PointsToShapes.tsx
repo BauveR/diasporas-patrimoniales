@@ -905,11 +905,16 @@ export default function PointsToShapes() {
                   que los distinguiera) — con más columna disponible ahí
                   (~477px en el peor caso de `xl`, 1280px) entran +20% más
                   grandes y con más separación (`gap-3`): ~467px necesarios,
-                  ~10px de margen, medido en vivo. */}
-              <div className="flex w-full flex-wrap items-center justify-between gap-6 lg:flex-nowrap lg:justify-start lg:gap-1 xl:gap-3">
+                  ~10px de margen, medido en vivo. Desde ahí el espacio crece
+                  con el viewport: la columna gana ~0.4px por px de viewport
+                  (medido en vivo), y lo repartimos en 3 gaps × 0.06 (12px →
+                  24px) + un margen extra de TEA × 0.15 (0 → 32px) que separa
+                  el par TEA/MUNA del par GobCan/Cabildo = 0.33px por px —
+                  nunca crece más rápido que el espacio libre. */}
+              <div className="flex w-full flex-wrap items-center justify-between gap-6 lg:flex-nowrap lg:justify-start lg:gap-1 xl:gap-[clamp(0.75rem,calc(0.75rem_+_(100vw_-_1280px)_*_0.06),1.5rem)]">
                 <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-21.75 w-auto object-contain lg:h-16 xl:h-[4.8rem]" />
                 <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-17.25 w-auto object-contain lg:h-12 xl:h-[3.6rem]" />
-                <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-16 w-auto object-contain lg:h-11 lg:ml-3 xl:h-[3.3rem] xl:ml-0" />
+                <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-16 w-auto object-contain lg:h-11 lg:ml-3 xl:h-[3.3rem] xl:ml-[clamp(0px,calc((100vw_-_1280px)_*_0.15),2rem)]" />
                 <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-10 w-auto object-contain lg:h-8 xl:h-[2.4rem]" />
               </div>
             </div>
