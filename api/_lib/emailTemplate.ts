@@ -48,7 +48,7 @@ const GRIS_OSCURO = '#44403c'
 // Los archivos de fuente viven en public/fonts/ (no en src/assets/fonts/,
 // que Vite hashea en cada build) para tener URLs absolutas estables a las
 // que el email pueda apuntar.
-const SITE_URL = 'https://diasporaspatrimoniales.com'
+const SITE_URL = 'https://www.diasporaspatrimoniales.com'
 const MATTONE_BOLD_URL = `${SITE_URL}/fonts/Mattone-Bold.woff2`
 const GAMBETTA_BOLDITALIC_URL = `${SITE_URL}/fonts/Gambetta-BoldItalic.woff2`
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { labelStyle } from '../lib/styles'
+import { SeoHead } from '../components/SeoHead'
 
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 const CONTACT_EMAIL = 'diasporaspatrimoniales@gmail.com'
@@ -37,6 +38,7 @@ export function AvisoLegalPage() {
 
   return (
     <main className="min-h-screen bg-white pt-navbar" style={labelStyle}>
+      <SeoHead title={t('meta.avisoLegalTitle')} description={t('meta.avisoLegalDescription')} />
       <div className="max-w-2xl mx-auto px-6 py-14 flex flex-col gap-10">
 
         <div className="flex flex-col gap-3">

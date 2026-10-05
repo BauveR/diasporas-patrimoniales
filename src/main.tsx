@@ -7,6 +7,10 @@ import App from './App.tsx'
 
 history.scrollRestoration = 'manual'
 
+// index.html trae metadatos estáticos para crawlers sin JS (ver ahí); con la
+// app corriendo los reemplaza SeoHead, así que se quitan para no duplicarlos.
+document.querySelectorAll('[data-seo-static]').forEach(el => el.remove())
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

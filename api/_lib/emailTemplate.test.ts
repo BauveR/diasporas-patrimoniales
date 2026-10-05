@@ -82,9 +82,9 @@ describe('renderConfirmacionEmail', () => {
     const { html } = renderConfirmacionEmail({ ...base, dias: [dia1] })
     expect(html).toContain('@font-face')
     expect(html).toContain("font-family: 'Mattone'")
-    expect(html).toContain('https://diasporaspatrimoniales.com/fonts/Mattone-Bold.woff2')
+    expect(html).toContain('https://www.diasporaspatrimoniales.com/fonts/Mattone-Bold.woff2')
     expect(html).toContain("font-family: 'Gambetta'")
-    expect(html).toContain('https://diasporaspatrimoniales.com/fonts/Gambetta-BoldItalic.woff2')
+    expect(html).toContain('https://www.diasporaspatrimoniales.com/fonts/Gambetta-BoldItalic.woff2')
   })
 
   it('"Diásporas Patrimoniales" en Mattone y "Inscripción confirmada" en Gambetta bold italic, sobre fondo negro', () => {
@@ -113,9 +113,9 @@ describe('renderConfirmacionEmail', () => {
 
   it('incluye un botón visible a "tu perfil"', () => {
     const { html, text } = renderConfirmacionEmail({ ...base, dias: [dia1] })
-    expect(html).toContain('href="https://diasporaspatrimoniales.com/perfil"')
+    expect(html).toContain('href="https://www.diasporaspatrimoniales.com/perfil"')
     expect(html).toContain('Ir a tu perfil')
-    expect(text).toContain('https://diasporaspatrimoniales.com/perfil')
+    expect(text).toContain('https://www.diasporaspatrimoniales.com/perfil')
   })
 
   it('escapa HTML en campos variables', () => {

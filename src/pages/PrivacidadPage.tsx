@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next'
 import { labelStyle } from '../lib/styles'
+import { SeoHead } from '../components/SeoHead'
 
 const titleStyle = { fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }
 const CONTACT_EMAIL = 'diasporaspatrimoniales@gmail.com'
@@ -15,8 +17,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function PrivacidadPage() {
+  const { t } = useTranslation()
+
   return (
     <main className="min-h-screen bg-white pt-navbar" style={labelStyle}>
+      <SeoHead title={t('meta.privacidadTitle')} description={t('meta.privacidadDescription')} />
       <div className="max-w-2xl mx-auto px-6 py-14 flex flex-col gap-10">
 
         <div className="flex flex-col gap-3">

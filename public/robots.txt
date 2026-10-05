@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin
+Disallow: /perfil
+Disallow: /login
+Disallow: /intro
+Disallow: /*/admin
+Disallow: /*/perfil
+Disallow: /*/login
+Disallow: /*/intro
+
+Sitemap: https://www.diasporaspatrimoniales.com/sitemap.xml

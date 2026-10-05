@@ -1,7 +1,11 @@
 {
   "meta": {
     "homeTitle": "Diásporas Patrimoniales — Symposium international",
-    "homeDescription": "Symposium international sur la dispersion et la restitution du patrimoine archéologique canarien. 12 et 13 novembre 2026, TEA, Santa Cruz de Tenerife."
+    "homeDescription": "Symposium international sur la dispersion et la restitution du patrimoine archéologique canarien. 12 et 13 novembre 2026, TEA, Santa Cruz de Tenerife.",
+    "privacidadTitle": "Politique de confidentialité et cookies · Diásporas Patrimoniales",
+    "privacidadDescription": "Comment Diásporas Patrimoniales traite les données personnelles des personnes inscrites au symposium, et quels sont vos droits.",
+    "avisoLegalTitle": "Mentions légales · Diásporas Patrimoniales",
+    "avisoLegalDescription": "Informations légales du site du symposium international Diásporas Patrimoniales : éditeur, conditions d’utilisation et propriété intellectuelle."
   },
   "nav": {
     "inicio": "Accueil",
