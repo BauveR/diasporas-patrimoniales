@@ -36,6 +36,36 @@ export interface HeroTuning {
   // high/wrong on the tall portrait one. Used instead of orb.lg whenever
   // the bucket is `lg` and the viewport is portrait (not landscape).
   orbLgPortrait: HeroOrbTuning
+  // Desplazamientos X/Y por bloque del hero desktop, uno por bucket lg/xl/
+  // 2xl — ver HeroDesktopOffsets.
+  desktop: Record<DesktopBucket, HeroDesktopOffsets>
+}
+
+// Desplazamiento (px, vía la propiedad CSS `translate`: no mueve el layout,
+// solo el elemento) de cada bloque del hero desktop, por bucket. Todo en 0 =
+// posición natural del layout; se ajusta en vivo desde HeroTuningPanel y,
+// una vez decidido, se copian los valores acá.
+export interface HeroDesktopOffsets {
+  wordmarkX: number
+  wordmarkY: number
+  titularX: number
+  titularY: number
+  logosX: number
+  logosY: number
+  textosX: number
+  textosY: number
+  botonesX: number
+  botonesY: number
+}
+
+export type DesktopBucket = 'lg' | 'xl' | '2xl'
+
+const NO_OFFSETS: HeroDesktopOffsets = {
+  wordmarkX: 0, wordmarkY: 0,
+  titularX: 0, titularY: 0,
+  logosX: 0, logosY: 0,
+  textosX: 0, textosY: 0,
+  botonesX: 0, botonesY: 0,
 }
 
 // One calibration point: a settled viewport height (the browser's own
@@ -159,7 +189,7 @@ export const HERO_TUNING_DEFAULTS: HeroTuning = {
     md: { shiftX: 0, shiftY: -37, scale: 0.65 },
     lg: { shiftX: 83, shiftY: -12, scale: 0.65 },
     xl: { shiftX: 84, shiftY: 1, scale: 0.76 },
-    '2xl': { shiftX: 78, shiftY: 3, scale: 0.87 },
+    '2xl': { shiftX: 75, shiftY: 3, scale: 0.83 },
   },
   // Confirmed live on an actual landscape phone (844x390) — see the
   // HeroTuning.orbMdLandscape comment above for why this exists separately
@@ -167,4 +197,10 @@ export const HERO_TUNING_DEFAULTS: HeroTuning = {
   orbMdLandscape: { shiftX: 0, shiftY: 15, scale: 0.90 },
   // Confirmado en vivo contra un iPad grande en portrait real (1024x1305).
   orbLgPortrait: { shiftX: 83, shiftY: -18, scale: 0.45 },
+  desktop: {
+    lg: { ...NO_OFFSETS },
+    xl: { ...NO_OFFSETS },
+    // Ajustado en vivo a 1920×1080 (2026-10-05).
+    '2xl': { ...NO_OFFSETS, wordmarkY: -60, titularY: -100, logosY: -100, textosY: -85, botonesY: -80 },
+  },
 }

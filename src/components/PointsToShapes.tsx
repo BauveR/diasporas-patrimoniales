@@ -633,7 +633,7 @@ export default function PointsToShapes() {
   // Defaults own this in production (HeroTuningPanel never mounts there);
   // in development, HeroTuningPanel reports live slider edits back here.
   const [tuning, setTuning] = useState(HERO_TUNING_DEFAULTS)
-  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape, orbLgPortrait } = tuning
+  const { heroOverlayShiftPx, railMaxWidthRem, orb, orbMdLandscape, orbLgPortrait, desktop } = tuning
   // `base` spans real phones from ~500px to ~950px tall with no natural
   // step in between (confirmed live: one fixed value overlapped the
   // wordmark on some real devices and not others, all inside the same
@@ -648,6 +648,10 @@ export default function PointsToShapes() {
         ? interpolateOrbByHeight(HERO_ORB_BASE_BY_HEIGHT, viewportHeight)
         : orb[bucket]
   const zoom = useZoom(shapeGrowth, viewportHeight)
+  // Desplazamientos por bloque del hero desktop (ver HeroDesktopOffsets) —
+  // solo se usan dentro del bloque `isLargeScreen`, donde bucket es lg/xl/2xl.
+  const off = desktop[bucket === 'xl' || bucket === '2xl' ? bucket : 'lg']
+  const shift = (x: number, y: number) => (x || y ? { translate: `${x}px ${y}px` } : undefined)
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [canvasReady, setCanvasReady] = useState(false)
@@ -880,13 +884,17 @@ export default function PointsToShapes() {
                 sync. Top-anchoring both means growth only ever extends a
                 column downward. */}
             <div className="mt-8 flex min-w-0 flex-col gap-6">
-              <HeroWordmark className="h-auto w-full lg:mt-50" />
-              <SlideInText
-                text={t('hero.headline')}
-                delayStep={0.15}
-                startDelay={HEADLINE_START_DELAY}
-                className="font-mattone mt-10 text-sm leading-snug font-normal text-white uppercase md:text-base"
-              />
+              <div style={shift(off.wordmarkX, off.wordmarkY)}>
+                <HeroWordmark className="h-auto w-full lg:mt-50" />
+              </div>
+              <div style={shift(off.titularX, off.titularY)}>
+                <SlideInText
+                  text={t('hero.headline')}
+                  delayStep={0.15}
+                  startDelay={HEADLINE_START_DELAY}
+                  className="font-mattone mt-10 text-sm leading-snug font-normal text-white uppercase md:text-base"
+                />
+              </div>
 
               {/* Colaboradores/patrocinadores — una sola fila horizontal, ya
                   en blanco/claro en el propio archivo, así que se apoyan
@@ -903,7 +911,7 @@ export default function PointsToShapes() {
                   valores salen de los tamaños de `xl` sobre la fila más
                   ancha (~666px), con Patrimonio un 10% más chico: logos ≈
                   78.9cqw + 4 gaps × 2.8cqw + 3.2cqw de TEA + 3.5cqw de Cabildo − 0.8cqw de Patrimonio ≈ 96cqw. */}
-              <div className="w-full [container-type:inline-size]">
+              <div className="w-full [container-type:inline-size]" style={shift(off.logosX, off.logosY)}>
               <div className="flex flex-nowrap items-center gap-[2.8cqw]">
                 <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
                 <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[7.1cqw] w-auto object-contain" />
@@ -924,7 +932,7 @@ export default function PointsToShapes() {
                 alta (ej. 1024×768), y ahí el `mt-14` de antes sacaba los
                 botones ~25px por debajo del hero. */}
             <div className="pointer-events-auto flex min-w-0 flex-col items-start gap-5 self-end text-white">
-              <div>
+              <div style={shift(off.textosX, off.textosY)}>
                 <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
                   {t('hero.simposio')}
                 </p>
@@ -942,7 +950,7 @@ export default function PointsToShapes() {
                   botones con su tamaño normal (135px + 208px + gap-4)
                   necesitaban 359px — se envolvían en dos líneas. Medido en
                   vivo. */}
-              <div className="flex flex-wrap items-center gap-4 xl:gap-2">
+              <div className="flex flex-wrap items-center gap-4 xl:gap-2" style={shift(off.botonesX, off.botonesY)}>
                 <Link
                   to={sedesHref}
                   className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80 xl:px-2.5 xl:py-2 xl:text-[10px] xl:tracking-normal"

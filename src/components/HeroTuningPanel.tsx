@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react'
-import { Leva, useControls } from 'leva'
-import { HERO_TUNING_DEFAULTS, type HeroOrbTuning, type HeroTuning } from '../lib/heroTuning'
+import { useEffect, useMemo, useState } from 'react'
+import { Leva, button, useControls } from 'leva'
+import { HERO_TUNING_DEFAULTS, type HeroDesktopOffsets, type HeroOrbTuning, type HeroTuning } from '../lib/heroTuning'
 import type { BreakpointBucket } from '../hooks/useBreakpoint'
 
 // One leva folder per breakpoint bucket — same three sliders each time, only
@@ -19,6 +19,35 @@ function useOrbBucketControls(label: string, defaults: HeroOrbTuning): HeroOrbTu
     shiftY: { value: defaults.shiftY, min: -300, max: 300, step: 1 },
     scale: { value: defaults.scale, min: 0.1, max: 5, step: 0.05 },
   })
+}
+
+// Mismo patrón que useOrbBucketControls: una carpeta por bucket desktop con
+// X/Y (px) para cada bloque del hero. Solo la carpeta del bucket activo
+// tiene efecto en pantalla (ver el indicador abajo a la derecha).
+function useDesktopBucketControls(label: string, defaults: HeroDesktopOffsets): HeroDesktopOffsets {
+  const range = { min: -400, max: 400, step: 1 }
+  return useControls(label, {
+    wordmarkX: { value: defaults.wordmarkX, ...range, label: 'Wordmark X' },
+    wordmarkY: { value: defaults.wordmarkY, ...range, label: 'Wordmark Y' },
+    titularX: { value: defaults.titularX, ...range, label: 'Titular X' },
+    titularY: { value: defaults.titularY, ...range, label: 'Titular Y' },
+    logosX: { value: defaults.logosX, ...range, label: 'Logos X' },
+    logosY: { value: defaults.logosY, ...range, label: 'Logos Y' },
+    textosX: { value: defaults.textosX, ...range, label: 'Textos lat. X' },
+    textosY: { value: defaults.textosY, ...range, label: 'Textos lat. Y' },
+    botonesX: { value: defaults.botonesX, ...range, label: 'Botones X' },
+    botonesY: { value: defaults.botonesY, ...range, label: 'Botones Y' },
+  }, { collapsed: true })
+}
+
+function useViewportSize() {
+  const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => {
+    const handler = () => setSize({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return size
 }
 
 // Only ever mounted via a dynamic `import()` gated on `import.meta.env.DEV`
@@ -57,6 +86,10 @@ export default function HeroTuningPanel({
   // orbLgPortrait comment in heroTuning.ts.
   const lgPortrait = useOrbBucketControls('Orb — lg portrait (tablet)', HERO_TUNING_DEFAULTS.orbLgPortrait)
 
+  const desktopLg = useDesktopBucketControls('Desktop — lg (1024)', HERO_TUNING_DEFAULTS.desktop.lg)
+  const desktopXl = useDesktopBucketControls('Desktop — xl (1280)', HERO_TUNING_DEFAULTS.desktop.xl)
+  const desktop2xl = useDesktopBucketControls('Desktop — 2xl (1536)', HERO_TUNING_DEFAULTS.desktop['2xl'])
+
   // No "Orb — base" folder anymore: PointsToShapes interpolates that
   // bucket's shiftX/shiftY/scale by height instead of reading orb.base at
   // all (see HERO_ORB_BASE_BY_HEIGHT in heroTuning.ts, edited directly —
@@ -68,9 +101,27 @@ export default function HeroTuningPanel({
     [sm, md, lg, xl, xxl],
   )
   const tuning = useMemo<HeroTuning>(
-    () => ({ ...layout, orb, orbMdLandscape: mdLandscape, orbLgPortrait: lgPortrait }),
-    [layout, orb, mdLandscape, lgPortrait],
+    () => ({
+      ...layout,
+      orb,
+      orbMdLandscape: mdLandscape,
+      orbLgPortrait: lgPortrait,
+      desktop: { lg: desktopLg, xl: desktopXl, '2xl': desktop2xl },
+    }),
+    [layout, orb, mdLandscape, lgPortrait, desktopLg, desktopXl, desktop2xl],
   )
+
+  // "Copiar valores": deja en el portapapeles (y en la consola) el objeto
+  // completo, listo para pegarlo en HERO_TUNING_DEFAULTS (heroTuning.ts).
+  // `[tuning]` como deps: leva regenera el botón con los valores actuales.
+  useControls({
+    'Copiar valores': button(() => {
+      const json = JSON.stringify(tuning, null, 2)
+      console.log('[HeroTuning]\n' + json)
+      void navigator.clipboard?.writeText(json)
+    }),
+  }, [tuning])
+  const viewport = useViewportSize()
 
   useEffect(() => {
     onChange(tuning)
@@ -86,7 +137,7 @@ export default function HeroTuningPanel({
           than that bucket's range and see no effect, and wrongly read that
           as the controls being broken (happened tuning `sm`). */}
       <div className="pointer-events-none fixed right-4 bottom-4 z-[10000] rounded-md bg-black/80 px-3 py-1.5 font-mono text-xs text-white">
-        Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
+        {viewport.w}×{viewport.h} · Bucket activo: <strong>{BUCKET_LABELS[bucket]}</strong>
         {isMdLandscapePhone && <> — <strong>md landscape (phone)</strong> activo</>}
         {isLgPortraitTablet && <> — <strong>lg portrait (tablet)</strong> activo</>}
         {bucket === 'base' && <> — interpolado por alto, ver heroTuning.ts</>}
