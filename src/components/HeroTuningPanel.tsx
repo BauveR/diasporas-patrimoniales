@@ -93,7 +93,7 @@ export default function HeroTuningPanel({
     scale: { value: HERO_TUNING_DEFAULTS.orbBaseOverride.scale, min: 0.1, max: 5, step: 0.05 },
   })
 
-  // Por defecto lg y xl (orb + bloques) y el shiftX de 2xl salen de tablas
+  // Por defecto lg y xl (orb + bloques) y el orb de 2xl salen de tablas
   // por medida (heroTuning.ts) y sus carpetas no tienen efecto; activar esto
   // vuelve a usar los sliders para calibrar una medida nueva.
   const { desktopManual } = useControls('Desktop — modo', {
@@ -158,7 +158,7 @@ export default function HeroTuningPanel({
         {isSmLandscapePhone && <> — <strong>sm landscape (phone)</strong> activo</>}
         {(bucket === 'lg' || bucket === 'xl' || bucket === '2xl') && (desktopManual
           ? <> — <strong>sliders manuales</strong></>
-          : <> — {bucket === 'xl' ? 'tabla por alto' : bucket === '2xl' ? 'tabla por ancho (shiftX)' : isLgPortraitTablet ? 'valores fijos' : 'tabla por ancho'}, ver heroTuning.ts</>)}
+          : <> — {bucket === 'xl' ? 'tabla por alto' : bucket === '2xl' ? 'orb por ancho' : isLgPortraitTablet ? 'valores fijos' : 'tabla por ancho'}, ver heroTuning.ts</>)}
         {isLgPortraitTablet && <> — <strong>lg portrait (tablet)</strong> activo</>}
         {(bucket === 'base' || bucket === 'sm' || bucket === 'md') && (orbBaseOverride.enabled
           ? <> — <strong>valores manuales</strong> (Orb — móvil/tablet)</>

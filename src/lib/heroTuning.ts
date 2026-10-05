@@ -42,9 +42,9 @@ export interface HeroTuning {
   // HeroTuningPanel y agregarla como punto a la tabla que corresponda.
   orbBaseOverride: HeroOrbTuning & { enabled: boolean }
   // Solo dev: con true, lg y xl usan sus carpetas "Orb"/"Desktop" del panel
-  // (lg vertical: "Orb — lg portrait" + "Desktop — lg") y 2xl usa el shiftX
-  // de "Orb — 2xl", en vez de las tablas por medida (HERO_LG_BY_WIDTH,
-  // HERO_LG_PORTRAIT_OFFSETS, HERO_XL_BY_HEIGHT, HERO_ORB_2XL_SHIFTX_BY_WIDTH).
+  // (lg vertical: "Orb — lg portrait" + "Desktop — lg") y 2xl usa
+  // "Orb — 2xl", en vez de las tablas por medida (HERO_LG_BY_WIDTH,
+  // HERO_LG_PORTRAIT_OFFSETS, HERO_XL_BY_HEIGHT, HERO_ORB_2XL_BY_WIDTH).
   desktopManual: boolean
 }
 
@@ -227,7 +227,7 @@ export function interpolateOrbByHeight(points: HeroOrbHeightPoint[], height: num
 // temporary `useOrbBucketControls` folder back in HeroTuningPanel.tsx if
 // this needs frequent hand-tuning), then keep the array sorted by height.
 // --- Escritorio: tablas por medida ---------------------------------------
-// Igual que en móvil, un único valor por bucket no alcanzó: xl y el shiftX
+// Igual que en móvil, un único valor por bucket no alcanzó: xl y el orb
 // de 2xl se interpolan por medida. Calibrado en vivo 2026-10-05 en la vista
 // de dispositivo de Chrome (altos con la barra de Chrome ya restada).
 
@@ -283,16 +283,38 @@ export const HERO_LG_PORTRAIT_OFFSETS: HeroDesktopOffsets = {
   logosY: -45,
 }
 
-// shiftX del orb en 2xl, interpolado por ancho (el rail del texto tiene
-// ancho máximo y el canvas no, así que el encuadre cambia con el ancho).
-export const HERO_ORB_2XL_SHIFTX_BY_WIDTH: { width: number; shiftX: number }[] = [
-  // Límite inferior de 2xl — 1536×730.
-  { width: 1536, shiftX: 90 },
+// Orb de 2xl (shiftX/shiftY/scale), interpolado por ancho (el rail del texto
+// tiene ancho máximo y el canvas no, así que el encuadre cambia con el
+// ancho) y, dentro de un mismo ancho, por alto (1536×730 y 1536×864 piden
+// valores distintos). Cada ancho lleva su lista por alto (con un solo punto
+// si no hace falta más). Los bloques siguen con el valor fijo de desktop['2xl'].
+export const HERO_ORB_2XL_BY_WIDTH: { width: number; byHeight: (HeroOrbTuning & { height: number })[] }[] = [
+  {
+    width: 1536,
+    byHeight: [
+      // Límite inferior de 2xl — 1536×730.
+      { height: 730, shiftX: 90, shiftY: 3, scale: 0.83 },
+      // 1536×864. Reajustado con los sliders (2026-10-05).
+      { height: 864, shiftX: 80, shiftY: 3, scale: 0.85 },
+    ],
+  },
   // 1920×1080.
-  { width: 1920, shiftX: 75 },
-  // MacBook Pro 16" en "Más espacio" — 2056×1198.
-  { width: 2056, shiftX: 83 },
+  { width: 1920, byHeight: [{ height: 1080, shiftX: 75, shiftY: 3, scale: 0.83 }] },
+  // MacBook Pro 16" en "Más espacio" — 2056×1198. Reajustado con los
+  // sliders (2026-10-05).
+  { width: 2056, byHeight: [{ height: 1198, shiftX: 65, shiftY: 5, scale: 0.89 }] },
 ]
+
+// Resuelve HERO_ORB_2XL_BY_WIDTH: primero cada ancho por alto, después
+// entre anchos.
+export function interpolateOrb2xl(width: number, height: number): HeroOrbTuning {
+  const resolved = HERO_ORB_2XL_BY_WIDTH.map((p) => {
+    const { shiftX, shiftY, scale } = interpolatePoints(p.byHeight, 'height', height)
+    return { width: p.width, shiftX, shiftY, scale }
+  })
+  const { shiftX, shiftY, scale } = interpolatePoints(resolved, 'width', width)
+  return { shiftX, shiftY, scale }
+}
 
 // Interpolación lineal por tramos de todos los campos numéricos de `points`
 // según `key` (alto o ancho), fija fuera del rango — misma idea que

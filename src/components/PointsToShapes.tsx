@@ -20,7 +20,7 @@ import {
   HERO_XL_BY_HEIGHT,
   HERO_LG_BY_WIDTH,
   HERO_LG_PORTRAIT_OFFSETS,
-  HERO_ORB_2XL_SHIFTX_BY_WIDTH,
+  interpolateOrb2xl,
   interpolateOrbByHeight,
   interpolatePoints,
 } from '../lib/heroTuning'
@@ -190,8 +190,8 @@ const HEIGHT_CHANGE_IGNORE_THRESHOLD_PX = 100
 // same settled value, instead of each reading window.innerHeight on its
 // own (CameraRig used to do that directly, every frame, with no filtering
 // at all — the main source of the scroll-zoom bug).
-// Ancho del viewport, para el extra de shiftX que el orb necesita dentro de
-// 2xl (ver HERO_ORB_2XL_SHIFTX_BY_WIDTH en heroTuning.ts).
+// Ancho del viewport, para las tablas por ancho de lg y del orb de 2xl (ver
+// HERO_ORB_2XL_BY_WIDTH en heroTuning.ts).
 function useViewportWidth(): number {
   const [width, setWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0))
   useEffect(() => {
@@ -679,7 +679,10 @@ export default function PointsToShapes() {
       : bucket === 'lg' && !isLgPortraitTablet
         ? interpolatePoints(HERO_LG_BY_WIDTH, 'width', viewportWidth)
         : null
-  const { shiftX: rawCameraX, shiftY: cameraY, scale: shapeGrowth } = deskPoint ?? (isBelowLg && orbBaseOverride.enabled
+  const orb2xlPoint = bucket === '2xl' && !desktopManual
+    ? interpolateOrb2xl(viewportWidth, viewportHeight)
+    : null
+  const { shiftX: cameraX, shiftY: cameraY, scale: shapeGrowth } = deskPoint ?? orb2xlPoint ?? (isBelowLg && orbBaseOverride.enabled
     ? orbBaseOverride
     : isMdLandscapePhone
       ? interpolateOrbByHeight(HERO_ORB_MD_LANDSCAPE_BY_HEIGHT, viewportHeight)
@@ -694,9 +697,6 @@ export default function PointsToShapes() {
               : bucket === 'md'
                 ? interpolateOrbByHeight(HERO_ORB_MD_BY_HEIGHT, viewportHeight)
                 : orb[bucket])
-  const cameraX = bucket === '2xl' && !desktopManual
-    ? interpolatePoints(HERO_ORB_2XL_SHIFTX_BY_WIDTH, 'width', viewportWidth).shiftX
-    : rawCameraX
   const zoom = useZoom(shapeGrowth, viewportHeight)
   // Desplazamientos por bloque del hero desktop (ver HeroDesktopOffsets) —
   // solo se usan dentro del bloque `isLargeScreen`, donde bucket es lg/xl/2xl.
