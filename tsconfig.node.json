@@ -7,7 +7,12 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "module": "nodenext",
+    // bundler, no nodenext: vite.config.ts lo empaqueta Vite (no lo corre
+    // Node tal cual) e importa datos de src/ (ver src/seo/), que usan
+    // imports sin extensión como el resto de la app.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -19,5 +24,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "src/seo"]
 }

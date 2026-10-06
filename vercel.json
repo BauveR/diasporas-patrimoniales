@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/:lang(en|fr|pt)", "destination": "/:lang/index.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

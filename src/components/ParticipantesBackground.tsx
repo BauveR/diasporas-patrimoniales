@@ -61,6 +61,13 @@ const WELLS = 0.76
 const PULL = 20
 const TWIST = 0
 
+// Arranque: cada partícula empieza cerca de su sitio (a lo sumo
+// START_SCATTER unidades) y se asienta con un lerp lento. Antes arrancaban
+// repartidas en un cubo de ±50 y volaban a su sitio con lerp 0.1 — un
+// remolino inicial demasiado brusco.
+const START_SCATTER = 6
+const FOLLOW_LERP = 0.04
+
 // Todas las partículas en blanco (2026-10-06). Antes eran naranja de acento
 // con un 12% en rojo institucional (#e99741 / #9a2923).
 const PARTICLE_COLOR = new THREE.Color('#ffffff')
@@ -84,7 +91,9 @@ function useSwarmScale(): number {
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
   }, [])
-  return small ? 0.55 : 1
+  // Reducidos (2026-10-06) de 0.55/1: en blanco y con bloom se veían como
+  // bolas grandes, sobre todo en móvil.
+  return small ? 0.3 : 0.6
 }
 
 function Swarm() {
@@ -93,17 +102,10 @@ function Swarm() {
   const target = useMemo(() => new THREE.Vector3(), [])
   const scale = useSwarmScale()
 
-  const [positions] = useState(() => {
-    const arr: THREE.Vector3[] = []
-    for (let i = 0; i < COUNT; i++) {
-      arr.push(new THREE.Vector3(
-        (Math.random() - 0.5) * 100,
-        (Math.random() - 0.5) * 100,
-        (Math.random() - 0.5) * 100,
-      ))
-    }
-    return arr
-  })
+  const [positions] = useState(() => Array.from({ length: COUNT }, () => new THREE.Vector3()))
+  // Las posiciones iniciales dependen del primer `target` (ver useFrame):
+  // se fijan ahí, cerca de él, la primera vez.
+  const placed = useRef(false)
 
   const material = useMemo(
     // 80% de opacidad (2026-10-06). depthWrite apagado para que las
@@ -180,13 +182,21 @@ function Swarm() {
 
       target.set(tx, ty, z)
 
-      positions[i].lerp(target, 0.1)
+      if (!placed.current) {
+        positions[i].set(
+          target.x + (Math.random() - 0.5) * 2 * START_SCATTER,
+          target.y + (Math.random() - 0.5) * 2 * START_SCATTER,
+          target.z + (Math.random() - 0.5) * 2 * START_SCATTER,
+        )
+      }
+      positions[i].lerp(target, FOLLOW_LERP)
       dummy.position.copy(positions[i])
       dummy.scale.setScalar(scale)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
+    placed.current = true
   })
 
   return <instancedMesh ref={meshRef} args={[geometry, material, COUNT]} />
@@ -267,7 +277,9 @@ export function ParticipantesBackground() {
             directos para inyectarles `attach="passes-N"`, y ese prop se
             pierde si el pass no es un hijo literal. */}
         <Effects disableGamma>
-          <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.8, 0.4, 0]} />
+          {/* Intensidad 1.8 → 1.1 (2026-10-06): con partículas blancas el halo
+              las agrandaba mucho. */}
+          <unrealBloomPass args={[new THREE.Vector2(512, 512), 1.1, 0.4, 0]} />
         </Effects>
       </Canvas>
       )}

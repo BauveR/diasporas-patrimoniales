@@ -779,6 +779,11 @@ export default function PointsToShapes() {
         background: GRADIENT_DOMINANT,
       }}
     >
+      {/* El título visible es un SVG (HeroWordmark), sin texto para
+          buscadores ni lectores de pantalla: este <h1> invisible es el
+          título de la página. Mismo texto que el <h1> del HTML
+          prerenderizado (src/seo/prerender.ts). */}
+      <h1 className="sr-only">Diásporas Patrimoniales — {t('hero.simposio')}</h1>
       {/* Canvas wrapped in its own `absolute inset-0` div rather than relying
           on R3F's default 100%/100% sizing directly against the section: the
           section's height is no longer unconditionally fixed (see above), so
