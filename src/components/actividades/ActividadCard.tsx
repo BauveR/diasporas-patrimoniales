@@ -5,6 +5,7 @@ import { getPlazasEstado, type Actividad } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
 import { LOCALE_TAGS, type Locale } from '../../i18n/config'
 import { labelStyle } from '../../lib/styles'
+import { ikImage } from '../../lib/imagekit'
 
 type Props = { actividad: Actividad; inactiva?: boolean; from?: string }
 
@@ -53,7 +54,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
       {/* Imagen */}
       <div className="relative aspect-[4/3]">
         <img
-          src={actividad.imagen}
+          src={ikImage(actividad.imagen, 800)}
           alt={tituloTraducido}
           loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-500 ${inactiva ? 'grayscale' : 'group-hover:scale-105'}`}

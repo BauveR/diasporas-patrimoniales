@@ -10,10 +10,10 @@ import { DEFAULT_LOCALE, type Locale } from '../i18n/config'
 // "cualquier persona con el enlace"). Se abren en el visor de Drive en una
 // pestaña nueva.
 const PROGRAMA_PDF: Record<Locale, string> = {
-  es: 'https://drive.google.com/file/d/1BKl_IvDAehhi-MgtLOkMuXrVQo6MtGTq/view?usp=sharing',
-  en: 'https://drive.google.com/file/d/1L5YeAFgn3L62zlBdySDpxlYjZHZSGiFQ/view?usp=sharing',
-  fr: 'https://drive.google.com/file/d/1Ggi0uA-oKeNFllK-VUn0dL3Seq9Q9I51/view?usp=sharing',
-  pt: 'https://drive.google.com/file/d/1R4KYoFuBAp-0i_mBIfRweLfony75_4Fg/view?usp=sharing',
+  es: 'https://drive.google.com/file/d/1heKxZWzvbkh5gKqdm-bmGqFqo2Kkksp_/view?usp=sharing',
+  en: 'https://drive.google.com/file/d/1taaT5XyfCgs9iTfLnXfjO8E7Eg2ja0hb/view?usp=sharing',
+  fr: 'https://drive.google.com/file/d/1SXHxY1X1IEOc4WboEimuLGfq9pCaPmpU/view?usp=sharing',
+  pt: 'https://drive.google.com/file/d/1ofSG7eJmknj8qVfSa6oGnqOhUZ9zCkRJ/view?usp=sharing',
 }
 
 export function ProgramaSection() {

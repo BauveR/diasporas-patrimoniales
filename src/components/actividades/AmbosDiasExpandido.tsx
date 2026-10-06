@@ -9,6 +9,7 @@ import { useAmbosDiasBooking } from '../../hooks/useAmbosDiasBooking'
 import { IMAGEN_AMBOS_DIAS, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
 import { formatFechaLarga } from '../../utils/formatMes'
+import { ikImage } from '../../lib/imagekit'
 
 // Mismo mapeo hardcodeado que ActividadExpandido.tsx (id 1/2 → jornada).
 function getProgramaDia(actividadId: number) {
@@ -122,7 +123,7 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
               prioridad acá es el texto/agenda, no la foto. */}
           <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-stone-800 sm:h-auto sm:aspect-[3/2]">
             <img
-              src={IMAGEN_AMBOS_DIAS}
+              src={ikImage(IMAGEN_AMBOS_DIAS, 800)}
               alt={t('inscripcion.ambosDias')}
               loading="lazy"
               className="h-full w-full object-cover"

@@ -488,7 +488,7 @@ export function ParticipantesSection() {
               {DIRECCION_CIENTIFICA.map(p => (
                 <div key={p.nombre} className="flex items-center gap-3">
                   <img
-                    src={p.foto}
+                    src={fotoThumbnail(p)}
                     alt={p.nombre}
                     loading="lazy"
                     className="h-[68px] w-[68px] shrink-0 object-contain sm:h-[77px] sm:w-[77px]"

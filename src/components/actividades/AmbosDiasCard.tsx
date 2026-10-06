@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { getPlazasEstado, IMAGEN_AMBOS_DIAS, type Actividad, type PlazasEstado } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
 import { labelStyle } from '../../lib/styles'
+import { ikImage } from '../../lib/imagekit'
 
 // Cuál de las 2 jornadas es el cuello de botella real de "ambos días": si
 // una está más comprometida que la otra, ese es el estado que importa
@@ -35,7 +36,7 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
     >
       <div className="relative aspect-[4/3]">
         <img
-          src={IMAGEN_AMBOS_DIAS}
+          src={ikImage(IMAGEN_AMBOS_DIAS, 800)}
           alt={t('inscripcion.ambosDias')}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

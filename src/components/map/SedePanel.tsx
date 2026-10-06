@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { googleMapsUrl, type Sede } from '../../data/sedes'
-import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
+import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.webp'
 import { labelStyle } from '../../lib/styles'
 
 type Props = {

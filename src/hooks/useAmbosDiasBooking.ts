@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import {
-  inscribirseAmbosDias, liberarAmbosDias, getTelefonoForUser,
-  SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, ActividadNoEncontradaError,
-} from '../lib/db'
+import { loadDb } from '../lib/firebaseLoaders'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 
@@ -34,7 +31,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     if (!user) return
     const uid = user.uid
     let cancelled = false
-    getTelefonoForUser(uid).then(guardado => {
+    loadDb().then(db => db.getTelefonoForUser(uid)).then(guardado => {
       if (!cancelled && guardado) setTelefono(guardado)
     })
     return () => { cancelled = true }
@@ -43,12 +40,13 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
 
   const handleLiberar = async () => {
     if (!user) return
+    const db = await loadDb()
     setLiberando(true)
     try {
-      await liberarAmbosDias(ids, user.uid)
+      await db.liberarAmbosDias(ids, user.uid)
       setConfirmando(false)
     } catch (err) {
-      if (!(err instanceof YaLiberadaError)) throw err
+      if (!(err instanceof db.YaLiberadaError)) throw err
     } finally {
       setLiberando(false)
     }
@@ -71,11 +69,12 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
       return
     }
     if (!aceptoTerminos) return
+    const db = await loadDb()
     setInscribiendo(true)
     setInscripcionError('')
     setTelefonoError('')
     try {
-      await inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await db.inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       setMostrandoTelefono(false)
       user.getIdToken().then(idToken => {
         fetch('/api/send-email', {
@@ -85,13 +84,13 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
         }).catch(() => { /* silencioso — inscripción ya completada */ })
       }).catch(() => { /* silencioso */ })
     } catch (err) {
-      if (err instanceof SinPlazasError) {
+      if (err instanceof db.SinPlazasError) {
         setInscripcionError('Ya no quedan plazas disponibles en una de las dos jornadas.')
-      } else if (err instanceof EventoCanceladoError) {
+      } else if (err instanceof db.EventoCanceladoError) {
         setInscripcionError('Una de las dos jornadas ha sido cancelada.')
-      } else if (err instanceof InscripcionNoAbiertaError) {
+      } else if (err instanceof db.InscripcionNoAbiertaError) {
         setInscripcionError('Las inscripciones todavía no están abiertas para una de las dos jornadas.')
-      } else if (err instanceof ActividadNoEncontradaError) {
+      } else if (err instanceof db.ActividadNoEncontradaError) {
         console.error('inscribirseAmbosDias(): una actividad no existe en Firestore', ids)
         setInscripcionError('No pudimos procesar la inscripción. Por favor, contactanos.')
       } else {

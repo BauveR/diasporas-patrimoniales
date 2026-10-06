@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { inscribirse, liberarPlaza, getTelefonoForUser, SinPlazasError, YaLiberadaError, EventoCanceladoError, InscripcionNoAbiertaError, ActividadNoEncontradaError } from '../lib/db'
+import { loadDb } from '../lib/firebaseLoaders'
 import { isValidTelefono } from '../utils/validators'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import type { Actividad } from '../data/actividades'
@@ -39,7 +39,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     if (!user) return
     const uid = user.uid
     let cancelled = false
-    getTelefonoForUser(uid).then(guardado => {
+    loadDb().then(db => db.getTelefonoForUser(uid)).then(guardado => {
       if (!cancelled && guardado) setTelefono(guardado)
     })
     return () => { cancelled = true }
@@ -48,12 +48,13 @@ export function useActividadBooking(actividad: Actividad | undefined) {
 
   const handleLiberar = async () => {
     if (!user || !actividad) return
+    const db = await loadDb()
     setLiberando(true)
     try {
-      await liberarPlaza(actividad.id, user.uid)
+      await db.liberarPlaza(actividad.id, user.uid)
       setConfirmando(false)
     } catch (err) {
-      if (!(err instanceof YaLiberadaError)) throw err
+      if (!(err instanceof db.YaLiberadaError)) throw err
     } finally {
       setLiberando(false)
     }
@@ -81,11 +82,12 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     // Defensa además del botón deshabilitado en BookingWidget — por si algo
     // llega a llamar a este handler sin pasar por ese guard.
     if (!aceptoTerminos) return
+    const db = await loadDb()
     setInscribiendo(true)
     setInscripcionError('')
     setTelefonoError('')
     try {
-      await inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await db.inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
       // `inscrito` (arriba) viene de un listener de Firestore en tiempo real
@@ -106,13 +108,13 @@ export function useActividadBooking(actividad: Actividad | undefined) {
         }).catch(() => { /* silencioso — inscripción ya completada */ })
       }).catch(() => { /* silencioso */ })
     } catch (err) {
-      if (err instanceof SinPlazasError) {
+      if (err instanceof db.SinPlazasError) {
         setInscripcionError('Ya no quedan plazas disponibles.')
-      } else if (err instanceof EventoCanceladoError) {
+      } else if (err instanceof db.EventoCanceladoError) {
         setInscripcionError('Este evento ha sido cancelado.')
-      } else if (err instanceof InscripcionNoAbiertaError) {
+      } else if (err instanceof db.InscripcionNoAbiertaError) {
         setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
-      } else if (err instanceof ActividadNoEncontradaError) {
+      } else if (err instanceof db.ActividadNoEncontradaError) {
         // No debería pasar nunca en producción — si pasa, es indicio de algo
         // serio (ej. desajuste de proyecto de Firebase). console.error deja
         // rastro real para diagnosticarlo, algo que antes de este cambio no

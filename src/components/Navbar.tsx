@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ALL_LOCALES, DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
-import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
+import logoDiasporas from '../assets/diasporas patrimoniales-04 2.webp'
 import { labelStyle } from '../lib/styles'
 
 const NAVBAR_BG = '#000000'

@@ -1,7 +1,7 @@
-import logoGobCan from '../../assets/Logo_GobCan_claim_blanco_mod1-01.png'
-import logoCabildoTenerife from '../../assets/cabildo-de-tenerife [Converted]-01.png'
-import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
-import logoMuna from '../../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.png'
+import logoGobCan from '../../assets/Logo_GobCan_claim_blanco_mod1-01.webp'
+import logoCabildoTenerife from '../../assets/cabildo-de-tenerife [Converted]-01.webp'
+import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.webp'
+import logoMuna from '../../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.webp'
 
 // Marquee CSS puro (2 grupos idénticos uno al lado del otro, animando
 // translateX 0 → -50%) en vez del enfoque anterior (react-bits'

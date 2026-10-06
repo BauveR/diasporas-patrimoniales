@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import type { Actividad } from '../../data/actividades'
 import { useDataContext } from '../../contexts/DataContext'
 import { labelStyle } from '../../lib/styles'
+import { ikImage } from '../../lib/imagekit'
 
 type Props = {
   actividad: Actividad
@@ -43,7 +44,7 @@ export function ProfileCardCompact({ actividad, inactiva = false, onLiberar }: P
         className="relative shrink-0 w-20 h-20 rounded-2xl overflow-hidden"
       >
         <img
-          src={actividad.imagen}
+          src={ikImage(actividad.imagen, 240)}
           alt={actividad.titulo}
           loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-300 ${inactiva || actividad.cancelada ? 'grayscale' : 'hover:scale-105'}`}

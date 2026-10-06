@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { Actividad } from '../data/actividades'
 import type { Sede } from '../data/sedes'
-import { subscribeActividades, subscribeSedes } from '../lib/db'
+import { loadDb } from '../lib/firebaseLoaders'
 
 type DataContextValue = {
   actividades: Actividad[]
@@ -23,21 +23,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let actLoaded = false
     let conjLoaded = false
+    let cancelled = false
+    let unsub1 = () => {}
+    let unsub2 = () => {}
 
-    const unsub1 = subscribeActividades(data => {
-      _actividades = data
-      setActividades(data)
-      actLoaded = true
-      if (conjLoaded) setDataLoading(false)
-    })
-    const unsub2 = subscribeSedes(data => {
-      _sedes = data
-      setSedes(data)
-      conjLoaded = true
-      if (actLoaded) setDataLoading(false)
+    // import() dinámico: ver lib/firebaseLoaders.ts.
+    loadDb().then(({ subscribeActividades, subscribeSedes }) => {
+      if (cancelled) return
+      unsub1 = subscribeActividades(data => {
+        _actividades = data
+        setActividades(data)
+        actLoaded = true
+        if (conjLoaded) setDataLoading(false)
+      })
+      unsub2 = subscribeSedes(data => {
+        _sedes = data
+        setSedes(data)
+        conjLoaded = true
+        if (actLoaded) setDataLoading(false)
+      })
     })
 
-    return () => { unsub1(); unsub2() }
+    return () => { cancelled = true; unsub1(); unsub2() }
   }, [])
 
   return (

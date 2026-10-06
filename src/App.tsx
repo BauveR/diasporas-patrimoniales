@@ -8,7 +8,6 @@ import { Footer } from './components/Footer'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieBanner } from './components/CookieBanner'
 import { Home } from './pages/Home'
-import { AuthPage } from './pages/AuthPage'
 import { UnderConstruction } from './pages/UnderConstruction'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { DataProvider } from './contexts/DataContext'
@@ -73,6 +72,7 @@ const AdminPage      = lazy(() => import('./pages/AdminPage').then(m      => ({ 
 const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage').then(m => ({ default: m.PrivacidadPage })))
 const AvisoLegalPage = lazy(() => import('./pages/AvisoLegalPage').then(m => ({ default: m.AvisoLegalPage })))
 const ActividadModal = lazy(() => import('./components/map/ActividadModal').then(m => ({ default: m.ActividadModal })))
+const AuthPage       = lazy(() => import('./pages/AuthPage').then(m       => ({ default: m.AuthPage       })))
 const AuthModal      = lazy(() => import('./components/auth/AuthModal').then(m     => ({ default: m.AuthModal     })))
 
 // Same page set rendered twice below — once unprefixed (Spanish, the

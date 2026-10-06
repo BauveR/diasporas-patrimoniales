@@ -10,6 +10,7 @@ import { SITE_URL } from '../SeoHead'
 import type { Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
 import { formatFechaLarga } from '../../utils/formatMes'
+import { ikImage } from '../../lib/imagekit'
 
 export function CerrarButton({ onClose }: { onClose: () => void }) {
   return (
@@ -170,7 +171,7 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
               para el widget de reserva debajo. */}
           <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-stone-800 sm:h-auto sm:aspect-[3/2]">
             <img
-              src={actividad.imagen}
+              src={ikImage(actividad.imagen, 800)}
               alt={actividad.titulo}
               loading="lazy"
               className="h-full w-full object-cover"

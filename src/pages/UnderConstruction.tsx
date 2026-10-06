@@ -1,4 +1,4 @@
-import logoDiasporas from '../assets/diasporas patrimoniales-04 2.png'
+import logoDiasporas from '../assets/diasporas patrimoniales-04 2.webp'
 import ParticleText from '../components/ParticleText'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 

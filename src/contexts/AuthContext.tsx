@@ -1,15 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import {
-  subscribeAuthState,
-  signIn as authSignIn,
-  signUp as authSignUp,
-  signInWithGoogle as authSignInWithGoogle,
-  signOutUser,
-  getUserRole,
-} from '../lib/auth'
 import type { AppUser, UserRole } from '../lib/auth'
-import { subscribeInscripcionIds } from '../lib/db'
+import { loadAuth, loadDb } from '../lib/firebaseLoaders'
 
 export type { UserRole }
 
@@ -49,24 +41,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [rawInscripcionesLoading, setRawInscripcionesLoading] = useState(false)
 
   useEffect(() => {
-    const unsub = subscribeAuthState(async authUser => {
-      setUser(prev => mergeAuthUser(prev, authUser))
-      if (!authUser) {
-        setUserRole(null)
+    let cancelled = false
+    let unsub = () => {}
+    // import() dinámico: ver lib/firebaseLoaders.ts.
+    loadAuth().then(({ subscribeAuthState, getUserRole }) => {
+      if (cancelled) return
+      unsub = subscribeAuthState(async authUser => {
+        setUser(prev => mergeAuthUser(prev, authUser))
+        if (!authUser) {
+          setUserRole(null)
+          setLoading(false)
+          return
+        }
+        // Firestore read, not derived from the auth user itself — role must
+        // never be something the client can assign to its own account. Loading
+        // only clears once this resolves — ProtectedRoute's admin check reads
+        // userRole the instant loading flips false, so setting that too early
+        // (while userRole is still last-run's or null) bounces an admin back
+        // to /perfil for a frame before the real role lands.
+        const role = await getUserRole(authUser.uid).catch(() => 'user' as UserRole)
+        setUserRole(role)
         setLoading(false)
-        return
-      }
-      // Firestore read, not derived from the auth user itself — role must
-      // never be something the client can assign to its own account. Loading
-      // only clears once this resolves — ProtectedRoute's admin check reads
-      // userRole the instant loading flips false, so setting that too early
-      // (while userRole is still last-run's or null) bounces an admin back
-      // to /perfil for a frame before the real role lands.
-      const role = await getUserRole(authUser.uid).catch(() => 'user' as UserRole)
-      setUserRole(role)
-      setLoading(false)
+      })
     })
-    return unsub
+    return () => { cancelled = true; unsub() }
   }, [])
 
   // The moment `user` newly becomes available, mark inscripciones as loading
@@ -81,11 +79,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return
-    const unsub = subscribeInscripcionIds(user.uid, ids => {
-      setRawInscripcionIds(ids)
-      setRawInscripcionesLoading(false)
+    let cancelled = false
+    let unsub = () => {}
+    loadDb().then(({ subscribeInscripcionIds }) => {
+      if (cancelled) return
+      unsub = subscribeInscripcionIds(user.uid, ids => {
+        setRawInscripcionIds(ids)
+        setRawInscripcionesLoading(false)
+      })
     })
-    return unsub
+    return () => { cancelled = true; unsub() }
   }, [user])
 
   // Derived rather than reset via an effect: with no user there's nothing to
@@ -94,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const inscripcionesLoading = user ? rawInscripcionesLoading : false
 
   const signIn = async (email: string, password: string): Promise<UserRole> => {
+    const { signIn: authSignIn, getUserRole } = await loadAuth()
     const u = await authSignIn(email, password)
     setUser(u)
     const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
@@ -102,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (name: string, email: string, password: string): Promise<UserRole> => {
+    const { signUp: authSignUp, getUserRole } = await loadAuth()
     const u = await authSignUp(name, email, password)
     setUser(u)
     const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
@@ -110,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async (): Promise<{ role: UserRole; isNewUser: boolean }> => {
+    const { signInWithGoogle: authSignInWithGoogle, getUserRole } = await loadAuth()
     const { user: u, isNewUser } = await authSignInWithGoogle()
     setUser(u)
     const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
@@ -118,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    const { signOutUser } = await loadAuth()
     await signOutUser()
     setUser(null)
     setUserRole(null)

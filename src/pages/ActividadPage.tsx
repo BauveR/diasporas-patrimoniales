@@ -9,6 +9,7 @@ import { useActividadBooking } from '../hooks/useActividadBooking'
 import { SITE_URL } from '../components/SeoHead'
 import { labelStyle } from '../lib/styles'
 import { formatFechaLarga } from '../utils/formatMes'
+import { ikImage } from '../lib/imagekit'
 
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
@@ -86,7 +87,7 @@ export function ActividadPage() {
         </div>
 
         <div className="flex justify-center overflow-hidden bg-stone-50">
-          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[50svh] w-auto object-contain" />
+          <img src={ikImage(actividad.imagen, 1080)} alt={actividad.titulo} className="max-h-[50svh] w-auto object-contain" />
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-6">
@@ -172,7 +173,7 @@ export function ActividadPage() {
         )}
 
         <div className="mb-10 flex justify-center overflow-hidden rounded-2xl bg-stone-50">
-          <img src={actividad.imagen} alt={actividad.titulo} className="max-h-[70svh] w-auto object-contain" />
+          <img src={ikImage(actividad.imagen, 1080)} alt={actividad.titulo} className="max-h-[70svh] w-auto object-contain" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 pb-16">

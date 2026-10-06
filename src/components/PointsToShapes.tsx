@@ -28,11 +28,11 @@ import { useBreakpoint, type BreakpointBucket } from '../hooks/useBreakpoint'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
 import { SlideInText } from './SlideInText'
-import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.png'
-import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.png'
-import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.png'
-import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.png'
-import logoPatrimonioCultural from '../assets/patrimonio cultural de canarias.png'
+import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.webp'
+import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.webp'
+import logoTEA from '../assets/tenerife-espacio-de-las-artes [Converted]-01.webp'
+import logoMuna from '../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.webp'
+import logoPatrimonioCultural from '../assets/patrimonio cultural de canarias.webp'
 
 // Animated gradient colors for the hero background — brought over from the
 // Conjuntos Históricos project's Hero (Grainient), retuned to this site's
