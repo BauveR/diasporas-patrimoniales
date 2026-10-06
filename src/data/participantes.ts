@@ -66,7 +66,9 @@ export function fotoCompleta(p: Pick<Participante, 'foto'>): string | undefined 
   return p.foto ? conTransform(p.foto, IK_FULL_TR) : undefined
 }
 
-export const PARTICIPANTES: Participante[] = [
+// Se muestran en orden alfabético por nombre (ver el sort al final), así que
+// el orden de esta lista no importa.
+export const PARTICIPANTES: Participante[] = ([
   {
     id: 1,
     nombre: 'Hanna Pennock',
@@ -517,7 +519,7 @@ export const PARTICIPANTES: Participante[] = [
     tituloIntervencion: '',
     foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Daniel%20Pe%CC%81rez%20Este%CC%81vez.png',
   },
-]
+] as Participante[]).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 
 // Enlaza los nombres de moderador/participantes de programa.ts con su ficha
 // acá — por nombre exacto, la única llave que comparten ambos archivos (los

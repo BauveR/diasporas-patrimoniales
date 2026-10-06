@@ -130,7 +130,7 @@ Rebecca Whiting – Conservadora de Bioarqueología, Departamento de Egipto y Su
 15:45–16:15 h | Pausa café
 
 16:15–17:00 h | Sesión de clausura
-Lectura de la «Declaración de Tenerife» y clausura institucional.
+Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional.
 Participantes previstos
 Dirección General de Cultura y Patrimonio Cultural.
 Dirección científica del simposio.`,

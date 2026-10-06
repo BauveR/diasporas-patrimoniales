@@ -61,14 +61,9 @@ const WELLS = 0.76
 const PULL = 20
 const TWIST = 0
 
-// Los 2 colores pedidos, en vez del degradé HSL arcoíris del snippet
-// original — mismo esquema (color de acento + un rojo institucional en el
-// 12% de las partículas) que ya usaba la versión anterior de este mismo
-// fondo (canvas 2D, ACCENT_ORANGE/BRAND_RED/ACCENT_RATIO), así que el
-// cambio de tecnología no le cambia la paleta a la sección.
-const COLOR_A = new THREE.Color('#e99741')
-const COLOR_B = new THREE.Color('#9a2923')
-const COLOR_B_RATIO = 0.12
+// Todas las partículas en blanco (2026-10-06). Antes eran naranja de acento
+// con un 12% en rojo institucional (#e99741 / #9a2923).
+const PARTICLE_COLOR = new THREE.Color('#ffffff')
 
 // La grilla de Participantes pasa a 5 columnas recién en `md` (ver
 // useIsFiveColumns en ParticipantesSection.tsx) — por debajo de eso hay
@@ -111,7 +106,9 @@ function Swarm() {
   })
 
   const material = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+    // 80% de opacidad (2026-10-06). depthWrite apagado para que las
+    // partículas que se superponen no se tapen entre sí al ser semitransparentes.
+    () => new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 0.8, depthWrite: false }),
     [],
   )
   const geometry = useMemo(() => {
@@ -126,8 +123,7 @@ function Swarm() {
     return geo
   }, [])
 
-  // El color de cada partícula es fijo (COLOR_A la mayoría, COLOR_B en el
-  // 12%) — se resuelve una sola vez acá, no en el loop de useFrame de abajo:
+  // El color de cada partícula es fijo — se resuelve una sola vez acá, no en el loop de useFrame de abajo:
   // antes se recalculaba un HSL por partícula en cada frame sin necesidad
   // (el color nunca dependía de nada que cambiara cuadro a cuadro más que
   // el tiempo, y ya no hace falta ni eso), así que sacarlo del loop también
@@ -135,7 +131,7 @@ function Swarm() {
   useEffect(() => {
     if (!meshRef.current) return
     for (let i = 0; i < COUNT; i++) {
-      meshRef.current.setColorAt(i, Math.random() < COLOR_B_RATIO ? COLOR_B : COLOR_A)
+      meshRef.current.setColorAt(i, PARTICLE_COLOR)
     }
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   }, [])
