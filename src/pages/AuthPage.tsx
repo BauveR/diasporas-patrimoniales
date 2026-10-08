@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
@@ -42,12 +42,28 @@ export function AuthPage({ isModal = false }: Props) {
   const returnTo = location.state?.returnTo as string | undefined
   const [view, setView] = useState<View>('login')
   const [name, setName] = useState('')
+  const [apellidos, setApellidos] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [cuentaNueva, setCuentaNueva] = useState(false)
+  // Si Google falla o se cierra el popup sin entrar, lo más probable con un
+  // correo institucional es que su Workspace bloquee apps externas — Google
+  // lo avisa dentro del popup y aquí solo llega "popup cerrado", así que no
+  // se puede distinguir. Se ofrece el registro con email a cualquier fallo.
+  const [googleFallo, setGoogleFallo] = useState(false)
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  // Desde el aviso de correo institucional o el recuadro de Google fallido:
+  // a "Crear cuenta" con el cursor ya en el primer campo (Nombre).
+  const irACrearCuenta = () => {
+    setView('register')
+    setError('')
+    setGoogleFallo(false)
+    requestAnimationFrame(() => nameRef.current?.focus())
+  }
 
   const locale = getLocaleFromPathname(location.pathname)
   const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
@@ -83,8 +99,14 @@ export function AuthPage({ isModal = false }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setGoogleFallo(false)
     if (!isValidEmail(email)) {
       setError('Introduce un email válido (revisa que el dominio esté bien escrito)')
+      return
+    }
+    // `required` deja pasar un campo con solo espacios.
+    if (view === 'register' && (!name.trim() || !apellidos.trim())) {
+      setError('Escribe tu nombre y tus apellidos')
       return
     }
     if (view === 'register' && password.length < 8) {
@@ -97,7 +119,10 @@ export function AuthPage({ isModal = false }: Props) {
         const role = await signIn(email, password)
         handleSuccess(role, false)
       } else {
-        const role = await signUp(name, email, password)
+        // Un solo displayName "Nombre Apellidos" — es lo que guardan el
+        // perfil y el inscrito (cuyas reglas no admiten campos nuevos).
+        const nombreCompleto = `${name} ${apellidos}`.trim().replace(/\s+/g, ' ')
+        const role = await signUp(nombreCompleto, email, password)
         handleSuccess(role, true)
       }
     } catch (err) {
@@ -128,12 +153,14 @@ export function AuthPage({ isModal = false }: Props) {
 
   const handleGoogle = async () => {
     setError('')
+    setGoogleFallo(false)
     setBusy(true)
     try {
       const { role, isNewUser } = await signInWithGoogle()
       handleSuccess(role, isNewUser)
     } catch (err) {
       setError(parseError(err))
+      setGoogleFallo(true)
     } finally {
       setBusy(false)
     }
@@ -312,27 +339,81 @@ export function AuthPage({ isModal = false }: Props) {
         Continuar con Google
       </button>
 
+      {googleFallo && (
+        <div className="flex flex-col gap-2 rounded-xl bg-stone-50 px-4 py-3">
+          <p className="text-xs text-stone-600 leading-relaxed">
+            ¿No pudiste entrar con Google? Si tu correo es institucional, crea tu cuenta con email y contraseña.
+          </p>
+          <button
+            type="button"
+            onClick={irACrearCuenta}
+            className="self-start text-[11px] tracking-widest uppercase text-stone-700 underline underline-offset-2 cursor-pointer"
+          >
+            Crear cuenta →
+          </button>
+        </div>
+      )}
+
       {/* Divider */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-stone-100" />
-        <span className="text-[11px] text-stone-400 tracking-widest uppercase">o</span>
-        <div className="flex-1 h-px bg-stone-100" />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-stone-100" />
+          <span className="text-[11px] text-stone-400 tracking-widest uppercase">o con email y contraseña</span>
+          <div className="flex-1 h-px bg-stone-100" />
+        </div>
+        {view === 'login' ? (
+          <button
+            type="button"
+            onClick={irACrearCuenta}
+            className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-red/10 px-4 py-2.5 text-sm font-medium text-brand-red hover:bg-brand-red/15 transition-colors cursor-pointer"
+          >
+            ¿Correo institucional? Crea tu cuenta aquí
+            <span aria-hidden>→</span>
+          </button>
+        ) : (
+          <p className="flex items-center justify-center gap-2 rounded-xl bg-brand-red/10 px-4 py-2.5 text-sm font-medium text-brand-red">
+            ¿Correo institucional? Regístrate aquí
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 animate-bounce">
+              <path d="M12 5v14" />
+              <path d="m19 12-7 7-7-7" />
+            </svg>
+          </p>
+        )}
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {view === 'register' && (
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] tracking-widest uppercase text-stone-400">Nombre</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              maxLength={60}
-              placeholder="Tu nombre completo"
-              className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <label htmlFor="auth-nombre" className="text-[10px] tracking-widest uppercase text-stone-400">Nombre</label>
+              <input
+                id="auth-nombre"
+                type="text"
+                value={name}
+                ref={nameRef}
+                onChange={e => setName(e.target.value)}
+                required
+                maxLength={60}
+                autoComplete="given-name"
+                placeholder="María"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <label htmlFor="auth-apellidos" className="text-[10px] tracking-widest uppercase text-stone-400">Apellidos</label>
+              <input
+                id="auth-apellidos"
+                type="text"
+                value={apellidos}
+                onChange={e => setApellidos(e.target.value)}
+                required
+                maxLength={80}
+                autoComplete="family-name"
+                placeholder="García López"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+              />
+            </div>
           </div>
         )}
 
@@ -389,7 +470,7 @@ export function AuthPage({ isModal = false }: Props) {
         {view === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
         <button
           type="button"
-          onClick={() => { setView(view === 'login' ? 'register' : 'login'); setError('') }}
+          onClick={() => { setView(view === 'login' ? 'register' : 'login'); setError(''); setGoogleFallo(false) }}
           className="text-stone-700 underline underline-offset-2 cursor-pointer"
         >
           {view === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
