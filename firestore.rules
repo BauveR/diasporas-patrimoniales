@@ -90,6 +90,8 @@ service cloud.firestore {
         // exige el lado inverso (-1 solo si se crea el inscrito), y además
         // que no esté cancelada y que no baje de 0.
         allow create: if isOwner(uid) &&
+          request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'telefono',
+            'inscritoEn', 'aceptoTerminos', 'terminosVersion']) &&
           request.resource.data.uid == uid &&
           request.resource.data.email == request.auth.token.email &&
           getAfter(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles ==
@@ -98,7 +100,13 @@ service cloud.firestore {
         // Nothing updates an inscripción after it's created — no QR
         // accreditation flow (removed 2026-09-22, the admin attendee list
         // covers it). Only create/delete/read apply.
-        allow delete: if isOwner(uid) || isAdmin();
+        // Simétrico al create: el contador tiene que subir en 1 en esta
+        // misma escritura. Sin esto, alguien podía inscribirse (-1), borrar
+        // solo su inscrito desde la consola (sin +1) y repetir, drenando
+        // plazasDisponibles hasta 0 él solo.
+        allow delete: if isAdmin() || (isOwner(uid) &&
+          getAfter(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles ==
+            get(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles + 1);
       }
     }
 

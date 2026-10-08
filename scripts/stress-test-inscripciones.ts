@@ -20,7 +20,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, type Auth } from 'firebase/auth'
 import {
-  getFirestore, connectFirestoreEmulator, doc, setDoc, updateDoc, runTransaction, serverTimestamp,
+  getFirestore, connectFirestoreEmulator, doc, setDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp,
   type Firestore,
 } from 'firebase/firestore'
 // API modular (no el default export namespaced) — mismo patrón que ya usa
@@ -371,6 +371,42 @@ async function testReglasRechazanInscritoSinDescontar() {
   await borrarActividad(CANCELADA)
 }
 
+async function testReglasRechazanBorrarSinDevolver() {
+  console.log('\n6. Las reglas rechazan borrar inscritos/{uid} sin devolver la plaza (drenar el contador)')
+  const ID = 910009
+  await seedActividad(ID, 10)
+  const [tramposo] = await crearUsuarios(1, 'drenar')
+  const esRechazado = async (fn: () => Promise<unknown>) => {
+    try { await fn(); return false } catch (err) { return (err as { code?: string }).code === 'permission-denied' }
+  }
+
+  await conReintentoPorBugDelEmulador(() => inscribirseTest(tramposo.db, ID, tramposo.uid, tramposo.email))
+  // El ciclo del ataque: inscribirse (-1), borrar solo el inscrito (sin +1),
+  // repetir — cada vuelta se "come" una plaza para siempre.
+  check('borrar inscritos/ directo (sin +1) es rechazado', await esRechazado(() =>
+    deleteDoc(doc(tramposo.db, 'actividades', String(ID), 'inscritos', tramposo.uid))))
+  check('el inscrito sigue ahí y el contador en 9', await contarInscritos(ID) === 1 && (await leerActividad(ID)).plazasDisponibles === 9)
+
+  check('crear inscritos/ con un campo extra (basura) es rechazado', await esRechazado(async () => {
+    const otro = (await crearUsuarios(1, 'basura'))[0]
+    const actividadRef = doc(otro.db, 'actividades', String(ID))
+    await runTransaction(otro.db, async tx => {
+      const snap = await tx.get(actividadRef)
+      tx.set(doc(otro.db, 'actividades', String(ID), 'inscritos', otro.uid), {
+        uid: otro.uid, email: otro.email, displayName: 'Basura', telefono: '600000000',
+        inscritoEn: serverTimestamp(), aceptoTerminos: true, terminosVersion: 'v1', extra: 'x'.repeat(1000),
+      })
+      tx.update(actividadRef, { plazasDisponibles: (snap.data() as { plazasDisponibles: number }).plazasDisponibles - 1 })
+    })
+  }))
+
+  // liberarPlaza() normal (delete + +1 juntos) sigue funcionando.
+  await conReintentoPorBugDelEmulador(() => liberarPlazaTest(tramposo.db, ID, tramposo.uid))
+  check('liberarPlaza normal (delete + +1) sigue funcionando', await contarInscritos(ID) === 0 && (await leerActividad(ID)).plazasDisponibles === 10)
+
+  await borrarActividad(ID)
+}
+
 // ── Cambio de plazas desde el admin ───────────────────────────────────────
 
 // Cómo guardaba EditActividadDrawer ANTES del arreglo: calculaba con los
@@ -420,7 +456,7 @@ async function rellenarInscritos(actividadId: number, n: number, prefijo: string
 }
 
 async function testCambioDePlazas() {
-  console.log('\n6. Cambio de plazas desde el admin (100 → 140) — nunca se duplican plazas')
+  console.log('\n7. Cambio de plazas desde el admin (100 → 140) — nunca se duplican plazas')
   const ID = 910010
   const admin = await crearAdmin('admin-plazas')
 
@@ -478,6 +514,7 @@ async function main() {
   await testLiberarConcurrente()
   await testReglasRechazanTrampa()
   await testReglasRechazanInscritoSinDescontar()
+  await testReglasRechazanBorrarSinDevolver()
   await testCambioDePlazas()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
