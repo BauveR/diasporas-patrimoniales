@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { Actividad } from '../../data/actividades'
 import type { Sede } from '../../data/sedes'
-import { getInscritos, type InscritoData } from '../../lib/db'
+import { getInscritos, liberarPlaza, YaLiberadaError, type InscritoData } from '../../lib/db'
 import { labelStyle } from '../../lib/styles'
 import { downloadCsv, toTsv } from '../../utils/csv'
 import { formatMes } from '../../utils/formatMes'
@@ -24,6 +24,13 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
   const [query,            setQuery]            = useState('')
   const [mesFiltro,        setMesFiltro]        = useState('')
   const [copiado,          setCopiado]          = useState(false)
+  // Quitar a un inscrito: primero se pide confirmación en su fila
+  // (confirmandoUid), luego liberarPlaza() — la misma transacción que usa
+  // el propio usuario al cancelar, así el inscrito y el contador de plazas
+  // cambian juntos. Las reglas dejan al admin borrar el inscrito de otro.
+  const [confirmandoUid,   setConfirmandoUid]   = useState<string | null>(null)
+  const [quitandoUid,      setQuitandoUid]      = useState<string | null>(null)
+  const [quitarError,      setQuitarError]      = useState<string | null>(null)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -76,7 +83,29 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
     queueMicrotask(() => { fetchInscritos(id, count) })
   }, [selectedId, selectedCount])
 
+  const handleQuitar = async (uid: string) => {
+    if (!selectedId) return
+    setQuitandoUid(uid)
+    setQuitarError(null)
+    try {
+      await liberarPlaza(selectedId, uid)
+    } catch (err) {
+      // Ya no estaba (lo canceló el propio usuario mientras tanto): mismo
+      // resultado final, se quita de la lista igual.
+      if (!(err instanceof YaLiberadaError)) {
+        setQuitarError('No se pudo quitar al inscrito. Inténtalo de nuevo.')
+        setQuitandoUid(null)
+        return
+      }
+    }
+    setInscritos(prev => prev.filter(i => i.uid !== uid))
+    setConfirmandoUid(null)
+    setQuitandoUid(null)
+  }
+
   const handleSelect = (id: number) => {
+    setConfirmandoUid(null)
+    setQuitarError(null)
     setEditingId(null)
     setSelectedId(prev => prev === id ? null : id)
   }
@@ -174,13 +203,15 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
             <p className="text-[11px] text-stone-500 py-2">Sin inscritos aún</p>
           ) : (
             <div className="overflow-x-auto">
+              {quitarError && <p className="text-[11px] text-red-400 pb-2">{quitarError}</p>}
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-white/10">
                     <th className="font-normal py-2 pr-4">Nombre</th>
                     <th className="font-normal py-2 pr-4">Email</th>
                     <th className="font-normal py-2 pr-4">Teléfono</th>
-                    <th className="font-normal py-2">Política de privacidad</th>
+                    <th className="font-normal py-2 pr-4">Política de privacidad</th>
+                    <th className="font-normal py-2"><span className="sr-only">Acciones</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -189,11 +220,41 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
                       <td className="py-2.5 pr-4 text-sm text-stone-200 whitespace-nowrap">{i.displayName || '—'}</td>
                       <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
                       <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
-                      <td className="py-2.5 text-[11px] whitespace-nowrap">
+                      <td className="py-2.5 pr-4 text-[11px] whitespace-nowrap">
                         {i.aceptoTerminos ? (
                           <span className="text-[#7a9a74]">✓ Aceptada{i.terminosVersion ? ` (${i.terminosVersion})` : ''}</span>
                         ) : (
                           <span className="text-stone-500">— Sin registro</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 text-right whitespace-nowrap">
+                        {confirmandoUid === i.uid ? (
+                          <div className="inline-flex gap-2 items-center">
+                            <span className="text-[10px] text-stone-300">¿Quitar y liberar su plaza?</span>
+                            <button
+                              onClick={() => setConfirmandoUid(null)}
+                              disabled={quitandoUid === i.uid}
+                              className="text-[10px] text-stone-400 hover:text-stone-200 disabled:opacity-40 cursor-pointer"
+                            >
+                              No
+                            </button>
+                            <button
+                              onClick={() => handleQuitar(i.uid)}
+                              disabled={quitandoUid === i.uid}
+                              className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+                            >
+                              {quitandoUid === i.uid ? '...' : 'Sí, quitar'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setConfirmandoUid(i.uid); setQuitarError(null) }}
+                            disabled={quitandoUid !== null}
+                            aria-label={`Quitar a ${i.displayName || i.email}`}
+                            className="px-3 py-1 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-400 hover:border-red-400 hover:text-red-400 disabled:opacity-40 transition-colors cursor-pointer"
+                          >
+                            Quitar
+                          </button>
                         )}
                       </td>
                     </tr>
