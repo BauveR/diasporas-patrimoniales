@@ -466,16 +466,18 @@ export function AuthPage({ isModal = false }: Props) {
       </form>
 
       {/* Switch view */}
-      <p className="text-center text-[11px] text-stone-400">
-        {view === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
+      <div className="flex flex-col gap-2">
+        <p className="text-center text-xs text-stone-500">
+          {view === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+        </p>
         <button
           type="button"
           onClick={() => { setView(view === 'login' ? 'register' : 'login'); setError(''); setGoogleFallo(false) }}
-          className="text-stone-700 underline underline-offset-2 cursor-pointer"
+          className="w-full py-3.5 rounded-xl border border-brand-red/40 text-brand-red text-[11px] font-semibold tracking-widest uppercase hover:border-brand-red hover:bg-brand-red/5 transition-colors cursor-pointer"
         >
           {view === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
         </button>
-      </p>
+      </div>
     </div>
     </PageShell>
   )
