@@ -507,6 +507,27 @@ async function testCambioDePlazas() {
   }
 }
 
+// ── Quitar inscritos desde el admin (Control de asistentes) ──────────────
+
+async function testAdminQuitaInscrito() {
+  console.log('\n8. El admin puede quitar a un inscrito (y liberar su plaza); un usuario normal no')
+  const ID = 910011
+  await seedActividad(ID, 10)
+  const admin = await crearAdmin('admin-quitar')
+  const [ana, intruso] = await crearUsuarios(2, 'quitar')
+  await conReintentoPorBugDelEmulador(() => inscribirseTest(ana.db, ID, ana.uid, ana.email))
+
+  let rechazado = false
+  try { await liberarPlazaTest(intruso.db, ID, ana.uid) } catch (err) { rechazado = (err as { code?: string }).code === 'permission-denied' }
+  check('otro usuario no puede quitar la inscripción ajena', rechazado)
+  check('la inscripción sigue ahí y el contador en 9', await contarInscritos(ID) === 1 && (await leerActividad(ID)).plazasDisponibles === 9)
+
+  await liberarPlazaTest(admin.db, ID, ana.uid)
+  check('el admin la quita: 0 inscritos y la plaza vuelve (10 disponibles)', await contarInscritos(ID) === 0 && (await leerActividad(ID)).plazasDisponibles === 10)
+
+  await borrarActividad(ID)
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
@@ -516,6 +537,7 @@ async function main() {
   await testReglasRechazanInscritoSinDescontar()
   await testReglasRechazanBorrarSinDevolver()
   await testCambioDePlazas()
+  await testAdminQuitaInscrito()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   // exit explícito también en éxito: las N apps de Firebase siguen con
