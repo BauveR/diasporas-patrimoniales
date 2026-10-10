@@ -1,5 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from 'react'
-import { useLocation, useNavigationType } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import PointsToShapes from '../components/PointsToShapes'
 import { AboutSection } from '../components/AboutSection'
@@ -16,30 +15,11 @@ const SedeSection = lazy(() => import('../components/SedeSection').then(m => ({ 
 const ParticipantesSection = lazy(() => import('../components/ParticipantesSection').then(m => ({ default: m.ParticipantesSection })))
 const ProgramaSection = lazy(() => import('../components/ProgramaSection').then(m => ({ default: m.ProgramaSection })))
 
-const scrollPositions: Record<string, number> = {}
-
 export function Home() {
-  const location = useLocation()
-  const navType = useNavigationType()
   const { t } = useTranslation()
 
-  useLayoutEffect(() => {
-    if (navType !== 'POP') return
-    const saved = scrollPositions[location.key]
-    if (saved !== undefined) window.scrollTo({ top: saved, behavior: 'instant' })
-  }, [])
-
-  // El scroll a secciones por hash ("/#programa") NO vive acá sino en
-  // App.tsx: Home se renderiza dentro de <Routes location={...}>, y ahí
-  // React Router reporta useNavigationType() siempre como 'POP', así que un
-  // efecto acá no puede distinguir un click en el navbar de un back/forward.
-
-  useEffect(() => {
-    const key = location.key
-    const save = () => { scrollPositions[key] = window.scrollY }
-    window.addEventListener('scroll', save, { passive: true })
-    return () => window.removeEventListener('scroll', save)
-  }, [location.key])
+  // La posición al volver atrás/adelante la restaura App
+  // (hooks/useScrollAlNavegar.ts), igual para todas las páginas.
 
   return (
     <main className="pt-navbar">

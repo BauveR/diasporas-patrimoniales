@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { getPlazasEstado, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
 import { AnimatedCheckmark } from './AnimatedCheckmark'
+import { getLocaleFromPathname } from '../../i18n/routing'
+import { DEFAULT_LOCALE } from '../../i18n/config'
 
 const PLAZAS_ESTADO_LABEL = {
   disponibles: 'Plazas disponibles',
@@ -61,6 +63,10 @@ export function BookingWidget({
   compact = false,
   dark = false,
 }: BookingWidgetProps) {
+  // Con el prefijo del idioma actual: desde /en, "Ver mis actividades"
+  // llevaba al perfil en español.
+  const locale = getLocaleFromPathname(useLocation().pathname)
+  const perfilPath = locale === DEFAULT_LOCALE ? '/perfil' : `/${locale}/perfil`
   // En modo compact, cada texto de acá abajo pierde su inline Open Sans (ver
   // los `style={textFont}` más abajo) y hereda Mattone Regular del wrapper
   // que lo envuelve — eso deja el modo no-compact (la página completa)
@@ -161,7 +167,7 @@ export function BookingWidget({
           ) : (
             <div className="flex flex-col gap-2.5">
               <Link
-                to="/perfil"
+                to={perfilPath}
                 className="w-full py-3 rounded-xl bg-brand-orange text-white text-[11px] tracking-widest uppercase text-center block transition-opacity hover:opacity-90"
               >
                 Ver mi perfil
@@ -283,7 +289,7 @@ export function BookingWidget({
         </div>
 
         <Link
-          to="/perfil"
+          to={perfilPath}
           className="w-full py-3.5 rounded-xl text-[11px] tracking-widest uppercase text-white text-center block transition-opacity hover:opacity-90"
           style={{ ...labelStyle, backgroundColor: '#3f6395' }}
         >
