@@ -31,6 +31,7 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
   const [confirmandoUid,   setConfirmandoUid]   = useState<string | null>(null)
   const [quitandoUid,      setQuitandoUid]      = useState<string | null>(null)
   const [quitarError,      setQuitarError]      = useState<string | null>(null)
+  const confirmandoInscrito = inscritos.find(i => i.uid === confirmandoUid)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -211,7 +212,7 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
                     <th className="font-normal py-2 pr-4">Email</th>
                     <th className="font-normal py-2 pr-4">Teléfono</th>
                     <th className="font-normal py-2 pr-4">Política de privacidad</th>
-                    <th className="font-normal py-2"><span className="sr-only">Acciones</span></th>
+                    <th className="font-normal py-2 pl-3 sticky right-0 bg-stone-900"><span className="sr-only">Acciones</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -227,9 +228,13 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
                           <span className="text-stone-500">— Sin registro</span>
                         )}
                       </td>
-                      <td className="py-2.5 text-right whitespace-nowrap">
+                      {/* sticky: en móvil la tabla se desplaza en horizontal y
+                          esta columna quedaba fuera de la pantalla. */}
+                      <td className="py-2.5 pl-3 text-right whitespace-nowrap sticky right-0 bg-stone-900">
                         {confirmandoUid === i.uid ? (
                           <div className="inline-flex gap-2 items-center">
+                            <span className="sm:hidden text-[10px] text-red-400">Confirmar abajo ↓</span>
+                            <div className="hidden sm:inline-flex gap-2 items-center">
                             <span className="text-[10px] text-stone-300">¿Quitar y liberar su plaza?</span>
                             <button
                               onClick={() => setConfirmandoUid(null)}
@@ -245,6 +250,7 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
                             >
                               {quitandoUid === i.uid ? '...' : 'Sí, quitar'}
                             </button>
+                            </div>
                           </div>
                         ) : (
                           <button
@@ -261,6 +267,32 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Confirmación en móvil: barra fija abajo, siempre visible aunque
+              la fila esté fuera de la pantalla. En sm+ va dentro de la fila. */}
+          {confirmandoInscrito && (
+            <div className="sm:hidden fixed inset-x-0 bottom-0 z-[9000] bg-stone-900 border-t border-white/15 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col gap-3 shadow-2xl">
+              <p className="text-sm text-white">
+                ¿Quitar a <span className="font-semibold">{confirmandoInscrito.displayName || confirmandoInscrito.email}</span> y liberar su plaza?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmandoUid(null)}
+                  disabled={quitandoUid !== null}
+                  className="flex-1 py-3 rounded-xl border border-white/15 text-[11px] tracking-widest uppercase text-stone-300 disabled:opacity-40 cursor-pointer"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleQuitar(confirmandoInscrito.uid)}
+                  disabled={quitandoUid !== null}
+                  className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+                >
+                  {quitandoUid ? '...' : 'Sí, quitar'}
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -58,7 +58,9 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
     expect(screen.getByText('¿Quitar y liberar su plaza?')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'No' }))
+    // [0]: la confirmación de la fila (sm+); [1]: la barra fija de móvil.
+    // jsdom no aplica CSS, así que ambas están en el DOM.
+    fireEvent.click(screen.getAllByRole('button', { name: 'No' })[0])
     expect(liberarPlaza).not.toHaveBeenCalled()
     expect(screen.getByText('María García')).toBeInTheDocument()
   })
@@ -66,7 +68,7 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
   it('al confirmar, libera la plaza de ese inscrito y lo quita de la lista', async () => {
     await abrirInscritos()
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sí, quitar' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[0])
 
     await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
     expect(liberarPlaza).toHaveBeenCalledWith(7, 'u1')
@@ -77,7 +79,7 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     liberarPlaza.mockRejectedValue(new YaLiberadaError())
     await abrirInscritos()
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sí, quitar' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[0])
 
     await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
     expect(screen.queryByText(/No se pudo quitar/)).not.toBeInTheDocument()
@@ -87,9 +89,19 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     liberarPlaza.mockRejectedValue(new Error('permission-denied'))
     await abrirInscritos()
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sí, quitar' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[0])
 
     expect(await screen.findByText('No se pudo quitar al inscrito. Inténtalo de nuevo.')).toBeInTheDocument()
-    expect(screen.getByText('María García')).toBeInTheDocument()
+    expect(screen.getAllByText('María García').length).toBeGreaterThan(0)
+  })
+
+  it('en móvil, la barra fija de abajo nombra a quién se quita y también confirma', async () => {
+    await abrirInscritos()
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
+    expect(screen.getByText(/^¿Quitar a/)).toHaveTextContent('¿Quitar a María García y liberar su plaza?')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[1])
+    await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
+    expect(liberarPlaza).toHaveBeenCalledWith(7, 'u1')
   })
 })
