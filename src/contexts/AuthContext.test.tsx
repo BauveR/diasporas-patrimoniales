@@ -5,12 +5,13 @@ import { TIMEOUT_CONEXION_MS } from '../lib/conexion'
 // Sesión ya iniciada + listener de inscripciones controlable desde el test.
 type Cb = (ids: number[], meta: { fromCache: boolean }) => void
 let inscripciones: Cb | undefined
+let suscripciones = 0
 const loadAuth = vi.fn()
 
 vi.mock('../lib/firebaseLoaders', () => ({
   loadAuth: () => loadAuth(),
   loadDb: () => Promise.resolve({
-    subscribeInscripcionIds: (_uid: string, cb: Cb) => { inscripciones = cb; return () => {} },
+    subscribeInscripcionIds: (_uid: string, cb: Cb) => { suscripciones++; inscripciones = cb; return () => {} },
   }),
 }))
 
@@ -32,6 +33,7 @@ describe('AuthProvider — inscripciones sin conexión', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     inscripciones = undefined
+    suscripciones = 0
     // El modo compatible automático ya se probó → los fallos muestran el aviso.
     sessionStorage.setItem('firestore_modo_compatible_intentado', '1')
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -48,10 +50,30 @@ describe('AuthProvider — inscripciones sin conexión', () => {
     expect(screen.getByText('inscripciones: 2')).toBeInTheDocument()
   })
 
-  it('una lista vacía desde caché (offline) NO se muestra como "sin inscripciones": avisa', async () => {
+  // Bug de producción (2026-10-10): al iniciar sesión sin inscripciones,
+  // Firestore respondía primero con la caché vacía, eso contaba como "sin
+  // conexión" y la página se recargaba de vuelta al login.
+  it('una lista vacía desde caché no se da por buena NI por fallo: espera al servidor, sin recargar', async () => {
+    const reload = vi.fn()
+    Object.defineProperty(window, 'location', { value: { ...window.location, reload }, writable: true, configurable: true })
+    sessionStorage.clear() // ni siquiera la primera vez de la pestaña
     await montar()
     act(() => { inscripciones!([], { fromCache: true }) })
+    expect(screen.getByText('cargando')).toBeInTheDocument()
+    act(() => { inscripciones!([], { fromCache: false }) })
+    expect(screen.getByText('inscripciones: 0')).toBeInTheDocument()
+    expect(reload).not.toHaveBeenCalled()
+  })
+
+  it('si tras la caché vacía el servidor nunca responde, el tiempo límite avisa (sin recargar)', async () => {
+    const reload = vi.fn()
+    Object.defineProperty(window, 'location', { value: { ...window.location, reload }, writable: true, configurable: true })
+    sessionStorage.clear()
+    await montar()
+    act(() => { inscripciones!([], { fromCache: true }) })
+    act(() => { vi.advanceTimersByTime(TIMEOUT_CONEXION_MS) })
     expect(screen.getByText('error')).toBeInTheDocument()
+    expect(reload).not.toHaveBeenCalled()
   })
 
   it('el servidor confirmando 0 inscripciones sí es "sin inscripciones"', async () => {
@@ -83,5 +105,17 @@ describe('AuthProvider — inscripciones sin conexión', () => {
     await montar()
     act(() => { inscripciones!([7], { fromCache: true }) })
     expect(screen.getByText('inscripciones: 1')).toBeInTheDocument()
+  })
+
+  it('la misma persona notificada dos veces (signIn + onAuthStateChanged) no vuelve a suscribir', async () => {
+    let avisar: (u: unknown) => void = () => {}
+    loadAuth.mockReset().mockResolvedValue({
+      subscribeAuthState: (cb: (u: unknown) => void) => { avisar = cb; cb({ uid: 'u1', email: 'a@ull.edu.es', displayName: 'Ana' }); return () => {} },
+      getUserRole: () => Promise.resolve('user'),
+    })
+    await montar()
+    await act(async () => { avisar({ uid: 'u1', email: 'a@ull.edu.es', displayName: 'Ana' }); await Promise.resolve() })
+    await act(async () => { for (let i = 0; i < 5; i++) await Promise.resolve() })
+    expect(suscripciones).toBe(1)
   })
 })
