@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import type { Actividad } from '../../data/actividades'
 import type { Sede } from '../../data/sedes'
@@ -44,7 +44,8 @@ const inscrito = (uid: string, displayName: string) => ({
 async function abrirInscritos() {
   render(<ControlAsistentes actividades={[actividad]} sedes={[sede]} />)
   fireEvent.click(screen.getByText('Jornada 1'))
-  await screen.findByText('María García')
+  // jsdom no aplica CSS: están a la vez las tarjetas (móvil) y la tabla (sm+).
+  await screen.findAllByText('María García')
 }
 
 describe('ControlAsistentes — quitar a un inscrito', () => {
@@ -62,7 +63,7 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     // jsdom no aplica CSS, así que ambas están en el DOM.
     fireEvent.click(screen.getAllByRole('button', { name: 'No' })[0])
     expect(liberarPlaza).not.toHaveBeenCalled()
-    expect(screen.getByText('María García')).toBeInTheDocument()
+    expect(screen.getAllByText('María García').length).toBeGreaterThan(0)
   })
 
   it('al confirmar, libera la plaza de ese inscrito y lo quita de la lista', async () => {
@@ -70,9 +71,9 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
     fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[0])
 
-    await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryAllByText('María García')).toHaveLength(0))
     expect(liberarPlaza).toHaveBeenCalledWith(7, 'u1')
-    expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
+    expect(screen.getAllByText('Juan Pérez').length).toBeGreaterThan(0)
   })
 
   it('si ya se había liberado (YaLiberadaError), también lo quita de la lista', async () => {
@@ -81,7 +82,7 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quitar a María García' }))
     fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[0])
 
-    await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryAllByText('María García')).toHaveLength(0))
     expect(screen.queryByText(/No se pudo quitar/)).not.toBeInTheDocument()
   })
 
@@ -101,7 +102,51 @@ describe('ControlAsistentes — quitar a un inscrito', () => {
     expect(screen.getByText(/^¿Quitar a/)).toHaveTextContent('¿Quitar a María García y liberar su plaza?')
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' })[1])
-    await waitFor(() => expect(screen.queryByText('María García')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryAllByText('María García')).toHaveLength(0))
     expect(liberarPlaza).toHaveBeenCalledWith(7, 'u1')
+  })
+
+  it('móvil: las tarjetas no tienen "Quitar" hasta pulsar Gestionar, y Listo lo vuelve a ocultar', async () => {
+    await abrirInscritos()
+    const lista = screen.getByRole('list', { name: 'Lista de inscritos' })
+    expect(within(lista).queryAllByRole('button')).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gestionar' }))
+    expect(within(lista).getAllByRole('button', { name: /^Quitar a / })).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    expect(within(lista).queryAllByRole('button')).toHaveLength(0)
+  })
+
+  it('móvil: Gestionar → Quitar → confirmar en la barra de abajo quita a esa persona', async () => {
+    await abrirInscritos()
+    fireEvent.click(screen.getByRole('button', { name: 'Gestionar' }))
+    const lista = screen.getByRole('list', { name: 'Lista de inscritos' })
+    fireEvent.click(within(lista).getByRole('button', { name: 'Quitar a Juan Pérez' }))
+    expect(screen.getByText(/^¿Quitar a/)).toHaveTextContent('¿Quitar a Juan Pérez y liberar su plaza?')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sí, quitar' }).at(-1)!)
+    await waitFor(() => expect(screen.queryAllByText('Juan Pérez')).toHaveLength(0))
+    expect(liberarPlaza).toHaveBeenCalledWith(7, 'u2')
+  })
+
+  it('al abrir una jornada, el panel de eventos queda arriba plegado y se puede volver a desplegar', async () => {
+    await abrirInscritos()
+    // Plegado: ya no están las pestañas de Próximas/Pasadas, solo la jornada que se ve
+    expect(screen.queryByRole('button', { name: /^Próximas/ })).not.toBeInTheDocument()
+    expect(screen.getByText(/^Viendo:/)).toHaveTextContent('Viendo: Jornada 1')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar jornada ▾' }))
+    expect(screen.getByRole('button', { name: /^Próximas/ })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Plegar ▴' }))
+    expect(screen.queryByRole('button', { name: /^Próximas/ })).not.toBeInTheDocument()
+  })
+
+  it('el panel de eventos va antes que la lista de inscritos', async () => {
+    await abrirInscritos()
+    const eventos = screen.getByText('Eventos')
+    const inscritos = screen.getByText('Inscritos')
+    expect(eventos.compareDocumentPosition(inscritos) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

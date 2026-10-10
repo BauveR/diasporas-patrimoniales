@@ -11,6 +11,9 @@ const DIAS = 7
 export function EstadoConexion() {
   const [conteo, setConteo] = useState<ConteoConexion | null>(null)
   const [error, setError] = useState(false)
+  // Plegada por defecto (ni siquiera un resumen): es información de consulta
+  // ocasional, no tiene por qué ocupar sitio en el panel.
+  const [abierta, setAbierta] = useState(false)
 
   useEffect(() => {
     let cancelado = false
@@ -28,6 +31,17 @@ export function EstadoConexion() {
 
   return (
     <SectionCard title={`Conexión · últimos ${DIAS} días`}>
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => setAbierta(a => !a)}
+          aria-expanded={abierta}
+          className="shrink-0 px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+        >
+          {abierta ? 'Plegar ▴' : 'Ver detalle ▾'}
+        </button>
+      </div>
+      {abierta && (
+      <div className="mt-3">
       {error ? (
         <p className="text-[11px] text-red-400">No se pudieron cargar los datos de conexión.</p>
       ) : (
@@ -45,6 +59,8 @@ export function EstadoConexion() {
       <p className="mt-4 text-[10px] text-stone-500 leading-relaxed">
         Datos anónimos: solo se cuenta cuántas veces pasó, sin guardar quién.
       </p>
+      </div>
+      )}
     </SectionCard>
   )
 }

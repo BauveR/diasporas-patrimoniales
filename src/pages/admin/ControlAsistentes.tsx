@@ -32,6 +32,14 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
   const [quitandoUid,      setQuitandoUid]      = useState<string | null>(null)
   const [quitarError,      setQuitarError]      = useState<string | null>(null)
   const confirmandoInscrito = inscritos.find(i => i.uid === confirmandoUid)
+  // Móvil: la lista es de solo lectura hasta pulsar "Gestionar" — así no hay
+  // ningún "Quitar" al alcance del dedo mientras solo se consulta la lista
+  // (borrar exige Gestionar → Quitar → "Sí, quitar"). En escritorio la tabla
+  // sigue mostrando "Quitar" en cada fila, con su confirmación.
+  const [gestionando,      setGestionando]      = useState(false)
+  // Con una jornada abierta, el panel de eventos (pestañas, filtros,
+  // tarjetas) se pliega arriba en una línea; "Cambiar jornada" lo despliega.
+  const [eventosAbierto,   setEventosAbierto]   = useState(false)
 
   const mesesDisponibles = useMemo(() => {
     const set = new Set(actividades.map(a => a.fecha.slice(0, 7)))
@@ -50,6 +58,7 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
 
   const visible            = (showPasadas ? pasadas : proximas).filter(matchesFiltro)
   const selectedActividad  = actividades.find(a => a.id === selectedId)
+  const eventosPlegado     = !!selectedActividad && !eventosAbierto
   const editingActividad   = actividades.find(a => a.id === editingId)
   const selectedCount      = selectedActividad
     ? selectedActividad.plazas - selectedActividad.plazasDisponibles
@@ -105,6 +114,8 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
   }
 
   const handleSelect = (id: number) => {
+    setEventosAbierto(false)
+    setGestionando(false)
     setConfirmandoUid(null)
     setQuitarError(null)
     setEditingId(null)
@@ -156,150 +167,36 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
         onClose={() => setEditingId(null)}
       />
 
-      {/* Panel de inscritos */}
-      {selectedActividad && (
-        <div className="bg-stone-900 rounded-2xl border border-white/10 p-6" style={labelStyle}>
-          <div className="flex items-start justify-between mb-5 gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Inscritos</p>
-              <p className="text-sm text-white truncate">{selectedActividad.titulo}</p>
-              <p className="text-[11px] text-stone-400 mt-0.5 capitalize">
-                {selectedFecha} · {selectedCount} {selectedCount === 1 ? 'inscrito' : 'inscritos'}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {inscritos.length > 0 && (
-                <>
-                  <button
-                    onClick={handleCopiar}
-                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
-                  >
-                    {copiado ? 'Copiado ✓' : 'Copiar'}
-                  </button>
-                  <button
-                    onClick={handleDescargarCsv}
-                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
-                  >
-                    Descargar CSV
-                  </button>
-                </>
-              )}
-              <button
-                onClick={() => setSelectedId(null)}
-                className="shrink-0 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
-                aria-label="Cerrar"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {loadingInscritos ? (
-            <p className="text-[11px] text-stone-400 py-2">Cargando...</p>
-          ) : fetchError ? (
-            <p className="text-[11px] text-red-400 py-2">{fetchError}</p>
-          ) : inscritos.length === 0 ? (
-            <p className="text-[11px] text-stone-500 py-2">Sin inscritos aún</p>
-          ) : (
-            <div className="overflow-x-auto">
-              {quitarError && <p className="text-[11px] text-red-400 pb-2">{quitarError}</p>}
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-white/10">
-                    <th className="font-normal py-2 pr-4">Nombre</th>
-                    <th className="font-normal py-2 pr-4">Email</th>
-                    <th className="font-normal py-2 pr-4">Teléfono</th>
-                    <th className="font-normal py-2 pr-4">Política de privacidad</th>
-                    <th className="font-normal py-2 pl-3 sticky right-0 bg-stone-900"><span className="sr-only">Acciones</span></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {inscritos.map(i => (
-                    <tr key={i.uid}>
-                      <td className="py-2.5 pr-4 text-sm text-stone-200 whitespace-nowrap">{i.displayName || '—'}</td>
-                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
-                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
-                      <td className="py-2.5 pr-4 text-[11px] whitespace-nowrap">
-                        {i.aceptoTerminos ? (
-                          <span className="text-[#7a9a74]">✓ Aceptada{i.terminosVersion ? ` (${i.terminosVersion})` : ''}</span>
-                        ) : (
-                          <span className="text-stone-500">— Sin registro</span>
-                        )}
-                      </td>
-                      {/* sticky: en móvil la tabla se desplaza en horizontal y
-                          esta columna quedaba fuera de la pantalla. */}
-                      <td className="py-2.5 pl-3 text-right whitespace-nowrap sticky right-0 bg-stone-900">
-                        {confirmandoUid === i.uid ? (
-                          <div className="inline-flex gap-2 items-center">
-                            <span className="sm:hidden text-[10px] text-red-400">Confirmar abajo ↓</span>
-                            <div className="hidden sm:inline-flex gap-2 items-center">
-                            <span className="text-[10px] text-stone-300">¿Quitar y liberar su plaza?</span>
-                            <button
-                              onClick={() => setConfirmandoUid(null)}
-                              disabled={quitandoUid === i.uid}
-                              className="text-[10px] text-stone-400 hover:text-stone-200 disabled:opacity-40 cursor-pointer"
-                            >
-                              No
-                            </button>
-                            <button
-                              onClick={() => handleQuitar(i.uid)}
-                              disabled={quitandoUid === i.uid}
-                              className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
-                            >
-                              {quitandoUid === i.uid ? '...' : 'Sí, quitar'}
-                            </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => { setConfirmandoUid(i.uid); setQuitarError(null) }}
-                            disabled={quitandoUid !== null}
-                            aria-label={`Quitar a ${i.displayName || i.email}`}
-                            className="px-3 py-1 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-400 hover:border-red-400 hover:text-red-400 disabled:opacity-40 transition-colors cursor-pointer"
-                          >
-                            Quitar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Confirmación en móvil: barra fija abajo, siempre visible aunque
-              la fila esté fuera de la pantalla. En sm+ va dentro de la fila. */}
-          {confirmandoInscrito && (
-            <div className="sm:hidden fixed inset-x-0 bottom-0 z-[9000] bg-stone-900 border-t border-white/15 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col gap-3 shadow-2xl">
-              <p className="text-sm text-white">
-                ¿Quitar a <span className="font-semibold">{confirmandoInscrito.displayName || confirmandoInscrito.email}</span> y liberar su plaza?
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmandoUid(null)}
-                  disabled={quitandoUid !== null}
-                  className="flex-1 py-3 rounded-xl border border-white/15 text-[11px] tracking-widest uppercase text-stone-300 disabled:opacity-40 cursor-pointer"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleQuitar(confirmandoInscrito.uid)}
-                  disabled={quitandoUid !== null}
-                  className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
-                >
-                  {quitandoUid ? '...' : 'Sí, quitar'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Grid de eventos */}
+      {/* Grid de eventos — arriba, y plegado mientras se ven los inscritos
+          de una jornada: antes quedaba debajo de la lista y con muchos
+          inscritos había que bajar hasta el final para cambiar de jornada. */}
       <SectionCard title="Eventos">
+        {eventosPlegado ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-stone-300 min-w-0 truncate">
+              Viendo: <span className="text-white">{selectedActividad?.titulo}</span>
+            </p>
+            <button
+              onClick={() => setEventosAbierto(true)}
+              aria-expanded={false}
+              className="shrink-0 px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Cambiar jornada ▾
+            </button>
+          </div>
+        ) : (
+        <>
+        {selectedActividad && (
+          <div className="flex justify-end mb-3">
+            <button
+              onClick={() => setEventosAbierto(false)}
+              aria-expanded={true}
+              className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Plegar ▴
+            </button>
+          </div>
+        )}
         <div className="flex gap-2 mb-5">
           {tabs.map(t => (
             <button
@@ -369,8 +266,201 @@ export function ControlAsistentes({ actividades, sedes }: { actividades: Activid
             ))}
           </div>
         )}
+        </>
+        )}
       </SectionCard>
 
+      {/* Panel de inscritos */}
+      {selectedActividad && (
+        <div className="bg-stone-900 rounded-2xl border border-white/10 p-6" style={labelStyle}>
+          <div className="flex items-start justify-between mb-5 gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-1">Inscritos</p>
+              <p className="text-sm text-white truncate">{selectedActividad.titulo}</p>
+              <p className="text-[11px] text-stone-400 mt-0.5 capitalize">
+                {selectedFecha} · {selectedCount} {selectedCount === 1 ? 'inscrito' : 'inscritos'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {inscritos.length > 0 && (
+                <>
+                  <button
+                    onClick={handleCopiar}
+                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    {copiado ? 'Copiado ✓' : 'Copiar'}
+                  </button>
+                  <button
+                    onClick={handleDescargarCsv}
+                    className="px-3 py-1.5 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-300 hover:border-white/30 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Descargar CSV
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setSelectedId(null)}
+                className="shrink-0 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                aria-label="Cerrar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {loadingInscritos ? (
+            <p className="text-[11px] text-stone-400 py-2">Cargando...</p>
+          ) : fetchError ? (
+            <p className="text-[11px] text-red-400 py-2">{fetchError}</p>
+          ) : inscritos.length === 0 ? (
+            <p className="text-[11px] text-stone-500 py-2">Sin inscritos aún</p>
+          ) : (
+            <>
+            {quitarError && <p className="text-[11px] text-red-400 pb-2">{quitarError}</p>}
+
+            {/* Móvil: tarjetas apiladas, sin desplazamiento horizontal */}
+            <div className="sm:hidden flex flex-col gap-3">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => { setGestionando(g => !g); setConfirmandoUid(null) }}
+                  disabled={quitandoUid !== null}
+                  aria-pressed={gestionando}
+                  className={`px-4 py-1.5 rounded-full border text-[10px] tracking-widest uppercase transition-colors cursor-pointer disabled:opacity-40 ${
+                    gestionando ? 'border-transparent bg-white text-stone-900' : 'border-white/15 text-stone-300'
+                  }`}
+                >
+                  {gestionando ? 'Listo' : 'Gestionar'}
+                </button>
+              </div>
+              <ul aria-label="Lista de inscritos" className="flex flex-col gap-2">
+                {inscritos.map(i => (
+                  <li
+                    key={i.uid}
+                    className={`rounded-xl border p-3 flex items-start gap-3 transition-colors ${
+                      confirmandoUid === i.uid ? 'border-red-400/60 bg-red-500/10' : 'border-white/10'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                      <p className="text-sm text-stone-200 break-words">{i.displayName || '—'}</p>
+                      <p className="text-[11px] text-stone-400 break-all">{i.email}</p>
+                      <p className="text-[11px] text-stone-400">{i.telefono || '—'}</p>
+                      <p className="text-[11px] mt-1"><Privacidad inscrito={i} /></p>
+                    </div>
+                    {gestionando && (
+                      <button
+                        onClick={() => { setConfirmandoUid(i.uid); setQuitarError(null) }}
+                        disabled={quitandoUid !== null}
+                        aria-label={`Quitar a ${i.displayName || i.email}`}
+                        className="shrink-0 px-3 py-1.5 rounded-full border border-red-400/60 text-[10px] tracking-widest uppercase text-red-400 disabled:opacity-40 cursor-pointer"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Escritorio: tabla */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[10px] tracking-widest uppercase text-stone-400 border-b border-white/10">
+                    <th className="font-normal py-2 pr-4">Nombre</th>
+                    <th className="font-normal py-2 pr-4">Email</th>
+                    <th className="font-normal py-2 pr-4">Teléfono</th>
+                    <th className="font-normal py-2 pr-4">Política de privacidad</th>
+                    <th className="font-normal py-2 pl-3 sticky right-0 bg-stone-900"><span className="sr-only">Acciones</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {inscritos.map(i => (
+                    <tr key={i.uid}>
+                      <td className="py-2.5 pr-4 text-sm text-stone-200 whitespace-nowrap">{i.displayName || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.email}</td>
+                      <td className="py-2.5 pr-4 text-[11px] text-stone-400 whitespace-nowrap">{i.telefono || '—'}</td>
+                      <td className="py-2.5 pr-4 text-[11px] whitespace-nowrap">
+                        <Privacidad inscrito={i} />
+                      </td>
+                      {/* sticky: en pantallas estrechas la tabla se desplaza en
+                          horizontal y esta columna quedaba fuera de la vista. */}
+                      <td className="py-2.5 pl-3 text-right whitespace-nowrap sticky right-0 bg-stone-900">
+                        {confirmandoUid === i.uid ? (
+                          <div className="inline-flex gap-2 items-center">
+                            <span className="text-[10px] text-stone-300">¿Quitar y liberar su plaza?</span>
+                            <button
+                              onClick={() => setConfirmandoUid(null)}
+                              disabled={quitandoUid === i.uid}
+                              className="text-[10px] text-stone-400 hover:text-stone-200 disabled:opacity-40 cursor-pointer"
+                            >
+                              No
+                            </button>
+                            <button
+                              onClick={() => handleQuitar(i.uid)}
+                              disabled={quitandoUid === i.uid}
+                              className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+                            >
+                              {quitandoUid === i.uid ? '...' : 'Sí, quitar'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setConfirmandoUid(i.uid); setQuitarError(null) }}
+                            disabled={quitandoUid !== null}
+                            aria-label={`Quitar a ${i.displayName || i.email}`}
+                            className="px-3 py-1 rounded-full border border-white/15 text-[10px] tracking-widest uppercase text-stone-400 hover:border-red-400 hover:text-red-400 disabled:opacity-40 transition-colors cursor-pointer"
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            </>
+          )}
+
+          {/* Confirmación en móvil: barra fija abajo, siempre visible aunque
+              la fila esté fuera de la pantalla. En sm+ va dentro de la fila. */}
+          {confirmandoInscrito && (
+            <div className="sm:hidden fixed inset-x-0 bottom-0 z-[9000] bg-stone-900 border-t border-white/15 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col gap-3 shadow-2xl">
+              <p className="text-sm text-white">
+                ¿Quitar a <span className="font-semibold">{confirmandoInscrito.displayName || confirmandoInscrito.email}</span> y liberar su plaza?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmandoUid(null)}
+                  disabled={quitandoUid !== null}
+                  className="flex-1 py-3 rounded-xl border border-white/15 text-[11px] tracking-widest uppercase text-stone-300 disabled:opacity-40 cursor-pointer"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => handleQuitar(confirmandoInscrito.uid)}
+                  disabled={quitandoUid !== null}
+                  className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 disabled:opacity-40 cursor-pointer"
+                >
+                  {quitandoUid ? '...' : 'Sí, quitar'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+
     </div>
+  )
+}
+
+function Privacidad({ inscrito }: { inscrito: InscritoData }) {
+  return inscrito.aceptoTerminos ? (
+    <span className="text-[#7a9a74]">✓ Aceptada{inscrito.terminosVersion ? ` (${inscrito.terminosVersion})` : ''}</span>
+  ) : (
+    <span className="text-stone-500">— Sin registro</span>
   )
 }
