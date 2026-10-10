@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore'
+import { modoCompatibleActivo } from './conexion'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,4 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+// Por defecto el SDK detecta solo si tiene que caer a long polling. En el
+// navegador donde eso ya falló (botón "Reintentar" de ConexionError) se
+// fuerza — ver lib/conexion.ts.
+export const db = initializeFirestore(app, modoCompatibleActivo() ? { experimentalForceLongPolling: true } : {})

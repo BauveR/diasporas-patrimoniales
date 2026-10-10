@@ -5,6 +5,7 @@ import { NAV_ITEMS, type AdminSection } from './admin/navConfig'
 import { Sidebar, MobileTabBar, ContentHeader } from './admin/AdminNav'
 import { GestionSedes } from './admin/GestionSedes'
 import { ControlAsistentes } from './admin/ControlAsistentes'
+import { EstadoConexion } from './admin/EstadoConexion'
 
 // Componente raíz — solo ensambla el nav (Sidebar/MobileTabBar) y la sección
 // activa. El resto de lo que antes vivía en este archivo (validación y
@@ -34,7 +35,12 @@ export function AdminPage() {
         <div className="flex-1 px-6 sm:px-8 py-8">
 
           {section === 'sedes'  && <GestionSedes sedes={sedes} />}
-          {section === 'asistentes' && <ControlAsistentes actividades={actividades} sedes={sedes} />}
+          {section === 'asistentes' && (
+            <div className="flex flex-col gap-6">
+              <ControlAsistentes actividades={actividades} sedes={sedes} />
+              <EstadoConexion />
+            </div>
+          )}
 
         </div>
       </div>

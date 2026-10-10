@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { labelStyle } from '../lib/styles'
+import { esErrorDeCargaDeModulo, recargarPorVersionNueva } from '../lib/conexion'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -13,6 +14,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.error('[ErrorBoundary]', error)
+    // Pantalla lazy de una versión anterior (hubo un deploy con la web
+    // abierta): recargar trae la nueva en vez de mostrar el error.
+    if (esErrorDeCargaDeModulo(error)) recargarPorVersionNueva()
   }
 
   render() {

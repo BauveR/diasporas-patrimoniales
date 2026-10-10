@@ -10,6 +10,8 @@ import { SITE_URL } from '../components/SeoHead'
 import { labelStyle } from '../lib/styles'
 import { formatFechaLarga } from '../utils/formatMes'
 import { ikImage } from '../lib/imagekit'
+import { ConexionAviso, ConexionError } from '../components/ConexionError'
+import { useTranslation } from 'react-i18next'
 
 const serifStyle = { fontFamily: "'Playfair Display', serif" }
 
@@ -22,7 +24,8 @@ export function ActividadPage() {
   const fromApp = location.key !== 'default'
   const isModal = !!location.state?.background
   const fromPerfil = location.state?.from === 'perfil'
-  const { actividades, sedes, dataLoading } = useDataContext()
+  const { t } = useTranslation()
+  const { actividades, sedes, dataLoading, dataError, conexion } = useDataContext()
   const actividad = actividades.find(a => a.id === Number(id))
   const booking = useActividadBooking(actividad)
 
@@ -34,7 +37,20 @@ export function ActividadPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actividad?.titulo])
 
-  if (dataLoading) return null
+  // Antes `return null` mientras cargaba: con un enlace directo y Firestore
+  // bloqueado (red institucional) la página quedaba en blanco para siempre.
+  if (dataError && !actividad) return (
+    <main className="min-h-screen bg-white flex items-center justify-center px-6 pt-navbar">
+      <ConexionError />
+    </main>
+  )
+  if (dataLoading) return (
+    <main className="min-h-screen bg-white flex items-center justify-center pt-navbar">
+      {conexion === 'normal'
+        ? <p className="text-[10px] tracking-widest uppercase text-stone-500" style={labelStyle}>{t('conexion.cargando')}</p>
+        : <ConexionAviso estado={conexion} />}
+    </main>
+  )
   if (!actividad) return <Navigate to="/" replace />
 
   const today = new Date().toISOString().split('T')[0]

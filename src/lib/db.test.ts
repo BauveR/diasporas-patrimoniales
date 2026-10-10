@@ -39,3 +39,20 @@ describe('assertInscribible', () => {
     expect(() => assertInscribible({ ...base, cancelada: true, plazasDisponibles: 0 }, today)).toThrow(EventoCanceladoError)
   })
 })
+
+describe('soloCambiosRelevantes', () => {
+  const snap = (fromCache: boolean, cambios: number) =>
+    ({ metadata: { fromCache }, docChanges: () => Array(cambios).fill({}) }) as unknown as import('firebase/firestore').QuerySnapshot
+
+  it('pasa el primer resultado, los cambios reales y el paso caché ↔ servidor', async () => {
+    const { soloCambiosRelevantes } = await import('./db')
+    const recibidos: boolean[] = []
+    const cb = soloCambiosRelevantes(s => recibidos.push(s.metadata.fromCache))
+    cb(snap(true, 0))   // primero (vacío, desde caché): pasa
+    cb(snap(false, 0))  // caché → servidor: pasa
+    cb(snap(false, 0))  // solo metadatos (ej. escritura confirmada): se ignora
+    cb(snap(false, 1))  // un documento cambió: pasa
+    expect(recibidos).toEqual([true, false, false])
+    expect(recibidos.length).toBe(3)
+  })
+})
