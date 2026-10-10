@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { AppUser, UserRole } from '../lib/auth'
 import { loadAuth, loadDb } from '../lib/firebaseLoaders'
-import { TIMEOUT_CONEXION_MS, cambiarAModoCompatibleAutomatico } from '../lib/conexion'
+import { TIMEOUT_CONEXION_MS } from '../lib/conexion'
 
 export type { UserRole }
 
@@ -100,18 +100,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fallar = (err: unknown) => {
       if (cancelled || recibido) return
       console.error('[AuthContext] sin conexión con Firestore (inscripciones):', err)
-      if (!cambiarAModoCompatibleAutomatico()) setRawInscripcionesError(true)
+      // Sin recarga automática a modo compatible acá (eso queda solo para la
+      // carga inicial de la página, en DataContext): este listener arranca
+      // justo al iniciar sesión, y recargar ahí tiraba a la persona de vuelta
+      // a la pantalla de login con la sesión ya iniciada.
+      setRawInscripcionesError(true)
     }
     const timeout = setTimeout(() => { if (!recibido) fallar(new Error('timeout')) }, TIMEOUT_CONEXION_MS)
     loadDb().then(({ subscribeInscripcionIds }) => {
       if (cancelled) return
       unsub = subscribeInscripcionIds(user.uid, (ids, { fromCache }) => {
-        // Vacía y desde caché antes de saber nada del servidor = Firestore
-        // offline: Perfil diría "no tienes inscripciones" a alguien que sí
-        // las tiene. Con datos en caché (ej. volver a entrar sin recargar)
-        // sí se aceptan — antes eso también contaba como error y el aviso
-        // parpadeaba hasta que respondía el servidor.
-        if (fromCache && !recibido && ids.length === 0) return fallar(new Error('offline: inscripciones vacías desde caché'))
+        // Vacía y desde caché antes de saber nada del servidor: puede ser
+        // Firestore offline… o simplemente el resultado que la caché ya tenía
+        // de esta misma consulta (ej. 0 inscripciones, al volver a suscribirse
+        // tras iniciar sesión). No se distinguen, así que no se decide nada:
+        // se espera al servidor, y si no llega, el timeout avisa. Antes contaba
+        // como fallo y, al iniciar sesión sin inscripciones, recargaba la
+        // página de vuelta al login. Con datos en caché sí se aceptan.
+        if (fromCache && !recibido && ids.length === 0) return
         recibido = true
         clearTimeout(timeout)
         setRawInscripcionIds(ids)
@@ -120,7 +126,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, fallar)
     }, fallar)
     return () => { cancelled = true; clearTimeout(timeout); unsub() }
-  }, [user])
+  // uid y no `user`: al iniciar sesión, signIn() y onAuthStateChanged crean
+  // dos objetos distintos para la misma persona, y depender del objeto
+  // volvía a suscribir la consulta sin motivo.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid])
 
   // Derived rather than reset via an effect: with no user there's nothing to
   // load and nothing to show, computed directly instead of synced into state.
