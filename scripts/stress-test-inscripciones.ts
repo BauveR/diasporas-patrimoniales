@@ -20,7 +20,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, type Auth } from 'firebase/auth'
 import {
-  getFirestore, connectFirestoreEmulator, doc, setDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp,
+  getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp,
   type Firestore,
 } from 'firebase/firestore'
 // API modular (no el default export namespaced) — mismo patrón que ya usa
@@ -528,6 +528,25 @@ async function testAdminQuitaInscrito() {
   await borrarActividad(ID)
 }
 
+// ── Contadores de conexión (api/conexion.ts) ──────────────────────────────
+
+async function testTelemetriaSoloAdmin() {
+  console.log('\n9. Los contadores de conexión solo los lee el admin y nadie los escribe desde el cliente')
+  await adminDb.doc('telemetriaConexion/2026-10-10').set({ modo_compatible: 3 })
+  const admin = await crearAdmin('admin-telemetria')
+  const [curioso] = await crearUsuarios(1, 'telemetria')
+  const rechazado = async (fn: () => Promise<unknown>) => {
+    try { await fn(); return false } catch (err) { return (err as { code?: string }).code === 'permission-denied' }
+  }
+
+  const snap = await getDoc(doc(admin.db, 'telemetriaConexion', '2026-10-10'))
+  check('el admin puede leer los contadores', snap.data()?.modo_compatible === 3)
+  check('un usuario normal no puede leerlos', await rechazado(() => getDoc(doc(curioso.db, 'telemetriaConexion', '2026-10-10'))))
+  check('nadie puede escribirlos desde el cliente (ni el admin)', await rechazado(() =>
+    setDoc(doc(admin.db, 'telemetriaConexion', '2026-10-10'), { modo_compatible: 999 })))
+  await adminDb.doc('telemetriaConexion/2026-10-10').delete()
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
@@ -538,6 +557,7 @@ async function main() {
   await testReglasRechazanBorrarSinDevolver()
   await testCambioDePlazas()
   await testAdminQuitaInscrito()
+  await testTelemetriaSoloAdmin()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   // exit explícito también en éxito: las N apps de Firebase siguen con

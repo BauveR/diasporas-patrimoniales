@@ -223,5 +223,16 @@
     "plazasDisponibles": "Vagas disponíveis",
     "algunasPlazas": "Algumas vagas disponíveis",
     "pocasPlazas": "Poucas vagas disponíveis"
+  },
+  "conexion": {
+    "titulo": "Não foi possível ligar ao sistema de inscrições",
+    "explicacion": "Isto acontece com frequência em redes de universidades ou administrações que filtram alguns serviços. Pode:",
+    "opcionReintentar": "Tentar novamente (ativamos um modo de ligação mais compatível)",
+    "opcionRed": "Experimentar com dados móveis ou outra rede",
+    "opcionEscribir": "Escrever-nos para",
+    "boton": "Tentar novamente",
+    "cargando": "A carregar…",
+    "lento": "Está a demorar mais do que o habitual…",
+    "reconectando": "A ligar novamente em modo compatível…"
   }
 }

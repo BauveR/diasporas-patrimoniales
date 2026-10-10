@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { UserRole } from '../../contexts/AuthContext'
+import { ConexionError } from '../ConexionError'
 
 type Props = {
   children: ReactNode
@@ -9,8 +10,14 @@ type Props = {
 }
 
 export function ProtectedRoute({ children, requiredRole }: Props) {
-  const { user, userRole, loading } = useAuth()
+  const { user, userRole, loading, authError } = useAuth()
   const location = useLocation()
+
+  if (authError) return (
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 pt-navbar">
+      <ConexionError />
+    </div>
+  )
 
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">

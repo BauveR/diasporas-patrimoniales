@@ -10,6 +10,7 @@ import { ActividadCard } from '../components/actividades/ActividadCard'
 import { ActividadExpandido } from '../components/actividades/ActividadExpandido'
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
 import { labelStyle } from '../lib/styles'
+import { ConexionError } from '../components/ConexionError'
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -102,7 +103,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 }
 
 export function ProfilePage() {
-  const { user, inscripcionIds, inscripcionesLoading } = useAuth()
+  const { user, inscripcionIds, inscripcionesLoading, inscripcionesError } = useAuth()
   const { actividades } = useDataContext()
   const navigate = useNavigate()
   const openActividadId = useOpenActividadId()
@@ -186,7 +187,12 @@ export function ProfilePage() {
       {/* Content */}
       <div className="px-6 sm:px-8 lg:px-10 py-8">
 
-        {inscripcionesLoading ? (
+        {inscripcionesLoading && inscripcionesError ? (
+          <div className="py-12 flex justify-center">
+            <ConexionError />
+          </div>
+
+        ) : inscripcionesLoading ? (
           <div className="py-20 flex items-center justify-center">
             <p className="text-sm text-stone-500 tracking-widest uppercase">Cargando...</p>
           </div>

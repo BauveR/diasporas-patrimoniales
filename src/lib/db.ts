@@ -18,6 +18,7 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
+  type QuerySnapshot,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { Actividad } from '../data/actividades'
@@ -47,32 +48,58 @@ export const TERMINOS_VERSION = 'v1'
 
 // ── Subscriptions ────────────────────────────────────────────────────────────
 
-export function subscribeActividades(cb: (data: Actividad[]) => void): Unsubscribe {
-  return onSnapshot(collection(db, 'actividades'), snap => {
-    const items = snap.docs.map(d => d.data() as Actividad)
-    cb([...items].sort((a, b) => a.fecha.localeCompare(b.fecha)))
-  })
+// onError: sin él, un fallo del listener (permisos, red cortada por un
+// proxy) quedaba en silencio y la UI esperaba datos para siempre.
+// fromCache: sin conexión, Firestore no da error — pasa a "offline" y
+// entrega lo que tenga en caché, que la primera vez es una lista VACÍA. Quien
+// escucha tiene que distinguir eso de "el servidor dice que no hay nada".
+// includeMetadataChanges: así llega también el aviso cuando el servidor
+// confirma un resultado idéntico al de la caché (ej. 0 inscripciones) —
+// sin él, ese caso no dispararía ningún callback.
+export type SnapshotMeta = { fromCache: boolean }
+
+// includeMetadataChanges también dispara por cambios que no tocan los datos
+// (ej. una escritura propia pasando de "pendiente" a confirmada) — cada uno
+// re-renderizaba la app entera. Solo interesa: el primer resultado, cambios
+// reales en los documentos, o el paso de caché a servidor (y al revés).
+export function soloCambiosRelevantes(cb: (snap: QuerySnapshot) => void) {
+  let primera = true
+  let fromCacheAnterior = false
+  return (snap: QuerySnapshot) => {
+    const fromCache = snap.metadata.fromCache
+    if (!primera && fromCache === fromCacheAnterior && snap.docChanges().length === 0) return
+    primera = false
+    fromCacheAnterior = fromCache
+    cb(snap)
+  }
 }
 
-export function subscribeSedes(cb: (data: Sede[]) => void): Unsubscribe {
-  return onSnapshot(collection(db, 'sedes'), snap => {
+export function subscribeActividades(cb: (data: Actividad[], meta: SnapshotMeta) => void, onError?: (err: Error) => void): Unsubscribe {
+  return onSnapshot(collection(db, 'actividades'), { includeMetadataChanges: true }, soloCambiosRelevantes(snap => {
+    const items = snap.docs.map(d => d.data() as Actividad)
+    cb([...items].sort((a, b) => a.fecha.localeCompare(b.fecha)), { fromCache: snap.metadata.fromCache })
+  }), onError)
+}
+
+export function subscribeSedes(cb: (data: Sede[], meta: SnapshotMeta) => void, onError?: (err: Error) => void): Unsubscribe {
+  return onSnapshot(collection(db, 'sedes'), { includeMetadataChanges: true }, soloCambiosRelevantes(snap => {
     const items = snap.docs.map(d => d.data() as Sede)
-    cb([...items].sort((a, b) => a.id - b.id))
-  })
+    cb([...items].sort((a, b) => a.id - b.id), { fromCache: snap.metadata.fromCache })
+  }), onError)
 }
 
 // No `users/{uid}/inscripciones` mirror collection — a collection-group query
 // over every actividad's `inscritos` subcollection, filtered by the `uid`
 // field each doc already carries, gives the same list without a second write
 // per inscripción to keep in sync.
-export function subscribeInscripcionIds(uid: string, cb: (ids: number[]) => void): Unsubscribe {
+export function subscribeInscripcionIds(uid: string, cb: (ids: number[], meta: SnapshotMeta) => void, onError?: (err: Error) => void): Unsubscribe {
   const q = query(collectionGroup(db, 'inscritos'), where('uid', '==', uid))
-  return onSnapshot(q, snap => {
+  return onSnapshot(q, { includeMetadataChanges: true }, soloCambiosRelevantes(snap => {
     const ids = snap.docs
       .map(d => Number(d.ref.parent.parent?.id))
       .filter(id => !Number.isNaN(id))
-    cb(ids)
-  })
+    cb(ids, { fromCache: snap.metadata.fromCache })
+  }), onError)
 }
 
 /** The user's own saved phone number (users/{uid}.telefono) — prefills the phone field so it isn't asked from scratch every time. */
@@ -330,4 +357,22 @@ export async function updateSede(
   data: Partial<Omit<Sede, 'id'>>,
 ): Promise<void> {
   await updateDoc(doc(db, 'sedes', String(id)), data)
+}
+
+// ── Telemetría de conexión (panel admin) ──────────────────────────────────────
+// Contadores diarios que escribe api/conexion.ts; las reglas solo dejan
+// leerlos al admin.
+
+export type ConteoConexion = { modo_compatible: number; recuperado: number; sin_conexion: number }
+
+export async function getTelemetriaConexion(dias: string[]): Promise<ConteoConexion> {
+  const snaps = await Promise.all(dias.map(dia => getDoc(doc(db, 'telemetriaConexion', dia))))
+  const total: ConteoConexion = { modo_compatible: 0, recuperado: 0, sin_conexion: 0 }
+  for (const snap of snaps) {
+    const d = snap.data() ?? {}
+    total.modo_compatible += Number(d.modo_compatible ?? 0)
+    total.recuperado += Number(d.recuperado ?? 0)
+    total.sin_conexion += Number(d.sin_conexion ?? 0)
+  }
+  return total
 }

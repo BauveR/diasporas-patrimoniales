@@ -9,6 +9,7 @@ import { ActividadExpandido } from './actividades/ActividadExpandido'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
 import { labelStyle } from '../lib/styles'
+import { ConexionAviso, ConexionError } from './ConexionError'
 
 // `id="sedes"` lives here (not on a wrapping element in Home.tsx) because
 // every existing anchor to it — the navbar's "Registro"/"Participantes"/
@@ -20,12 +21,25 @@ import { labelStyle } from '../lib/styles'
 export function InscripcionSection() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { sedes, actividades } = useDataContext()
+  const { sedes, actividades, dataError, conexion } = useDataContext()
   const openActividadId = useOpenActividadId()
   const isDesktop = useIsDesktop()
   const sede = sedes[0]
 
-  if (!sede) return null
+  // Sin datos y con error de conexión: la sección se muestra igual, con el
+  // aviso, en vez de desaparecer sin explicación (y los enlaces "Inscribirme"
+  // del navbar/hero tienen a dónde llegar).
+  if (!sede) {
+    if (!dataError && conexion === 'normal') return null
+    return (
+      <section id="sedes" className="scroll-mt-16 w-full bg-brand-red px-10 py-24 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
+        <div className="mx-auto flex max-w-7xl flex-col gap-10">
+          <h2 className="font-mattone text-fluid-title font-bold tracking-tight text-white uppercase">{t('inscripcion.titulo')}</h2>
+          {dataError ? <ConexionError oscuro /> : <ConexionAviso estado={conexion === 'normal' ? 'lento' : conexion} oscuro />}
+        </div>
+      </section>
+    )
+  }
 
   const today = new Date().toISOString().slice(0, 10)
   const sesiones = actividades

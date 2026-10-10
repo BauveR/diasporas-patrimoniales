@@ -223,5 +223,16 @@
     "plazasDisponibles": "Places disponibles",
     "algunasPlazas": "Quelques places disponibles",
     "pocasPlazas": "Peu de places disponibles"
+  },
+  "conexion": {
+    "titulo": "Impossible de se connecter au système d'inscription",
+    "explicacion": "Cela arrive souvent sur les réseaux d'universités ou d'administrations qui filtrent certains services. Vous pouvez :",
+    "opcionReintentar": "Réessayer (nous activons un mode de connexion plus compatible)",
+    "opcionRed": "Essayer avec les données mobiles ou un autre réseau",
+    "opcionEscribir": "Nous écrire à",
+    "boton": "Réessayer",
+    "cargando": "Chargement…",
+    "lento": "Le chargement prend plus de temps que d'habitude…",
+    "reconectando": "Reconnexion en mode compatible…"
   }
 }

@@ -223,5 +223,16 @@
     "plazasDisponibles": "Plazas disponibles",
     "algunasPlazas": "Algunas plazas disponibles",
     "pocasPlazas": "Pocas plazas disponibles"
+  },
+  "conexion": {
+    "titulo": "No pudimos conectar con el sistema de inscripciones",
+    "explicacion": "Suele pasar en redes de universidades o administraciones que filtran algunos servicios. Puedes:",
+    "opcionReintentar": "Reintentar (activamos un modo de conexión más compatible)",
+    "opcionRed": "Probar con datos móviles u otra red",
+    "opcionEscribir": "Escribirnos a",
+    "boton": "Reintentar",
+    "cargando": "Cargando…",
+    "lento": "Está tardando más de lo normal…",
+    "reconectando": "Reconectando en modo compatible…"
   }
 }

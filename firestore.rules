@@ -128,6 +128,13 @@ service cloud.firestore {
       allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
+    // Contadores anónimos de problemas de conexión (api/conexion.ts, Admin
+    // SDK). Solo el admin los lee, desde su panel; nadie escribe desde el
+    // cliente.
+    match /telemetriaConexion/{dia} {
+      allow read: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

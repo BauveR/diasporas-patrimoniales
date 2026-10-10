@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { AppUser, UserRole } from '../lib/auth'
 import { loadAuth, loadDb } from '../lib/firebaseLoaders'
+import { TIMEOUT_CONEXION_MS, cambiarAModoCompatibleAutomatico } from '../lib/conexion'
 
 export type { UserRole }
 
@@ -11,6 +12,12 @@ type AuthContextValue = {
   loading: boolean
   inscripcionIds: number[]
   inscripcionesLoading: boolean
+  // No cargó el módulo de Firebase Auth — sin esto `loading` no terminaba
+  // nunca y ProtectedRoute quedaba en "Cargando..." para siempre.
+  authError: boolean
+  // El listener de inscripciones falló o no respondió a tiempo (ver
+  // lib/conexion.ts) — Perfil muestra ConexionError en vez de cargar sin fin.
+  inscripcionesError: boolean
   signIn: (email: string, password: string) => Promise<UserRole>
   signUp: (name: string, email: string, password: string) => Promise<UserRole>
   signInWithGoogle: () => Promise<{ role: UserRole; isNewUser: boolean }>
@@ -39,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [rawInscripcionIds, setRawInscripcionIds] = useState<number[]>([])
   const [rawInscripcionesLoading, setRawInscripcionesLoading] = useState(false)
+  const [authError, setAuthError] = useState(false)
+  const [rawInscripcionesError, setRawInscripcionesError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -63,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserRole(role)
         setLoading(false)
       })
+    }, err => {
+      if (cancelled) return
+      console.error('[AuthContext] no cargó Firebase Auth:', err)
+      setAuthError(true)
+      setLoading(false)
     })
     return () => { cancelled = true; unsub() }
   }, [])
@@ -75,26 +89,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (user?.uid !== trackedUserUid) {
     setTrackedUserUid(user?.uid)
     if (user) setRawInscripcionesLoading(true)
+    setRawInscripcionesError(false)
   }
 
   useEffect(() => {
     if (!user) return
     let cancelled = false
     let unsub = () => {}
+    let recibido = false
+    const fallar = (err: unknown) => {
+      if (cancelled || recibido) return
+      console.error('[AuthContext] sin conexión con Firestore (inscripciones):', err)
+      if (!cambiarAModoCompatibleAutomatico()) setRawInscripcionesError(true)
+    }
+    const timeout = setTimeout(() => { if (!recibido) fallar(new Error('timeout')) }, TIMEOUT_CONEXION_MS)
     loadDb().then(({ subscribeInscripcionIds }) => {
       if (cancelled) return
-      unsub = subscribeInscripcionIds(user.uid, ids => {
+      unsub = subscribeInscripcionIds(user.uid, (ids, { fromCache }) => {
+        // Vacía y desde caché antes de saber nada del servidor = Firestore
+        // offline: Perfil diría "no tienes inscripciones" a alguien que sí
+        // las tiene. Con datos en caché (ej. volver a entrar sin recargar)
+        // sí se aceptan — antes eso también contaba como error y el aviso
+        // parpadeaba hasta que respondía el servidor.
+        if (fromCache && !recibido && ids.length === 0) return fallar(new Error('offline: inscripciones vacías desde caché'))
+        recibido = true
+        clearTimeout(timeout)
         setRawInscripcionIds(ids)
         setRawInscripcionesLoading(false)
-      })
-    })
-    return () => { cancelled = true; unsub() }
+        setRawInscripcionesError(false)
+      }, fallar)
+    }, fallar)
+    return () => { cancelled = true; clearTimeout(timeout); unsub() }
   }, [user])
 
   // Derived rather than reset via an effect: with no user there's nothing to
   // load and nothing to show, computed directly instead of synced into state.
   const inscripcionIds = user ? rawInscripcionIds : []
   const inscripcionesLoading = user ? rawInscripcionesLoading : false
+  const inscripcionesError = user ? rawInscripcionesError : false
 
   const signIn = async (email: string, password: string): Promise<UserRole> => {
     const { signIn: authSignIn, getUserRole } = await loadAuth()
@@ -131,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, authError, inscripcionesError, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

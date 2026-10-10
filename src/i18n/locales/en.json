@@ -223,5 +223,16 @@
     "plazasDisponibles": "Spots available",
     "algunasPlazas": "Some spots available",
     "pocasPlazas": "Few spots available"
+  },
+  "conexion": {
+    "titulo": "We couldn't connect to the registration system",
+    "explicacion": "This often happens on university or government networks that filter some services. You can:",
+    "opcionReintentar": "Try again (we'll switch to a more compatible connection mode)",
+    "opcionRed": "Try mobile data or another network",
+    "opcionEscribir": "Write to us at",
+    "boton": "Try again",
+    "cargando": "Loading…",
+    "lento": "This is taking longer than usual…",
+    "reconectando": "Reconnecting in compatibility mode…"
   }
 }
