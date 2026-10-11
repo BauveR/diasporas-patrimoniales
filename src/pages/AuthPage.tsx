@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { isValidEmail } from '../utils/validators'
@@ -12,20 +13,22 @@ import { DEFAULT_LOCALE } from '../i18n/config'
 // distinguishing them tells an attacker which emails have accounts
 // (enumeration). handleReset() below already avoids this same trap for the
 // password-reset flow; this keeps login consistent with it.
+// Valores = claves de traducción (auth.errores.* en i18n/locales); el estado
+// `error` guarda la clave y se traduce al pintar, así cambia con el idioma.
 const AUTH_ERRORS: Record<string, string> = {
-  'auth/user-not-found':        'Email o contraseña incorrectos',
-  'auth/wrong-password':        'Email o contraseña incorrectos',
-  'auth/invalid-credential':    'Email o contraseña incorrectos',
-  'auth/email-already-in-use':  'Este email ya está registrado',
-  'auth/weak-password':         'La contraseña debe tener al menos 8 caracteres',
-  'auth/invalid-email':         'Email inválido',
+  'auth/user-not-found':        'auth.errores.credenciales',
+  'auth/wrong-password':        'auth.errores.credenciales',
+  'auth/invalid-credential':    'auth.errores.credenciales',
+  'auth/email-already-in-use':  'auth.errores.emailRegistrado',
+  'auth/weak-password':         'auth.errores.contrasenaCorta',
+  'auth/invalid-email':         'auth.errores.emailMalFormado',
   'auth/popup-closed-by-user':  '',
-  'auth/too-many-requests':     'Demasiados intentos. Espera unos minutos.',
+  'auth/too-many-requests':     'auth.errores.demasiadosIntentos',
 }
 
 function parseError(err: unknown): string {
   const code = (err as { code?: string }).code ?? ''
-  return AUTH_ERRORS[code] ?? 'Algo salió mal, intenta de nuevo'
+  return AUTH_ERRORS[code] ?? 'auth.errores.generico'
 }
 
 type View = 'login' | 'register' | 'reset' | 'bienvenida'
@@ -33,6 +36,7 @@ type View = 'login' | 'register' | 'reset' | 'bienvenida'
 type Props = { isModal?: boolean }
 
 export function AuthPage({ isModal = false }: Props) {
+  const { t } = useTranslation()
   const { user, signIn, signUp, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -101,16 +105,16 @@ export function AuthPage({ isModal = false }: Props) {
     setError('')
     setGoogleFallo(false)
     if (!isValidEmail(email)) {
-      setError('Introduce un email válido (revisa que el dominio esté bien escrito)')
+      setError('auth.errores.emailInvalido')
       return
     }
     // `required` deja pasar un campo con solo espacios.
     if (view === 'register' && (!name.trim() || !apellidos.trim())) {
-      setError('Escribe tu nombre y tus apellidos')
+      setError('auth.errores.nombreApellidos')
       return
     }
     if (view === 'register' && password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+      setError('auth.errores.contrasenaCorta')
       return
     }
     setBusy(true)
@@ -186,10 +190,10 @@ export function AuthPage({ isModal = false }: Props) {
             className="mt-2 text-2xl font-thin text-stone-900 uppercase tracking-tight"
             style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
           >
-            {cuentaNueva ? '¡Cuenta creada!' : 'Hola de nuevo'}
+            {t(cuentaNueva ? 'auth.bienvenida.cuentaCreada' : 'auth.bienvenida.holaDeNuevo')}
           </h2>
           <p className="text-sm text-stone-600">
-            {nombre ? `Te damos la bienvenida, ${nombre}.` : 'Te damos la bienvenida.'} ¿Qué quieres hacer?
+            {nombre ? t('auth.bienvenida.saludoNombre', { nombre }) : t('auth.bienvenida.saludo')} {t('auth.bienvenida.queHacer')}
           </p>
         </div>
 
@@ -200,16 +204,16 @@ export function AuthPage({ isModal = false }: Props) {
             className="w-full rounded-xl px-5 py-4 text-left text-white transition-opacity hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: '#f04f23' }}
           >
-            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">Inscribirme</span>
-            <span className="mt-0.5 block text-xs text-white/85">Elige tu jornada del simposio</span>
+            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">{t('auth.bienvenida.inscribirme')}</span>
+            <span className="mt-0.5 block text-xs text-white/85">{t('auth.bienvenida.inscribirmeSub')}</span>
           </button>
           <button
             type="button"
             onClick={() => navigate(`${prefix}/perfil`, { replace: true })}
             className="w-full rounded-xl border border-stone-300 px-5 py-4 text-left text-stone-900 transition-colors hover:border-stone-500 hover:bg-stone-50 cursor-pointer"
           >
-            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">Ver mis actividades</span>
-            <span className="mt-0.5 block text-xs text-stone-500">Tus inscripciones y tu cuenta</span>
+            <span className="block font-mattone text-sm font-bold tracking-widest uppercase">{t('auth.bienvenida.misActividades')}</span>
+            <span className="mt-0.5 block text-xs text-stone-500">{t('auth.bienvenida.misActividadesSub')}</span>
           </button>
         </div>
       </div>
@@ -229,10 +233,10 @@ export function AuthPage({ isModal = false }: Props) {
             className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
             style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
           >
-            Recuperar contraseña
+            {t('auth.reset.titulo')}
           </h2>
           <p className="text-xs text-stone-400 tracking-wide">
-            Te enviaremos un enlace para restablecer tu contraseña
+            {t('auth.reset.subtitulo')}
           </p>
         </div>
 
@@ -240,24 +244,24 @@ export function AuthPage({ isModal = false }: Props) {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-3">
               <p className="text-sm font-medium text-stone-800">
-                Si existe una cuenta con ese email, recibirás un enlace para restablecer tu contraseña.
+                {t('auth.reset.enviado')}
               </p>
               <ul className="flex flex-col gap-1.5">
                 <li className="text-xs text-stone-400 flex gap-2">
                   <span>·</span>
-                  <span>El enlace llegará en unos minutos. Revisa también tu carpeta de spam.</span>
+                  <span>{t('auth.reset.punto1')}</span>
                 </li>
                 <li className="text-xs text-stone-400 flex gap-2">
                   <span>·</span>
-                  <span>Al hacer clic, podrás escribir tu nueva contraseña directamente.</span>
+                  <span>{t('auth.reset.punto2')}</span>
                 </li>
                 <li className="text-xs text-stone-400 flex gap-2">
                   <span>·</span>
-                  <span>El enlace es de un solo uso y caduca en 1 hora.</span>
+                  <span>{t('auth.reset.punto3')}</span>
                 </li>
                 <li className="text-xs text-stone-400 flex gap-2">
                   <span>·</span>
-                  <span>Una vez cambiada, vuelve aquí e inicia sesión con tu nueva contraseña.</span>
+                  <span>{t('auth.reset.punto4')}</span>
                 </li>
               </ul>
             </div>
@@ -266,31 +270,31 @@ export function AuthPage({ isModal = false }: Props) {
               onClick={() => { setView('login'); setResetSent(false); setError('') }}
               className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
             >
-              ← Volver al inicio de sesión
+              {t('auth.reset.volver')}
             </button>
           </div>
         ) : (
           <form onSubmit={handleReset} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] tracking-widest uppercase text-stone-400">Email</label>
+              <label className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.email')}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="tu@email.com"
+                placeholder={t('auth.emailPlaceholder')}
                 className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
 
-            {error && <p className="text-xs text-red-500">{error}</p>}
+            {error && <p className="text-xs text-red-500">{t(error)}</p>}
 
             <button
               type="submit"
               disabled={busy}
               className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {busy ? '...' : 'Enviar enlace'}
+              {busy ? '...' : t('auth.reset.enviar')}
             </button>
 
             <button
@@ -298,7 +302,7 @@ export function AuthPage({ isModal = false }: Props) {
               onClick={() => { setView('login'); setError('') }}
               className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
             >
-              ← Volver al inicio de sesión
+              {t('auth.reset.volver')}
             </button>
           </form>
         )}
@@ -319,12 +323,10 @@ export function AuthPage({ isModal = false }: Props) {
           className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
           style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
         >
-          {view === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          {t(view === 'login' ? 'auth.titulo.login' : 'auth.titulo.registro')}
         </h2>
         <p className="text-xs text-stone-400 tracking-wide">
-          {view === 'login'
-            ? 'Accede para inscribirte en actividades'
-            : 'Únete al simposio Diásporas Patrimoniales'}
+          {t(view === 'login' ? 'auth.subtitulo.login' : 'auth.subtitulo.registro')}
         </p>
       </div>
 
@@ -336,20 +338,20 @@ export function AuthPage({ isModal = false }: Props) {
         className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-stone-200 text-sm text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-40 cursor-pointer"
       >
         <GoogleIcon />
-        Continuar con Google
+        {t('auth.google')}
       </button>
 
       {googleFallo && (
         <div className="flex flex-col gap-2 rounded-xl bg-stone-50 px-4 py-3">
           <p className="text-xs text-stone-600 leading-relaxed">
-            ¿No pudiste entrar con Google? Si tu correo es institucional, crea tu cuenta con email y contraseña.
+            {t('auth.googleFallo')}
           </p>
           <button
             type="button"
             onClick={irACrearCuenta}
             className="self-start text-[11px] tracking-widest uppercase text-stone-700 underline underline-offset-2 cursor-pointer"
           >
-            Crear cuenta →
+            {t('auth.crearCuentaFlecha')}
           </button>
         </div>
       )}
@@ -358,7 +360,7 @@ export function AuthPage({ isModal = false }: Props) {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-stone-100" />
-          <span className="text-[11px] text-stone-400 tracking-widest uppercase">o con email y contraseña</span>
+          <span className="text-[11px] text-stone-400 tracking-widest uppercase">{t('auth.separador')}</span>
           <div className="flex-1 h-px bg-stone-100" />
         </div>
         {view === 'login' ? (
@@ -367,12 +369,12 @@ export function AuthPage({ isModal = false }: Props) {
             onClick={irACrearCuenta}
             className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-red/10 px-4 py-2.5 text-sm font-medium text-brand-red hover:bg-brand-red/15 transition-colors cursor-pointer"
           >
-            ¿Correo institucional? Crea tu cuenta aquí
+            {t('auth.institucionalBoton')}
             <span aria-hidden>→</span>
           </button>
         ) : (
           <p className="flex items-center justify-center gap-2 rounded-xl bg-brand-red/10 px-4 py-2.5 text-sm font-medium text-brand-red">
-            ¿Correo institucional? Regístrate aquí
+            {t('auth.institucionalAviso')}
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 animate-bounce">
               <path d="M12 5v14" />
               <path d="m19 12-7 7-7-7" />
@@ -386,7 +388,7 @@ export function AuthPage({ isModal = false }: Props) {
         {view === 'register' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5 min-w-0">
-              <label htmlFor="auth-nombre" className="text-[10px] tracking-widest uppercase text-stone-400">Nombre</label>
+              <label htmlFor="auth-nombre" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.nombre')}</label>
               <input
                 id="auth-nombre"
                 type="text"
@@ -396,12 +398,12 @@ export function AuthPage({ isModal = false }: Props) {
                 required
                 maxLength={60}
                 autoComplete="given-name"
-                placeholder="María"
+                placeholder={t('auth.nombrePlaceholder')}
                 className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5 min-w-0">
-              <label htmlFor="auth-apellidos" className="text-[10px] tracking-widest uppercase text-stone-400">Apellidos</label>
+              <label htmlFor="auth-apellidos" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.apellidos')}</label>
               <input
                 id="auth-apellidos"
                 type="text"
@@ -410,7 +412,7 @@ export function AuthPage({ isModal = false }: Props) {
                 required
                 maxLength={80}
                 autoComplete="family-name"
-                placeholder="García López"
+                placeholder={t('auth.apellidosPlaceholder')}
                 className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
@@ -418,27 +420,27 @@ export function AuthPage({ isModal = false }: Props) {
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] tracking-widest uppercase text-stone-400">Email</label>
+          <label className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.email')}</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            placeholder="tu@email.com"
+            placeholder={t('auth.emailPlaceholder')}
             className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] tracking-widest uppercase text-stone-400">Contraseña</label>
+            <label className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.contrasena')}</label>
             {view === 'login' && (
               <button
                 type="button"
                 onClick={() => { setView('reset'); setError(''); setResetSent(false) }}
                 className="text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors cursor-pointer"
               >
-                ¿Olvidaste tu contraseña?
+                {t('auth.olvidaste')}
               </button>
             )}
           </div>
@@ -453,7 +455,7 @@ export function AuthPage({ isModal = false }: Props) {
         </div>
 
         {error && (
-          <p className="text-xs text-red-500">{error}</p>
+          <p className="text-xs text-red-500">{t(error)}</p>
         )}
 
         <button
@@ -461,21 +463,21 @@ export function AuthPage({ isModal = false }: Props) {
           disabled={busy}
           className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          {busy ? '...' : view === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          {busy ? '...' : t(view === 'login' ? 'auth.iniciarSesion' : 'auth.crearCuenta')}
         </button>
       </form>
 
       {/* Switch view */}
       <div className="flex flex-col gap-2">
         <p className="text-center text-xs text-stone-500">
-          {view === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+          {t(view === 'login' ? 'auth.sinCuenta' : 'auth.conCuenta')}
         </p>
         <button
           type="button"
           onClick={() => { setView(view === 'login' ? 'register' : 'login'); setError(''); setGoogleFallo(false) }}
           className="w-full py-3.5 rounded-xl border border-brand-red/40 text-brand-red text-[11px] font-semibold tracking-widest uppercase hover:border-brand-red hover:bg-brand-red/5 transition-colors cursor-pointer"
         >
-          {view === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
+          {t(view === 'login' ? 'auth.crearCuenta' : 'auth.iniciarSesion')}
         </button>
       </div>
     </div>

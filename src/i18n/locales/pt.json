@@ -234,5 +234,66 @@
     "cargando": "A carregar…",
     "lento": "Está a demorar mais do que o habitual…",
     "reconectando": "A ligar novamente em modo compatível…"
+  },
+  "auth": {
+    "titulo": {
+      "login": "Iniciar sessão",
+      "registro": "Criar conta"
+    },
+    "subtitulo": {
+      "login": "Inicie sessão para se inscrever nas atividades",
+      "registro": "Junte-se ao simpósio Diásporas Patrimoniales"
+    },
+    "google": "Continuar com o Google",
+    "googleFallo": "Não conseguiu entrar com o Google? Se o seu email for institucional, crie a sua conta com email e palavra-passe.",
+    "crearCuentaFlecha": "Criar conta →",
+    "separador": "ou com email e palavra-passe",
+    "institucionalBoton": "Email institucional? Crie a sua conta aqui",
+    "institucionalAviso": "Email institucional? Registe-se aqui",
+    "nombre": "Nome",
+    "apellidos": "Apelidos",
+    "nombrePlaceholder": "Maria",
+    "apellidosPlaceholder": "Silva Santos",
+    "email": "Email",
+    "emailPlaceholder": "o.seu@email.com",
+    "contrasena": "Palavra-passe",
+    "olvidaste": "Esqueceu-se da palavra-passe?",
+    "sinCuenta": "Não tem conta?",
+    "conCuenta": "Já tem conta?",
+    "crearCuenta": "Criar conta",
+    "iniciarSesion": "Iniciar sessão",
+    "errores": {
+      "emailInvalido": "Introduza um email válido (verifique se o domínio está bem escrito)",
+      "nombreApellidos": "Escreva o seu nome e apelidos",
+      "contrasenaCorta": "A palavra-passe deve ter pelo menos 8 caracteres",
+      "credenciales": "Email ou palavra-passe incorretos",
+      "emailRegistrado": "Este email já está registado",
+      "emailMalFormado": "Email inválido",
+      "demasiadosIntentos": "Demasiadas tentativas. Aguarde alguns minutos.",
+      "generico": "Algo correu mal, tente novamente"
+    },
+    "bienvenida": {
+      "cuentaCreada": "Conta criada!",
+      "holaDeNuevo": "Olá de novo",
+      "saludoNombre": "Damos-lhe as boas-vindas, {{nombre}}.",
+      "saludo": "Damos-lhe as boas-vindas.",
+      "queHacer": "O que deseja fazer?",
+      "inscribirme": "Inscrever-me",
+      "inscribirmeSub": "Escolha o seu dia do simpósio",
+      "misActividades": "Ver as minhas atividades",
+      "misActividadesSub": "As suas inscrições e a sua conta"
+    },
+    "reset": {
+      "titulo": "Recuperar palavra-passe",
+      "subtitulo": "Enviaremos um link para redefinir a sua palavra-passe",
+      "enviado": "Se existir uma conta com esse email, receberá um link para redefinir a sua palavra-passe.",
+      "punto1": "O link chegará dentro de alguns minutos. Verifique também a pasta de spam.",
+      "punto2": "Ao clicar, poderá escrever a nova palavra-passe diretamente.",
+      "punto3": "O link só pode ser usado uma vez e expira em 1 hora.",
+      "punto4": "Depois de a alterar, volte aqui e inicie sessão com a nova palavra-passe.",
+      "enviar": "Enviar link",
+      "volver": "← Voltar ao início de sessão"
+    },
+    "cerrar": "Fechar"
   }
 }

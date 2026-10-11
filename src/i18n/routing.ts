@@ -25,3 +25,9 @@ export function localizePathname(pathname: string, targetLocale: Locale): string
   if (targetLocale === DEFAULT_LOCALE) return rest
   return rest === '/' ? `/${targetLocale}` : `/${targetLocale}${rest}`
 }
+
+// /login con el prefijo del idioma actual (/en/login…), igual que el
+// "Login" del Navbar — sin él, desde /en se abría el login en /login.
+export function loginPath(pathname: string): string {
+  return localizePathname('/login', getLocaleFromPathname(pathname))
+}

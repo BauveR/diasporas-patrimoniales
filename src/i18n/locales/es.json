@@ -234,5 +234,66 @@
     "cargando": "Cargando…",
     "lento": "Está tardando más de lo normal…",
     "reconectando": "Reconectando en modo compatible…"
+  },
+  "auth": {
+    "titulo": {
+      "login": "Iniciar sesión",
+      "registro": "Crear cuenta"
+    },
+    "subtitulo": {
+      "login": "Accede para inscribirte en actividades",
+      "registro": "Únete al simposio Diásporas Patrimoniales"
+    },
+    "google": "Continuar con Google",
+    "googleFallo": "¿No pudiste entrar con Google? Si tu correo es institucional, crea tu cuenta con email y contraseña.",
+    "crearCuentaFlecha": "Crear cuenta →",
+    "separador": "o con email y contraseña",
+    "institucionalBoton": "¿Correo institucional? Crea tu cuenta aquí",
+    "institucionalAviso": "¿Correo institucional? Regístrate aquí",
+    "nombre": "Nombre",
+    "apellidos": "Apellidos",
+    "nombrePlaceholder": "María",
+    "apellidosPlaceholder": "García López",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "contrasena": "Contraseña",
+    "olvidaste": "¿Olvidaste tu contraseña?",
+    "sinCuenta": "¿No tienes cuenta?",
+    "conCuenta": "¿Ya tienes cuenta?",
+    "crearCuenta": "Crear cuenta",
+    "iniciarSesion": "Iniciar sesión",
+    "errores": {
+      "emailInvalido": "Introduce un email válido (revisa que el dominio esté bien escrito)",
+      "nombreApellidos": "Escribe tu nombre y tus apellidos",
+      "contrasenaCorta": "La contraseña debe tener al menos 8 caracteres",
+      "credenciales": "Email o contraseña incorrectos",
+      "emailRegistrado": "Este email ya está registrado",
+      "emailMalFormado": "Email inválido",
+      "demasiadosIntentos": "Demasiados intentos. Espera unos minutos.",
+      "generico": "Algo salió mal, inténtalo de nuevo"
+    },
+    "bienvenida": {
+      "cuentaCreada": "¡Cuenta creada!",
+      "holaDeNuevo": "Hola de nuevo",
+      "saludoNombre": "Te damos la bienvenida, {{nombre}}.",
+      "saludo": "Te damos la bienvenida.",
+      "queHacer": "¿Qué quieres hacer?",
+      "inscribirme": "Inscribirme",
+      "inscribirmeSub": "Elige tu jornada del simposio",
+      "misActividades": "Ver mis actividades",
+      "misActividadesSub": "Tus inscripciones y tu cuenta"
+    },
+    "reset": {
+      "titulo": "Recuperar contraseña",
+      "subtitulo": "Te enviaremos un enlace para restablecer tu contraseña",
+      "enviado": "Si existe una cuenta con ese email, recibirás un enlace para restablecer tu contraseña.",
+      "punto1": "El enlace llegará en unos minutos. Revisa también tu carpeta de spam.",
+      "punto2": "Al hacer clic, podrás escribir tu nueva contraseña directamente.",
+      "punto3": "El enlace es de un solo uso y caduca en 1 hora.",
+      "punto4": "Una vez cambiada, vuelve aquí e inicia sesión con tu nueva contraseña.",
+      "enviar": "Enviar enlace",
+      "volver": "← Volver al inicio de sesión"
+    },
+    "cerrar": "Cerrar"
   }
 }

@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { loadDb } from '../lib/firebaseLoaders'
 import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
+import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
+import { loginPath } from '../i18n/routing'
 
 // Misma forma que useActividadBooking, pero operando sobre las 2 jornadas a
 // la vez (ver inscribirseAmbosDias/liberarAmbosDias en lib/db.ts) — un solo
@@ -26,6 +28,11 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   const [telefono, setTelefono] = useState('')
   const [telefonoError, setTelefonoError] = useState('')
   const [aceptoTerminos, setAceptoTerminos] = useState(false)
+
+  // Volviendo del login lanzado desde "Inscribirme a ambos días": el
+  // formulario se abre solo, igual que en useActividadBooking (ver ahí).
+  const [descartado, setDescartado] = useState(false)
+  const continuarTrasLogin = !!user && ids.length > 0 && !inscritoAmbos && !inscritoParcial && !descartado && getInscripcionPendiente() === 'ambos'
 
   useEffect(() => {
     if (!user) return
@@ -53,10 +60,13 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   }
 
   const handleRequestLogin = () => {
-    navigate('/login', { state: { background: location } })
+    marcarInscripcionPendiente('ambos')
+    navigate(loginPath(location.pathname), { state: { background: location } })
   }
 
   const handleCancelarTelefono = () => {
+    limpiarInscripcionPendiente()
+    setDescartado(true)
     setMostrandoTelefono(false)
     setTelefonoError('')
     setAceptoTerminos(false)
@@ -75,6 +85,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     setTelefonoError('')
     try {
       await db.inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
       user.getIdToken().then(idToken => {
         fetch('/api/send-email', {
@@ -110,7 +121,9 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     inscribiendo, inscripcionError,
     confirmando, setConfirmando,
     liberando,
-    mostrandoTelefono, setMostrandoTelefono,
+    mostrandoTelefono: mostrandoTelefono || continuarTrasLogin,
+    setMostrandoTelefono,
+    avisoSesionIniciada: continuarTrasLogin,
     telefono,
     onTelefonoChange: (v: string) => { setTelefono(v); setTelefonoError('') },
     telefonoError,

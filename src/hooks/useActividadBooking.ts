@@ -5,6 +5,7 @@ import { loadDb } from '../lib/firebaseLoaders'
 import { isValidTelefono } from '../utils/validators'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import type { Actividad } from '../data/actividades'
+import { loginPath } from '../i18n/routing'
 
 // Todo el estado y los handlers de inscripción/liberación de plaza, sacados
 // de ActividadPage.tsx para que ActividadExpandido (el panel inline dentro
@@ -62,7 +63,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
 
   const handleRequestLogin = () => {
     if (actividad) marcarInscripcionPendiente(actividad.id)
-    navigate('/login', { state: { background: location } })
+    navigate(loginPath(location.pathname), { state: { background: location } })
   }
 
   const handleCancelarTelefono = () => {
@@ -149,3 +150,4 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     handleCancelarTelefono,
   }
 }
+

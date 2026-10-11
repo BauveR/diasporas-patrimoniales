@@ -8,13 +8,16 @@
 // Una variable de módulo y no sessionStorage/estado: el login (email o popup
 // de Google) nunca recarga la página, y leerla durante el render no dispara
 // nada — la tarjeta se re-renderiza sola cuando cambia `user`.
-let pendienteId: number | null = null
+// 'ambos': el botón "Inscribirme a ambos días" (useAmbosDiasBooking).
+export type InscripcionPendiente = number | 'ambos'
 
-export function marcarInscripcionPendiente(actividadId: number) {
+let pendienteId: InscripcionPendiente | null = null
+
+export function marcarInscripcionPendiente(actividadId: InscripcionPendiente) {
   pendienteId = actividadId
 }
 
-export function getInscripcionPendiente(): number | null {
+export function getInscripcionPendiente(): InscripcionPendiente | null {
   return pendienteId
 }
 
