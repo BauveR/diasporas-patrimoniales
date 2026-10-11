@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { initializeFirestore } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { modoCompatibleActivo } from './conexion'
 
 const firebaseConfig = {
@@ -19,3 +19,11 @@ export const auth = getAuth(app)
 // navegador donde eso ya falló (botón "Reintentar" de ConexionError) se
 // fuerza — ver lib/conexion.ts.
 export const db = initializeFirestore(app, modoCompatibleActivo() ? { experimentalForceLongPolling: true } : {})
+
+// Solo para probar en local contra los emuladores de Firebase (npm run
+// dev:emuladores): crear cuentas, entrar, recuperar contraseña… sin tocar la
+// base de datos real. En producción la variable no existe y esto no corre.
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+}

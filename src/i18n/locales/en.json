@@ -321,20 +321,6 @@
       "admin": "Go to the admin panel",
       "noSoyYo": "Not you? Sign out"
     },
-    "verificacion": {
-      "titulo": "Verify your email",
-      "texto": "We sent a link to {{email}} to confirm the address is yours, so symposium updates reach you reliably.",
-      "noBloquea": "Your registration doesn't depend on this: you can sign up for sessions anyway.",
-      "reenviar": "Resend email",
-      "reenviando": "Sending…",
-      "reenviarEn": "Resend in {{s}} s",
-      "reenviado": "Email sent to {{email}}. It may take a few minutes; check your spam folder too.",
-      "yaVerifique": "I've verified it",
-      "aunNo": "It still shows as unverified. Open the link in the email and press “I've verified it” again.",
-      "demasiados": "You've requested several emails in a row. Wait a few minutes before trying again.",
-      "error": "Couldn't complete that. Check your connection and try again.",
-      "enviadoAlCrear": "We sent an email to {{email}} to verify your address (check spam too). You don't need it to register."
-    },
     "reset": {
       "titulo": "Reset password",
       "subtitulo": "We'll send you a link to reset your password",

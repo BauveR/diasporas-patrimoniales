@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { sendPasswordReset } from '../lib/auth'
@@ -89,6 +89,13 @@ export function AuthPage({ isModal = false }: Props) {
     requestAnimationFrame(() => nameRef.current?.focus())
   }
 
+  // Como página completa, cada cambio de pantalla (crear cuenta → bienvenida,
+  // login ↔ registro, recuperar) empieza arriba: el formulario de registro es
+  // largo y la bienvenida aparecía con la página desplazada hacia abajo.
+  useEffect(() => {
+    if (!isModal) window.scrollTo({ top: 0 })
+  }, [view, isModal])
+
   const locale = getLocaleFromPathname(location.pathname)
   const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
 
@@ -162,7 +169,7 @@ export function AuthPage({ isModal = false }: Props) {
         // Un solo displayName "Nombre Apellidos" — es lo que guardan el
         // perfil y el inscrito (cuyas reglas no admiten campos nuevos).
         const nombreCompleto = `${name} ${apellidos}`.trim().replace(/\s+/g, ' ')
-        const role = await signUp(nombreCompleto, email, password, `${prefix}/perfil`)
+        const role = await signUp(nombreCompleto, email, password)
         handleSuccess(role, true)
       }
     } catch (err) {
@@ -236,7 +243,9 @@ export function AuthPage({ isModal = false }: Props) {
   // Cada error con su salida: nadie se queda en un mensaje sin saber qué
   // hacer después.
   const mensajeError = () => {
-    if (!error) return null
+    // Estos dos ya salen junto al campo, en la lista de requisitos: repetirlos
+    // abajo era el mismo aviso dos veces.
+    if (!error || error === 'auth.errores.contrasenaComun' || error === 'auth.errores.contrasenaEmail') return null
     const enlace = 'text-[11px] tracking-widest uppercase text-stone-700 underline underline-offset-2 cursor-pointer'
     return (
       <div className="flex flex-col gap-2" role="alert">
@@ -350,11 +359,6 @@ export function AuthPage({ isModal = false }: Props) {
           <p className="text-sm text-stone-600">
             {nombre ? t('auth.bienvenida.saludoNombre', { nombre }) : t('auth.bienvenida.saludo')} {t('auth.bienvenida.queHacer')}
           </p>
-          {cuentaNueva && user?.conContrasena && !user.emailVerified && (
-            <p className="mt-1 rounded-xl bg-stone-50 px-4 py-3 text-xs leading-relaxed text-stone-600">
-              {t('auth.verificacion.enviadoAlCrear', { email: user.email })}
-            </p>
-          )}
         </div>
 
         <div className="flex flex-col gap-3">

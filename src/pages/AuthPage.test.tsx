@@ -27,6 +27,8 @@ const sendPasswordReset = vi.hoisted(() => vi.fn(async () => {}))
 vi.mock('../lib/auth', () => ({ sendPasswordReset }))
 
 const { AuthPage } = await import('./AuthPage')
+// jsdom no implementa scrollTo (AuthPage sube al cambiar de pantalla).
+window.scrollTo = vi.fn() as typeof window.scrollTo
 
 // Sin sesión por defecto; los tests de "sesión ya iniciada" la ponen ellos.
 beforeEach(() => { usuarioActual = null; rolActual = null })
@@ -104,7 +106,7 @@ describe('AuthPage — contraseña al crear cuenta', () => {
   it('si coinciden, crea la cuenta', async () => {
     await rellenarRegistro('contraseña-1', 'contraseña-1')
     expect(screen.queryByText('Las contraseñas no coinciden')).not.toBeInTheDocument()
-    expect(signUp).toHaveBeenCalledWith('Ana García', 'ana@ull.edu.es', 'contraseña-1', '/perfil')
+    expect(signUp).toHaveBeenCalledWith('Ana García', 'ana@ull.edu.es', 'contraseña-1')
   })
 
   it('una cuenta antigua con contraseña corta (mínimo de Firebase, 6) sigue pudiendo entrar', async () => {
@@ -128,13 +130,14 @@ describe('AuthPage — contraseña al crear cuenta', () => {
 
   it('contraseña muy común: avisa y no crea la cuenta', async () => {
     await rellenarRegistro('password1', 'password1')
-    expect(screen.getAllByText(/Es una contraseña muy común/).length).toBeGreaterThan(0)
+    // Una sola vez, junto al campo (no repetido abajo).
+    expect(screen.getAllByText(/Es una contraseña muy común/)).toHaveLength(1)
     expect(signUp).not.toHaveBeenCalled()
   })
 
   it('con el email dentro: avisa y no crea la cuenta', async () => {
     await rellenarRegistro('mgarcia2026', 'mgarcia2026', 'mgarcia@ull.edu.es')
-    expect(screen.getAllByText('No uses tu email dentro de la contraseña').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('No uses tu email dentro de la contraseña')).toHaveLength(1)
     expect(signUp).not.toHaveBeenCalled()
   })
 
@@ -239,10 +242,10 @@ describe('AuthPage — /login con la sesión ya iniciada', () => {
   })
 })
 
-describe('AuthPage — correos de verificación y recuperación', () => {
-  it('al crear cuenta con email, la bienvenida avisa del correo de verificación (sin bloquear)', async () => {
+describe('AuthPage — tras crear cuenta y recuperar contraseña', () => {
+  it('al crear cuenta, la bienvenida no pide verificar nada: va directo a inscribirse', async () => {
     signUpImpl = async () => {
-      usuarioActual = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', emailVerified: false, conContrasena: true } as typeof usuarioActual
+      usuarioActual = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García' }
       return 'user'
     }
     await montar('/login', 'es')
@@ -253,8 +256,9 @@ describe('AuthPage — correos de verificación y recuperación', () => {
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'viaje2canarias' } })
     fireEvent.change(screen.getByLabelText('Repite la contraseña'), { target: { value: 'viaje2canarias' } })
     fireEvent.click(screen.getAllByRole('button', { name: 'Crear cuenta' }).at(-1)!)
-    expect(await screen.findByText(/Te enviamos un correo a ana@ull.edu.es para verificar/)).toBeInTheDocument()
-    expect(screen.getByText(/No hace falta para inscribirte/)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '¡Cuenta creada!' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Inscribirme/ })).toBeInTheDocument()
+    expect(screen.queryByText(/verific/i)).not.toBeInTheDocument()
   })
 
   it('recuperar contraseña pide volver al login en el idioma actual', async () => {

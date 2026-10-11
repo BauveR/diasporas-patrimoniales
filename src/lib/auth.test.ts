@@ -9,7 +9,7 @@ let rolGuardado: string | undefined
 const setDocLlamadas: unknown[][] = []
 const envios: { tipo: string; ajustes: unknown }[] = []
 let envioImpl: (ajustes: unknown) => Promise<void> = async () => {}
-const usuarioFirebase = { uid: 'u1', email: 'ana@ull.edu.es', displayName: null, emailVerified: false, providerData: [{ providerId: 'password' }], getIdToken: async () => 't', reload: async () => {} }
+const usuarioFirebase = { uid: 'u1', email: 'ana@ull.edu.es', displayName: null, getIdToken: async () => 't' }
 
 vi.mock('firebase/auth', () => ({
   onAuthStateChanged: vi.fn(),
@@ -20,7 +20,6 @@ vi.mock('firebase/auth', () => ({
   GoogleAuthProvider: class {},
   signOut: vi.fn(),
   sendPasswordResetEmail: (_a: unknown, _e: string, ajustes: unknown) => { envios.push({ tipo: 'reset', ajustes }); return envioImpl(ajustes) },
-  sendEmailVerification: (_u: unknown, ajustes: unknown) => { envios.push({ tipo: 'verificacion', ajustes }); return envioImpl(ajustes) },
   updateProfile: () => updateProfileImpl(),
 }))
 vi.mock('firebase/firestore', () => ({
@@ -31,11 +30,11 @@ vi.mock('firebase/firestore', () => ({
 }))
 vi.mock('./firebase', () => ({ auth: { currentUser: usuarioFirebase }, db: {} }))
 
-const { signUp, getUserRole, sendPasswordReset, recargarUsuario } = await import('./auth')
+const { signUp, getUserRole, sendPasswordReset } = await import('./auth')
 
 const origen = window.location.origin
 
-describe('correos con enlace de vuelta al sitio', () => {
+describe('recuperar contraseña con enlace de vuelta al sitio', () => {
   beforeEach(() => {
     envios.length = 0
     envioImpl = async () => {}
@@ -43,18 +42,12 @@ describe('correos con enlace de vuelta al sitio', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
-  it('crear cuenta envía la verificación, que vuelve a Mi perfil en su idioma', async () => {
-    await signUp('Ana García', 'ana@ull.edu.es', 'viaje2canarias', '/en/perfil')
-    expect(envios).toEqual([{ tipo: 'verificacion', ajustes: { url: `${origen}/en/perfil` } }])
+  it('crear cuenta no envía ningún correo de verificación (sin pasos extra)', async () => {
+    await signUp('Ana García', 'ana@ull.edu.es', 'viaje2canarias')
+    expect(envios).toEqual([])
   })
 
-  it('si la verificación no se puede enviar, la cuenta se crea igual', async () => {
-    envioImpl = async () => { throw Object.assign(new Error('x'), { code: 'auth/too-many-requests' }) }
-    const u = await signUp('Ana García', 'ana@ull.edu.es', 'viaje2canarias')
-    expect(u.uid).toBe('u1')
-  })
-
-  it('recuperar contraseña vuelve al login', async () => {
+  it('vuelve al login en el idioma actual', async () => {
     await sendPasswordReset('ana@ull.edu.es', '/fr/login')
     expect(envios).toEqual([{ tipo: 'reset', ajustes: { url: `${origen}/fr/login` } }])
   })
@@ -69,15 +62,9 @@ describe('correos con enlace de vuelta al sitio', () => {
     envioImpl = async () => { throw Object.assign(new Error('x'), { code: 'auth/too-many-requests' }) }
     await expect(sendPasswordReset('ana@ull.edu.es')).rejects.toMatchObject({ code: 'auth/too-many-requests' })
   })
-
-  it('recargarUsuario devuelve el estado de verificación al día', async () => {
-    usuarioFirebase.reload = async () => { usuarioFirebase.emailVerified = true }
-    expect((await recargarUsuario())?.emailVerified).toBe(true)
-    usuarioFirebase.emailVerified = false
-  })
 })
 
-const usuario = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', emailVerified: false, conContrasena: true, getIdToken: async () => 't' }
+const usuario = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', getIdToken: async () => 't' }
 
 describe('signUp', () => {
   beforeEach(() => {

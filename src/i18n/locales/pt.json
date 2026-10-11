@@ -321,20 +321,6 @@
       "admin": "Ir para o painel de administração",
       "noSoyYo": "Não é você? Terminar sessão"
     },
-    "verificacion": {
-      "titulo": "Verifique o seu email",
-      "texto": "Enviámos uma ligação para {{email}} para confirmar que o endereço é seu, para que os avisos do simpósio lhe cheguem sem problemas.",
-      "noBloquea": "A sua inscrição não depende disto: pode inscrever-se na mesma.",
-      "reenviar": "Reenviar email",
-      "reenviando": "A enviar…",
-      "reenviarEn": "Reenviar dentro de {{s}} s",
-      "reenviado": "Email enviado para {{email}}. Pode demorar alguns minutos; verifique também o spam.",
-      "yaVerifique": "Já verifiquei",
-      "aunNo": "Ainda aparece por verificar. Abra a ligação do email e volte a carregar em «Já verifiquei».",
-      "demasiados": "Pediu vários emails seguidos. Aguarde alguns minutos antes de tentar novamente.",
-      "error": "Não foi possível concluir. Verifique a sua ligação e tente novamente.",
-      "enviadoAlCrear": "Enviámos um email para {{email}} para verificar o seu endereço (verifique também o spam). Não é necessário para se inscrever."
-    },
     "reset": {
       "titulo": "Recuperar palavra-passe",
       "subtitulo": "Enviaremos um link para redefinir a sua palavra-passe",
