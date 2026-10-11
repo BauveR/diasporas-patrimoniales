@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { UserRole } from '../../contexts/AuthContext'
 import { ConexionError } from '../ConexionError'
+import { useTranslation } from 'react-i18next'
+import { loginPath } from '../../i18n/routing'
 
 type Props = {
   children: ReactNode
@@ -12,6 +14,7 @@ type Props = {
 export function ProtectedRoute({ children, requiredRole }: Props) {
   const { user, userRole, loading, authError } = useAuth()
   const location = useLocation()
+  const { t } = useTranslation()
 
   if (authError) return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 pt-navbar">
@@ -22,13 +25,15 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <p className="text-[10px] tracking-widest uppercase text-stone-500" style={{ fontFamily: "'Open Sans', sans-serif" }}>
-        Cargando...
+        {t('conexion.cargando')}
       </p>
     </div>
   )
 
   if (!user) {
-    return <Navigate to="/login" state={{ returnTo: location.pathname, redirectAfterLogin: true }} replace />
+    // Con el idioma actual: el enlace "Mi perfil" desde /en llevaba al login
+    // en /login (sin prefijo).
+    return <Navigate to={loginPath(location.pathname)} state={{ returnTo: location.pathname, redirectAfterLogin: true }} replace />
   }
 
   if (requiredRole === 'admin' && userRole !== 'admin') {

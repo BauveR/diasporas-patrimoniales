@@ -234,5 +234,66 @@
     "cargando": "Chargement…",
     "lento": "Le chargement prend plus de temps que d'habitude…",
     "reconectando": "Reconnexion en mode compatible…"
+  },
+  "auth": {
+    "titulo": {
+      "login": "Se connecter",
+      "registro": "Créer un compte"
+    },
+    "subtitulo": {
+      "login": "Connectez-vous pour vous inscrire aux activités",
+      "registro": "Rejoignez le symposium Diásporas Patrimoniales"
+    },
+    "google": "Continuer avec Google",
+    "googleFallo": "Impossible de vous connecter avec Google ? Si votre adresse est institutionnelle, créez votre compte avec e-mail et mot de passe.",
+    "crearCuentaFlecha": "Créer un compte →",
+    "separador": "ou avec e-mail et mot de passe",
+    "institucionalBoton": "Adresse institutionnelle ? Créez votre compte ici",
+    "institucionalAviso": "Adresse institutionnelle ? Inscrivez-vous ici",
+    "nombre": "Prénom",
+    "apellidos": "Nom",
+    "nombrePlaceholder": "Marie",
+    "apellidosPlaceholder": "Dupont",
+    "email": "E-mail",
+    "emailPlaceholder": "vous@email.com",
+    "contrasena": "Mot de passe",
+    "olvidaste": "Mot de passe oublié ?",
+    "sinCuenta": "Pas encore de compte ?",
+    "conCuenta": "Vous avez déjà un compte ?",
+    "crearCuenta": "Créer un compte",
+    "iniciarSesion": "Se connecter",
+    "errores": {
+      "emailInvalido": "Saisissez une adresse e-mail valide (vérifiez l'orthographe du domaine)",
+      "nombreApellidos": "Saisissez votre prénom et votre nom",
+      "contrasenaCorta": "Le mot de passe doit contenir au moins 8 caractères",
+      "credenciales": "E-mail ou mot de passe incorrect",
+      "emailRegistrado": "Cette adresse e-mail est déjà enregistrée",
+      "emailMalFormado": "E-mail invalide",
+      "demasiadosIntentos": "Trop de tentatives. Patientez quelques minutes.",
+      "generico": "Une erreur s'est produite, veuillez réessayer"
+    },
+    "bienvenida": {
+      "cuentaCreada": "Compte créé !",
+      "holaDeNuevo": "Bon retour",
+      "saludoNombre": "Bienvenue, {{nombre}}.",
+      "saludo": "Bienvenue.",
+      "queHacer": "Que souhaitez-vous faire ?",
+      "inscribirme": "M'inscrire",
+      "inscribirmeSub": "Choisissez votre journée du symposium",
+      "misActividades": "Voir mes activités",
+      "misActividadesSub": "Vos inscriptions et votre compte"
+    },
+    "reset": {
+      "titulo": "Réinitialiser le mot de passe",
+      "subtitulo": "Nous vous enverrons un lien pour réinitialiser votre mot de passe",
+      "enviado": "Si un compte existe pour cette adresse, vous recevrez un lien pour réinitialiser votre mot de passe.",
+      "punto1": "Le lien arrivera d'ici quelques minutes. Vérifiez aussi vos courriers indésirables.",
+      "punto2": "En cliquant dessus, vous pourrez saisir directement votre nouveau mot de passe.",
+      "punto3": "Le lien est à usage unique et expire au bout d'1 heure.",
+      "punto4": "Une fois modifié, revenez ici et connectez-vous avec votre nouveau mot de passe.",
+      "enviar": "Envoyer le lien",
+      "volver": "← Retour à la connexion"
+    },
+    "cerrar": "Fermer"
   }
 }

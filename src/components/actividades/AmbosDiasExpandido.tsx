@@ -65,6 +65,7 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
     onRequestLogin: booking.handleRequestLogin,
     mostrandoTelefono: booking.mostrandoTelefono,
     setMostrandoTelefono: booking.setMostrandoTelefono,
+    avisoSesionIniciada: booking.avisoSesionIniciada,
     telefono: booking.telefono,
     onTelefonoChange: booking.onTelefonoChange,
     telefonoError: booking.telefonoError,

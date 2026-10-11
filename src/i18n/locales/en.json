@@ -234,5 +234,66 @@
     "cargando": "Loading…",
     "lento": "This is taking longer than usual…",
     "reconectando": "Reconnecting in compatibility mode…"
+  },
+  "auth": {
+    "titulo": {
+      "login": "Sign in",
+      "registro": "Create account"
+    },
+    "subtitulo": {
+      "login": "Sign in to register for activities",
+      "registro": "Join the Diásporas Patrimoniales symposium"
+    },
+    "google": "Continue with Google",
+    "googleFallo": "Couldn't sign in with Google? If you have an institutional email, create your account with email and password.",
+    "crearCuentaFlecha": "Create account →",
+    "separador": "or with email and password",
+    "institucionalBoton": "Institutional email? Create your account here",
+    "institucionalAviso": "Institutional email? Sign up here",
+    "nombre": "First name",
+    "apellidos": "Last name",
+    "nombrePlaceholder": "Jane",
+    "apellidosPlaceholder": "Smith",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "contrasena": "Password",
+    "olvidaste": "Forgot your password?",
+    "sinCuenta": "Don't have an account?",
+    "conCuenta": "Already have an account?",
+    "crearCuenta": "Create account",
+    "iniciarSesion": "Sign in",
+    "errores": {
+      "emailInvalido": "Enter a valid email (check the domain is spelled correctly)",
+      "nombreApellidos": "Enter your first and last name",
+      "contrasenaCorta": "Password must be at least 8 characters",
+      "credenciales": "Incorrect email or password",
+      "emailRegistrado": "This email is already registered",
+      "emailMalFormado": "Invalid email",
+      "demasiadosIntentos": "Too many attempts. Please wait a few minutes.",
+      "generico": "Something went wrong, please try again"
+    },
+    "bienvenida": {
+      "cuentaCreada": "Account created!",
+      "holaDeNuevo": "Welcome back",
+      "saludoNombre": "Welcome, {{nombre}}.",
+      "saludo": "Welcome.",
+      "queHacer": "What would you like to do?",
+      "inscribirme": "Register",
+      "inscribirmeSub": "Choose your symposium day",
+      "misActividades": "View my activities",
+      "misActividadesSub": "Your registrations and account"
+    },
+    "reset": {
+      "titulo": "Reset password",
+      "subtitulo": "We'll send you a link to reset your password",
+      "enviado": "If an account exists for that email, you'll receive a link to reset your password.",
+      "punto1": "The link will arrive within a few minutes. Check your spam folder too.",
+      "punto2": "When you click it, you can type your new password right away.",
+      "punto3": "The link can only be used once and expires in 1 hour.",
+      "punto4": "Once changed, come back here and sign in with your new password.",
+      "enviar": "Send link",
+      "volver": "← Back to sign in"
+    },
+    "cerrar": "Close"
   }
 }
