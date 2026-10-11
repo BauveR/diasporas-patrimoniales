@@ -9,6 +9,8 @@ import { labelStyle } from '../lib/styles'
 import { limpiarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { DEFAULT_LOCALE } from '../i18n/config'
+import { detectarNavegadorIntegrado } from '../utils/navegadorIntegrado'
+import { AvisoNavegadorIntegrado } from '../components/auth/AvisoNavegadorIntegrado'
 
 // user-not-found and wrong-password map to the same message on purpose —
 // distinguishing them tells an attacker which emails have accounts
@@ -79,6 +81,10 @@ export function AuthPage({ isModal = false }: Props) {
   // se puede distinguir. Se ofrece el registro con email a cualquier fallo.
   const [googleFallo, setGoogleFallo] = useState(false)
   const nameRef = useRef<HTMLInputElement>(null)
+  // Navegador de una app (Instagram, Facebook, LinkedIn…), donde Google no
+  // deja iniciar sesión — ver utils/navegadorIntegrado.ts.
+  const [navApp] = useState(() => detectarNavegadorIntegrado(navigator.userAgent))
+  const googleBloqueado = !!navApp?.segura
 
   // Desde el aviso de correo institucional o el recuadro de Google fallido:
   // a "Crear cuenta" con el cursor ya en el primer campo (Nombre).
@@ -496,15 +502,21 @@ export function AuthPage({ isModal = false }: Props) {
         </p>
       </div>
 
-      {/* Google */}
+      {navApp && <AvisoNavegadorIntegrado nav={navApp} />}
+
+      {/* Google — desactivado dentro de apps donde Google lo bloquea seguro:
+          el intento llevaba a una página de error de Google sin salida. */}
       <button
         type="button"
         onClick={handleGoogle}
-        disabled={busy}
-        className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-stone-200 text-sm text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-40 cursor-pointer"
+        disabled={busy || googleBloqueado}
+        className="flex flex-col items-center justify-center w-full py-3 rounded-xl border border-stone-200 text-sm text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
-        <GoogleIcon />
-        {t('auth.google')}
+        <span className="flex items-center gap-3">
+          <GoogleIcon />
+          {t('auth.google')}
+        </span>
+        {googleBloqueado && <span className="mt-0.5 text-[11px] text-stone-500">{t('auth.navegadorApp.googleNoDisponible')}</span>}
       </button>
 
       {errorDeGoogle && mensajeError()}

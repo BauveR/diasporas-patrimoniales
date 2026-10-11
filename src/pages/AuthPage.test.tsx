@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import i18n from '../i18n/config'
 
 // Función normal y no vi.fn(): el mock de Vitest deja la promesa rechazada
@@ -267,5 +267,64 @@ describe('AuthPage — tras crear cuenta y recuperar contraseña', () => {
     fireEvent.change(screen.getByPlaceholderText(i18n.t('auth.emailPlaceholder')), { target: { value: 'ana@ull.edu.es' } })
     fireEvent.click(screen.getByRole('button', { name: i18n.t('auth.reset.enviar') }))
     await vi.waitFor(() => expect(sendPasswordReset).toHaveBeenCalledWith('ana@ull.edu.es', '/pt/login'))
+  })
+})
+
+describe('AuthPage — dentro del navegador de una app', () => {
+  const uaOriginal = navigator.userAgent
+  const ponerUA = (ua: string) => Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true })
+  afterEach(() => ponerUA(uaOriginal))
+
+  const INSTAGRAM_IOS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 334.0.4.32.98 (iPhone14,5; iOS 17_5; es_ES)'
+  const INSTAGRAM_ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 7; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/122.0 Mobile Safari/537.36 Instagram 321.0.0.39.106 Android'
+  const WEBVIEW_ANDROID = 'Mozilla/5.0 (Linux; Android 13; SM-G991B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0 Mobile Safari/537.36'
+
+  it('Instagram en iPhone: explica cómo abrir en Safari, desactiva Google y deja el email', async () => {
+    ponerUA(INSTAGRAM_IOS)
+    await montar('/login', 'es')
+    expect(screen.getByText('Estás dentro de Instagram y Google no permite iniciar sesión desde aquí.')).toBeInTheDocument()
+    expect(screen.getByText(/Abrir en Safari/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Abrir en Chrome' })).not.toBeInTheDocument()
+    expect(screen.getByText(/sigue aquí con tu email y contraseña/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('tu@email.com')).toBeEnabled()
+  })
+
+  it('Copiar enlace: lo copia y lo confirma', async () => {
+    ponerUA(INSTAGRAM_IOS)
+    const copiado: string[] = []
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (t: string) => { copiado.push(t) } }, configurable: true })
+    await montar('/login', 'es')
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }))
+    expect(await screen.findByText('Enlace copiado. Pégalo en Safari o Chrome.')).toBeInTheDocument()
+    expect(copiado).toEqual([window.location.href])
+  })
+
+  it('si la app no deja usar el portapapeles, muestra el enlace para copiarlo a mano', async () => {
+    ponerUA(INSTAGRAM_IOS)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new Error('bloqueado') } }, configurable: true })
+    await montar('/login', 'es')
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }))
+    expect(await screen.findByLabelText('Enlace de esta página')).toHaveValue(window.location.href)
+  })
+
+  it('Instagram en Android: botón directo "Abrir en Chrome"', async () => {
+    ponerUA(INSTAGRAM_ANDROID)
+    await montar('/en/login', 'en')
+    expect(screen.getByText("You're inside Instagram, and Google doesn't allow signing in from here.")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open in Chrome' }).getAttribute('href')).toMatch(/^intent:\/\/.*package=com\.android\.chrome/)
+  })
+
+  it('WebView sin app identificada: avisa, pero no desactiva Google (por si fuera un falso positivo)', async () => {
+    ponerUA(WEBVIEW_ANDROID)
+    await montar('/login', 'es')
+    expect(screen.getByText(/Parece que estás en el navegador de una app/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeEnabled()
+  })
+
+  it('en un navegador normal no sale nada', async () => {
+    await montar('/login', 'es')
+    expect(screen.queryByText(/Abre esta página en tu navegador/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeEnabled()
   })
 })
