@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:emuladores": "npx firebase emulators:exec --project demo-diasporas --only firestore,auth \"VITE_USE_EMULATORS=true VITE_FIREBASE_PROJECT_ID=demo-diasporas vite --port 5181\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

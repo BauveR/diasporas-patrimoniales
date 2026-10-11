@@ -19,6 +19,8 @@ import {
   serverTimestamp,
   Timestamp,
   type QuerySnapshot,
+  type Transaction,
+  type DocumentReference,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { Actividad } from '../data/actividades'
@@ -148,6 +150,24 @@ export function assertInscribible(actividad: Pick<Actividad, 'cancelada' | 'plaz
   if (apertura && apertura > today) throw new InscripcionNoAbiertaError()
 }
 
+// El teléfono se guarda en users/{uid} para precargarlo la próxima vez. Si
+// esa ficha no existe (la cuenta se creó pero la red bloqueó Firestore justo
+// después — pasa en redes institucionales), un set con merge solo de
+// `telefono` es un *create* sin `role`, que las reglas rechazan, y la
+// inscripción fallaba siempre. Se crea aquí completa, como ensureUserDoc().
+function guardarTelefono(
+  tx: Transaction,
+  userRef: DocumentReference,
+  existe: boolean,
+  { email, displayName, telefono }: { email: string; displayName: string; telefono: string },
+) {
+  if (existe) {
+    tx.set(userRef, { telefono }, { merge: true })
+  } else {
+    tx.set(userRef, { email, displayName, telefono, role: 'user', createdAt: serverTimestamp() })
+  }
+}
+
 export async function inscribirse(
   actividadId: number,
   uid: string,
@@ -160,7 +180,7 @@ export async function inscribirse(
   const userRef = doc(db, 'users', uid)
 
   await runTransaction(db, async tx => {
-    const [actividadSnap, inscritoSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef)])
+    const [actividadSnap, inscritoSnap, userSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef), tx.get(userRef)])
     if (!actividadSnap.exists()) throw new ActividadNoEncontradaError()
     if (inscritoSnap.exists()) return // ya inscrito — no-op, igual que la transacción original
 
@@ -179,7 +199,7 @@ export async function inscribirse(
       terminosVersion: TERMINOS_VERSION,
     })
     tx.update(actividadRef, { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
-    tx.set(userRef, { telefono }, { merge: true })
+    guardarTelefono(tx, userRef, userSnap.exists(), { email, displayName, telefono })
   })
 }
 
@@ -199,9 +219,10 @@ export async function inscribirseAmbosDias(
   const userRef = doc(db, 'users', uid)
 
   await runTransaction(db, async tx => {
-    const [actividadSnaps, inscritoSnaps] = await Promise.all([
+    const [actividadSnaps, inscritoSnaps, userSnap] = await Promise.all([
       Promise.all(actividadRefs.map(ref => tx.get(ref))),
       Promise.all(inscritoRefs.map(ref => tx.get(ref))),
+      tx.get(userRef),
     ])
     if (actividadSnaps.some(snap => !snap.exists())) throw new ActividadNoEncontradaError()
     if (inscritoSnaps.some(snap => snap.exists())) return // ya inscrito a alguna — no-op
@@ -219,7 +240,7 @@ export async function inscribirseAmbosDias(
       })
       tx.update(actividadRefs[i], { plazasDisponibles: (actividad.plazasDisponibles ?? 0) - 1 })
     })
-    tx.set(userRef, { telefono }, { merge: true })
+    guardarTelefono(tx, userRef, userSnap.exists(), { email, displayName, telefono })
   })
 }
 

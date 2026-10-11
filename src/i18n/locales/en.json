@@ -246,6 +246,19 @@
     },
     "google": "Continue with Google",
     "googleFallo": "Couldn't sign in with Google? If you have an institutional email, create your account with email and password.",
+    "navegadorApp": {
+      "titulo": "Open this page in your browser to sign in with Google",
+      "texto": "You're inside {{app}}, and Google doesn't allow signing in from here.",
+      "textoGenerico": "It looks like you're in an app's built-in browser, and Google may not allow signing in from here.",
+      "pasosIos": "Tap ⋯ or the share icon and choose “Open in Safari” (or “Open in browser”). You can also copy the link and paste it into Safari.",
+      "pasosAndroid": "Tap ⋮ and choose “Open in Chrome” (or “Open in browser”), or use this button:",
+      "abrirChrome": "Open in Chrome",
+      "copiar": "Copy link",
+      "copiado": "Link copied. Paste it into Safari or Chrome.",
+      "enlace": "Link to this page",
+      "alternativa": "Or continue here with your email and password: that does work in this browser.",
+      "googleNoDisponible": "Not available inside this app"
+    },
     "crearCuentaFlecha": "Create account →",
     "separador": "or with email and password",
     "institucionalBoton": "Institutional email? Create your account here",
@@ -257,6 +270,23 @@
     "email": "Email",
     "emailPlaceholder": "you@email.com",
     "contrasena": "Password",
+    "contrasenaRepetir": "Repeat password",
+    "mostrarContrasena": "Show password",
+    "ocultarContrasena": "Hide password",
+    "requisitos": {
+      "titulo": "Your password must have:",
+      "longitud": "At least {{n}} characters",
+      "letra": "A letter",
+      "numero": "A number",
+      "cumplido": "met",
+      "pendiente": "not met"
+    },
+    "fuerza": {
+      "etiqueta": "Strength",
+      "debil": "weak",
+      "aceptable": "fair",
+      "fuerte": "strong"
+    },
     "olvidaste": "Forgot your password?",
     "sinCuenta": "Don't have an account?",
     "conCuenta": "Already have an account?",
@@ -267,10 +297,25 @@
       "nombreApellidos": "Enter your first and last name",
       "contrasenaCorta": "Password must be at least 8 characters",
       "credenciales": "Incorrect email or password",
-      "emailRegistrado": "This email is already registered",
+      "emailRegistrado": "An account with this email already exists. Sign in with your password or with “Continue with Google”.",
       "emailMalFormado": "Invalid email",
       "demasiadosIntentos": "Too many attempts. Please wait a few minutes.",
-      "generico": "Something went wrong, please try again"
+      "generico": "Something went wrong, please try again",
+      "contrasenasNoCoinciden": "Passwords don't match",
+      "contrasenaRequisitos": "The password doesn't meet all the requirements",
+      "contrasenaComun": "This password is very common and easy to guess. Try another one.",
+      "contrasenaEmail": "Don't use your email in your password",
+      "cuentaOtroMetodo": "This email already has an account with a password. Sign in below with your email and password.",
+      "popupBloqueado": "Your browser blocked the Google window. Allow pop-ups for this site or use your email and password.",
+      "red": "No connection. Check your internet and try again.",
+      "cuentaDesactivada": "This account has been disabled.",
+      "credencialesAyuda": "If you created your account with Google, use “Continue with Google”.",
+      "contacto": "If it keeps happening, write to us at"
+    },
+    "acciones": {
+      "iniciarSesion": "Sign in",
+      "recuperar": "Reset password",
+      "olvideContrasena": "I don't remember my password"
     },
     "bienvenida": {
       "cuentaCreada": "Account created!",
@@ -282,6 +327,12 @@
       "inscribirmeSub": "Choose your symposium day",
       "misActividades": "View my activities",
       "misActividadesSub": "Your registrations and account"
+    },
+    "sesionIniciada": {
+      "titulo": "You're already signed in",
+      "como": "You're signed in as {{quien}}.",
+      "admin": "Go to the admin panel",
+      "noSoyYo": "Not you? Sign out"
     },
     "reset": {
       "titulo": "Reset password",

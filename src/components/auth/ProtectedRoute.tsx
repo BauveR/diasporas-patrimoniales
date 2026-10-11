@@ -31,6 +31,12 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
   )
 
   if (!user) {
+    // Página que está saliendo: App.tsx la mantiene montada durante la
+    // animación de salida con su ubicación congelada. Al pulsar "Salir" en
+    // Mi perfil, el Navbar ya navegó al inicio, pero esta copia veía la
+    // sesión cerrada y redirigía al login por encima. Solo redirige la
+    // página que de verdad está en la URL.
+    if (window.location.pathname !== location.pathname) return null
     // Con el idioma actual: el enlace "Mi perfil" desde /en llevaba al login
     // en /login (sin prefijo).
     return <Navigate to={loginPath(location.pathname)} state={{ returnTo: location.pathname, redirectAfterLogin: true }} replace />

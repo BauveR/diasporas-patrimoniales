@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // userRole the instant loading flips false, so setting that too early
         // (while userRole is still last-run's or null) bounces an admin back
         // to /perfil for a frame before the real role lands.
-        const role = await getUserRole(authUser.uid).catch(() => 'user' as UserRole)
+        const role = await getUserRole(authUser).catch(() => 'user' as UserRole)
         setUserRole(role)
         setLoading(false)
       })
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { signIn: authSignIn, getUserRole } = await loadAuth()
     const u = await authSignIn(email, password)
     setUser(u)
-    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
+    const role = await getUserRole(u).catch(() => 'user' as UserRole)
     setUserRole(role)
     return role
   }
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { signUp: authSignUp, getUserRole } = await loadAuth()
     const u = await authSignUp(name, email, password)
     setUser(u)
-    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
+    const role = await getUserRole(u).catch(() => 'user' as UserRole)
     setUserRole(role)
     return role
   }
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { signInWithGoogle: authSignInWithGoogle, getUserRole } = await loadAuth()
     const { user: u, isNewUser } = await authSignInWithGoogle()
     setUser(u)
-    const role = await getUserRole(u.uid).catch(() => 'user' as UserRole)
+    const role = await getUserRole(u).catch(() => 'user' as UserRole)
     setUserRole(role)
     return { role, isNewUser }
   }

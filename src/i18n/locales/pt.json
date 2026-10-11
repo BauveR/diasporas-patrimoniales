@@ -246,6 +246,19 @@
     },
     "google": "Continuar com o Google",
     "googleFallo": "Não conseguiu entrar com o Google? Se o seu email for institucional, crie a sua conta com email e palavra-passe.",
+    "navegadorApp": {
+      "titulo": "Abra esta página no seu navegador para entrar com o Google",
+      "texto": "Está dentro do {{app}} e o Google não permite iniciar sessão a partir daqui.",
+      "textoGenerico": "Parece que está no navegador de uma app, e o Google pode não permitir iniciar sessão a partir daqui.",
+      "pasosIos": "Toque em ⋯ ou no ícone de partilha e escolha «Abrir no Safari» (ou «Abrir no navegador»). Também pode copiar a ligação e colá-la no Safari.",
+      "pasosAndroid": "Toque em ⋮ e escolha «Abrir no Chrome» (ou «Abrir no navegador»), ou use este botão:",
+      "abrirChrome": "Abrir no Chrome",
+      "copiar": "Copiar ligação",
+      "copiado": "Ligação copiada. Cole-a no Safari ou no Chrome.",
+      "enlace": "Ligação desta página",
+      "alternativa": "Ou continue aqui com o seu email e palavra-passe: isso funciona neste navegador.",
+      "googleNoDisponible": "Indisponível dentro desta app"
+    },
     "crearCuentaFlecha": "Criar conta →",
     "separador": "ou com email e palavra-passe",
     "institucionalBoton": "Email institucional? Crie a sua conta aqui",
@@ -257,6 +270,23 @@
     "email": "Email",
     "emailPlaceholder": "o.seu@email.com",
     "contrasena": "Palavra-passe",
+    "contrasenaRepetir": "Repita a palavra-passe",
+    "mostrarContrasena": "Mostrar palavra-passe",
+    "ocultarContrasena": "Ocultar palavra-passe",
+    "requisitos": {
+      "titulo": "A sua palavra-passe deve ter:",
+      "longitud": "Pelo menos {{n}} caracteres",
+      "letra": "Uma letra",
+      "numero": "Um número",
+      "cumplido": "cumprido",
+      "pendiente": "por cumprir"
+    },
+    "fuerza": {
+      "etiqueta": "Segurança",
+      "debil": "fraca",
+      "aceptable": "razoável",
+      "fuerte": "forte"
+    },
     "olvidaste": "Esqueceu-se da palavra-passe?",
     "sinCuenta": "Não tem conta?",
     "conCuenta": "Já tem conta?",
@@ -267,10 +297,25 @@
       "nombreApellidos": "Escreva o seu nome e apelidos",
       "contrasenaCorta": "A palavra-passe deve ter pelo menos 8 caracteres",
       "credenciales": "Email ou palavra-passe incorretos",
-      "emailRegistrado": "Este email já está registado",
+      "emailRegistrado": "Já existe uma conta com este email. Inicie sessão com a sua palavra-passe ou com «Continuar com o Google».",
       "emailMalFormado": "Email inválido",
       "demasiadosIntentos": "Demasiadas tentativas. Aguarde alguns minutos.",
-      "generico": "Algo correu mal, tente novamente"
+      "generico": "Algo correu mal, tente novamente",
+      "contrasenasNoCoinciden": "As palavras-passe não coincidem",
+      "contrasenaRequisitos": "A palavra-passe não cumpre todos os requisitos",
+      "contrasenaComun": "É uma palavra-passe muito comum e fácil de adivinhar. Experimente outra.",
+      "contrasenaEmail": "Não use o seu email na palavra-passe",
+      "cuentaOtroMetodo": "Este email já tem uma conta com palavra-passe. Inicie sessão aqui em baixo com o seu email e palavra-passe.",
+      "popupBloqueado": "O seu navegador bloqueou a janela do Google. Permita janelas pop-up para este site ou use o seu email e palavra-passe.",
+      "red": "Sem ligação. Verifique a sua internet e tente novamente.",
+      "cuentaDesactivada": "Esta conta está desativada.",
+      "credencialesAyuda": "Se criou a sua conta com o Google, use «Continuar com o Google».",
+      "contacto": "Se continuar a acontecer, escreva-nos para"
+    },
+    "acciones": {
+      "iniciarSesion": "Iniciar sessão",
+      "recuperar": "Recuperar palavra-passe",
+      "olvideContrasena": "Não me lembro da palavra-passe"
     },
     "bienvenida": {
       "cuentaCreada": "Conta criada!",
@@ -282,6 +327,12 @@
       "inscribirmeSub": "Escolha o seu dia do simpósio",
       "misActividades": "Ver as minhas atividades",
       "misActividadesSub": "As suas inscrições e a sua conta"
+    },
+    "sesionIniciada": {
+      "titulo": "Já iniciou sessão",
+      "como": "Tem sessão iniciada como {{quien}}.",
+      "admin": "Ir para o painel de administração",
+      "noSoyYo": "Não é você? Terminar sessão"
     },
     "reset": {
       "titulo": "Recuperar palavra-passe",

@@ -21,7 +21,7 @@ import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, type Auth } from 'firebase/auth'
 import {
   getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp,
-  type Firestore,
+  type Firestore, type Transaction, type DocumentReference,
 } from 'firebase/firestore'
 // API modular (no el default export namespaced) — mismo patrón que ya usa
 // api/_lib/firebaseAdmin.ts en este proyecto.
@@ -86,12 +86,19 @@ function assertInscribible(actividad: { cancelada?: boolean; plazasDisponibles?:
   if ((actividad.plazasDisponibles ?? 0) <= 0) throw new SinPlazasError()
 }
 
+// Espeja guardarTelefono() — crea users/{uid} completo si falta.
+function guardarTelefonoTest(tx: Transaction, userRef: DocumentReference, existe: boolean, email: string) {
+  if (existe) tx.set(userRef, { telefono: '600000000' }, { merge: true })
+  else tx.set(userRef, { email, displayName: 'Stress Tester', telefono: '600000000', role: 'user', createdAt: serverTimestamp() })
+}
+
 // Espeja inscribirse()
 async function inscribirseTest(db: Firestore, actividadId: number, uid: string, email: string): Promise<void> {
   const actividadRef = doc(db, 'actividades', String(actividadId))
   const inscritoRef = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
+  const userRef = doc(db, 'users', uid)
   await runTransaction(db, async tx => {
-    const [actividadSnap, inscritoSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef)])
+    const [actividadSnap, inscritoSnap, userSnap] = await Promise.all([tx.get(actividadRef), tx.get(inscritoRef), tx.get(userRef)])
     if (!actividadSnap.exists()) return
     if (inscritoSnap.exists()) return
     const actividad = actividadSnap.data() as { plazasDisponibles: number; cancelada?: boolean }
@@ -101,6 +108,7 @@ async function inscribirseTest(db: Firestore, actividadId: number, uid: string, 
       inscritoEn: serverTimestamp(), aceptoTerminos: true, terminosVersion: 'v1',
     })
     tx.update(actividadRef, { plazasDisponibles: actividad.plazasDisponibles - 1 })
+    guardarTelefonoTest(tx, userRef, userSnap.exists(), email)
   })
 }
 
@@ -171,7 +179,7 @@ async function conReintentoPorBugDelEmulador<T>(fn: () => Promise<T>): Promise<T
 
 type UsuarioTest = { app: FirebaseApp; db: Firestore; auth: Auth; uid: string; email: string }
 
-async function crearUsuario(nombre: string): Promise<UsuarioTest> {
+async function crearUsuario(nombre: string, { conFicha = true } = {}): Promise<UsuarioTest> {
   const app = initializeApp({ projectId: PROJECT_ID, apiKey: 'demo-key' }, nombre)
   const auth = getAuth(app)
   connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true })
@@ -183,9 +191,11 @@ async function crearUsuario(nombre: string): Promise<UsuarioTest> {
   // firestore.rules hace `get(users/{uid}).data.role`, y sobre un doc que no
   // existe eso es un error de "Null value" que tira abajo toda la regla de
   // `actividades/{id}` (isAdmin() || (...)), no solo la mitad del admin.
-  await setDoc(doc(db, 'users', cred.user.uid), {
-    email: cred.user.email, displayName: null, role: 'user', createdAt: serverTimestamp(),
-  })
+  if (conFicha) {
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email: cred.user.email, displayName: null, role: 'user', createdAt: serverTimestamp(),
+    })
+  }
   return { app, db, auth, uid: cred.user.uid, email }
 }
 
@@ -547,6 +557,22 @@ async function testTelemetriaSoloAdmin() {
   await adminDb.doc('telemetriaConexion/2026-10-10').delete()
 }
 
+// ── Cuenta creada sin ficha users/{uid} (Firestore bloqueado tras el alta) ─
+
+async function testInscribirseSinFicha() {
+  console.log('\n10. Una cuenta sin ficha users/{uid} puede inscribirse igual (y la ficha se crea)')
+  const ID = 910012
+  await seedActividad(ID, 5)
+  const sinFicha = await crearUsuario('sin-ficha', { conFicha: false })
+  let error = ''
+  try { await inscribirseTest(sinFicha.db, ID, sinFicha.uid, sinFicha.email) } catch (err) { error = String((err as { code?: string }).code ?? err) }
+  check('la inscripción pasa las reglas', error === '', error)
+  check('queda inscrita y se descuenta la plaza', (await contarInscritos(ID)) === 1 && (await leerActividad(ID))?.plazasDisponibles === 4)
+  const ficha = (await adminDb.doc(`users/${sinFicha.uid}`).get()).data()
+  check('la ficha se crea con role user y el teléfono', ficha?.role === 'user' && ficha?.telefono === '600000000')
+  await borrarActividad(ID)
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
@@ -558,6 +584,7 @@ async function main() {
   await testCambioDePlazas()
   await testAdminQuitaInscrito()
   await testTelemetriaSoloAdmin()
+  await testInscribirseSinFicha()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   // exit explícito también en éxito: las N apps de Firebase siguen con

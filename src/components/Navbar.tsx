@@ -123,6 +123,19 @@ export function Navbar() {
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? ''
 
+  // Desde una página que exige sesión (Mi perfil, Admin), ProtectedRoute
+  // mandaba directo al login con returnTo — parecía que no se había cerrado
+  // la sesión. Se va antes al inicio, y luego se cierra.
+  const salir = async () => {
+    setOpen(false)
+    if (/\/(perfil|admin)\/?$/.test(location.pathname)) navigate(prefix || '/', { replace: true })
+    try {
+      await signOut()
+    } catch (err) {
+      console.error('[Navbar] no se pudo cerrar sesión:', err)
+    }
+  }
+
   const openLogin = () => {
     setOpen(false)
     const loginPath = `${prefix}/login`
@@ -179,7 +192,7 @@ export function Navbar() {
                 <AccountLabel displayName={displayName} />
               </Link>
               <button
-                onClick={signOut}
+                onClick={salir}
                 className={`${linkClass} cursor-pointer`}
               >
                 {t('nav.salir')}
@@ -235,7 +248,7 @@ export function Navbar() {
                 <AccountLabel displayName={displayName} />
               </Link>
               <button
-                onClick={() => { setOpen(false); signOut() }}
+                onClick={salir}
                 className={`${mobileLinkClass} text-left cursor-pointer`}
               >
                 {t('nav.cerrarSesion')}
