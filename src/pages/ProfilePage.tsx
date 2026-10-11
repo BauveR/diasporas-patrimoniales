@@ -11,6 +11,7 @@ import { ActividadExpandido } from '../components/actividades/ActividadExpandido
 import { ProfileCardCompact } from '../components/profile/ProfileCardCompact'
 import { labelStyle } from '../lib/styles'
 import { ConexionError } from '../components/ConexionError'
+import { AvisoVerificacion } from '../components/profile/AvisoVerificacion'
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -186,6 +187,7 @@ export function ProfilePage() {
 
       {/* Content */}
       <div className="px-6 sm:px-8 lg:px-10 py-8">
+        <AvisoVerificacion />
 
         {inscripcionesLoading && inscripcionesError ? (
           <div className="py-12 flex justify-center">

@@ -19,9 +19,13 @@ type AuthContextValue = {
   // lib/conexion.ts) — Perfil muestra ConexionError en vez de cargar sin fin.
   inscripcionesError: boolean
   signIn: (email: string, password: string) => Promise<UserRole>
-  signUp: (name: string, email: string, password: string) => Promise<UserRole>
+  signUp: (name: string, email: string, password: string, rutaPerfil?: string) => Promise<UserRole>
   signInWithGoogle: () => Promise<{ role: UserRole; isNewUser: boolean }>
   signOut: () => Promise<void>
+  reenviarVerificacion: (rutaPerfil?: string) => Promise<void>
+  // Vuelve a leer el usuario de Firebase (tras pulsar el enlace de
+  // verificación); devuelve si ya está verificado.
+  comprobarVerificacion: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -147,9 +151,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return role
   }
 
-  const signUp = async (name: string, email: string, password: string): Promise<UserRole> => {
+  const signUp = async (name: string, email: string, password: string, rutaPerfil?: string): Promise<UserRole> => {
     const { signUp: authSignUp, getUserRole } = await loadAuth()
-    const u = await authSignUp(name, email, password)
+    const u = await authSignUp(name, email, password, rutaPerfil)
     setUser(u)
     const role = await getUserRole(u).catch(() => 'user' as UserRole)
     setUserRole(role)
@@ -165,6 +169,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { role, isNewUser }
   }
 
+  const reenviarVerificacion = async (rutaPerfil?: string) => {
+    const { reenviarVerificacion: reenviar } = await loadAuth()
+    await reenviar(rutaPerfil)
+  }
+
+  const comprobarVerificacion = async (): Promise<boolean> => {
+    const { recargarUsuario } = await loadAuth()
+    const u = await recargarUsuario()
+    if (u) setUser(prev => mergeAuthUser(prev, u))
+    return !!u?.emailVerified
+  }
+
   const signOut = async () => {
     const { signOutUser } = await loadAuth()
     await signOutUser()
@@ -173,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, authError, inscripcionesError, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, authError, inscripcionesError, signIn, signUp, signInWithGoogle, signOut, reenviarVerificacion, comprobarVerificacion }}>
       {children}
     </AuthContext.Provider>
   )

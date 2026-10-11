@@ -1,12 +1,16 @@
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { AuthPage } from '../../pages/AuthPage'
+import { useDialogoModal } from '../../hooks/useDialogoModal'
 
 export function AuthModal() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const close = () => navigate(-1)
+  const ventanaRef = useRef<HTMLDivElement>(null)
+  useDialogoModal(ventanaRef, close)
 
   return (
     <>
@@ -26,10 +30,16 @@ export function AuthModal() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
         <div
-          className="relative w-[92vw] max-w-md bg-white rounded-2xl shadow-xl pointer-events-auto"
+          ref={ventanaRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-titulo"
+          tabIndex={-1}
+          className="relative w-[92vw] max-w-md bg-white rounded-2xl shadow-xl pointer-events-auto focus:outline-none"
           onClick={e => e.stopPropagation()}
         >
           <button
+            type="button"
             onClick={close}
             className="absolute top-4 right-4 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm cursor-pointer"
             aria-label={t('auth.cerrar')}

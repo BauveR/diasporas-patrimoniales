@@ -321,6 +321,20 @@
       "admin": "Aller au panneau d'administration",
       "noSoyYo": "Ce n'est pas vous ? Se déconnecter"
     },
+    "verificacion": {
+      "titulo": "Vérifiez votre adresse e-mail",
+      "texto": "Nous avons envoyé un lien à {{email}} pour confirmer que l'adresse vous appartient, afin que les informations du symposium vous parviennent bien.",
+      "noBloquea": "Votre inscription n'en dépend pas : vous pouvez vous inscrire dès maintenant.",
+      "reenviar": "Renvoyer l'e-mail",
+      "reenviando": "Envoi…",
+      "reenviarEn": "Renvoyer dans {{s}} s",
+      "reenviado": "E-mail envoyé à {{email}}. Cela peut prendre quelques minutes ; vérifiez aussi vos spams.",
+      "yaVerifique": "C'est fait",
+      "aunNo": "L'adresse apparaît toujours comme non vérifiée. Ouvrez le lien de l'e-mail puis appuyez de nouveau sur « C'est fait ».",
+      "demasiados": "Vous avez demandé plusieurs e-mails d'affilée. Attendez quelques minutes avant de réessayer.",
+      "error": "Impossible de terminer. Vérifiez votre connexion et réessayez.",
+      "enviadoAlCrear": "Nous avons envoyé un e-mail à {{email}} pour vérifier votre adresse (vérifiez aussi vos spams). Ce n'est pas nécessaire pour vous inscrire."
+    },
     "reset": {
       "titulo": "Réinitialiser le mot de passe",
       "subtitulo": "Nous vous enverrons un lien pour réinitialiser votre mot de passe",

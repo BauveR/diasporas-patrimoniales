@@ -23,7 +23,8 @@ vi.mock('../contexts/AuthContext', () => ({
     signOut,
   }),
 }))
-vi.mock('../lib/auth', () => ({ sendPasswordReset: vi.fn() }))
+const sendPasswordReset = vi.hoisted(() => vi.fn(async () => {}))
+vi.mock('../lib/auth', () => ({ sendPasswordReset }))
 
 const { AuthPage } = await import('./AuthPage')
 
@@ -103,7 +104,7 @@ describe('AuthPage — contraseña al crear cuenta', () => {
   it('si coinciden, crea la cuenta', async () => {
     await rellenarRegistro('contraseña-1', 'contraseña-1')
     expect(screen.queryByText('Las contraseñas no coinciden')).not.toBeInTheDocument()
-    expect(signUp).toHaveBeenCalledWith('Ana García', 'ana@ull.edu.es', 'contraseña-1')
+    expect(signUp).toHaveBeenCalledWith('Ana García', 'ana@ull.edu.es', 'contraseña-1', '/perfil')
   })
 
   it('una cuenta antigua con contraseña corta (mínimo de Firebase, 6) sigue pudiendo entrar', async () => {
@@ -235,5 +236,32 @@ describe('AuthPage — /login con la sesión ya iniciada', () => {
     await montar('/en/login', 'en')
     expect(screen.getByText("You're signed in as admin@x.com.")).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Go to the admin panel' })).toBeInTheDocument()
+  })
+})
+
+describe('AuthPage — correos de verificación y recuperación', () => {
+  it('al crear cuenta con email, la bienvenida avisa del correo de verificación (sin bloquear)', async () => {
+    signUpImpl = async () => {
+      usuarioActual = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', emailVerified: false, conContrasena: true } as typeof usuarioActual
+      return 'user'
+    }
+    await montar('/login', 'es')
+    fireEvent.click(screen.getByRole('button', { name: /Correo institucional\? Crea tu cuenta aquí/ }))
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana' } })
+    fireEvent.change(screen.getByLabelText('Apellidos'), { target: { value: 'García' } })
+    fireEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'ana@ull.edu.es' } })
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'viaje2canarias' } })
+    fireEvent.change(screen.getByLabelText('Repite la contraseña'), { target: { value: 'viaje2canarias' } })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Crear cuenta' }).at(-1)!)
+    expect(await screen.findByText(/Te enviamos un correo a ana@ull.edu.es para verificar/)).toBeInTheDocument()
+    expect(screen.getByText(/No hace falta para inscribirte/)).toBeInTheDocument()
+  })
+
+  it('recuperar contraseña pide volver al login en el idioma actual', async () => {
+    await montar('/pt/login', 'pt')
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('auth.olvidaste') }))
+    fireEvent.change(screen.getByPlaceholderText(i18n.t('auth.emailPlaceholder')), { target: { value: 'ana@ull.edu.es' } })
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('auth.reset.enviar') }))
+    await vi.waitFor(() => expect(sendPasswordReset).toHaveBeenCalledWith('ana@ull.edu.es', '/pt/login'))
   })
 })

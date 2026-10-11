@@ -321,6 +321,20 @@
       "admin": "Ir al panel de administración",
       "noSoyYo": "¿No eres tú? Cerrar sesión"
     },
+    "verificacion": {
+      "titulo": "Verifica tu email",
+      "texto": "Te enviamos un enlace a {{email}} para confirmar que la dirección es tuya. Así te llegarán bien los avisos del simposio.",
+      "noBloquea": "Tu inscripción no depende de esto: puedes inscribirte igualmente.",
+      "reenviar": "Reenviar correo",
+      "reenviando": "Enviando…",
+      "reenviarEn": "Reenviar en {{s}} s",
+      "reenviado": "Correo enviado a {{email}}. Puede tardar unos minutos; revisa también spam.",
+      "yaVerifique": "Ya lo verifiqué",
+      "aunNo": "Todavía aparece sin verificar. Abre el enlace del correo y vuelve a pulsar «Ya lo verifiqué».",
+      "demasiados": "Has pedido varios correos seguidos. Espera unos minutos antes de volver a intentarlo.",
+      "error": "No se pudo completar. Revisa tu conexión e inténtalo de nuevo.",
+      "enviadoAlCrear": "Te enviamos un correo a {{email}} para verificar tu dirección (revisa también spam). No hace falta para inscribirte."
+    },
     "reset": {
       "titulo": "Recuperar contraseña",
       "subtitulo": "Te enviaremos un enlace para restablecer tu contraseña",

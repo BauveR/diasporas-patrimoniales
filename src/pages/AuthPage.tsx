@@ -162,7 +162,7 @@ export function AuthPage({ isModal = false }: Props) {
         // Un solo displayName "Nombre Apellidos" — es lo que guardan el
         // perfil y el inscrito (cuyas reglas no admiten campos nuevos).
         const nombreCompleto = `${name} ${apellidos}`.trim().replace(/\s+/g, ' ')
-        const role = await signUp(nombreCompleto, email, password)
+        const role = await signUp(nombreCompleto, email, password, `${prefix}/perfil`)
         handleSuccess(role, true)
       }
     } catch (err) {
@@ -178,7 +178,7 @@ export function AuthPage({ isModal = false }: Props) {
     setError('')
     setBusy(true)
     try {
-      await sendPasswordReset(email)
+      await sendPasswordReset(email, `${prefix}/login`)
       setResetSent(true)
     } catch (err) {
       const code = (err as { code?: string }).code ?? ''
@@ -276,6 +276,7 @@ export function AuthPage({ isModal = false }: Props) {
       >
         <div className="flex flex-col gap-2">
           <h2
+            id="auth-titulo"
             className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
             style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
           >
@@ -340,6 +341,7 @@ export function AuthPage({ isModal = false }: Props) {
             </svg>
           </div>
           <h2
+            id="auth-titulo"
             className="mt-2 text-2xl font-thin text-stone-900 uppercase tracking-tight"
             style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
           >
@@ -348,6 +350,11 @@ export function AuthPage({ isModal = false }: Props) {
           <p className="text-sm text-stone-600">
             {nombre ? t('auth.bienvenida.saludoNombre', { nombre }) : t('auth.bienvenida.saludo')} {t('auth.bienvenida.queHacer')}
           </p>
+          {cuentaNueva && user?.conContrasena && !user.emailVerified && (
+            <p className="mt-1 rounded-xl bg-stone-50 px-4 py-3 text-xs leading-relaxed text-stone-600">
+              {t('auth.verificacion.enviadoAlCrear', { email: user.email })}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">
@@ -383,6 +390,7 @@ export function AuthPage({ isModal = false }: Props) {
       >
         <div className="flex flex-col gap-1">
           <h2
+            id="auth-titulo"
             className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
             style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
           >
@@ -473,6 +481,7 @@ export function AuthPage({ isModal = false }: Props) {
       {/* Header */}
       <div className="flex flex-col gap-1">
         <h2
+          id="auth-titulo"
           className="text-2xl font-thin text-stone-900 uppercase tracking-tight"
           style={{ fontFamily: "'Google Sans Flex', sans-serif", fontVariationSettings: "'wght' 100" }}
         >

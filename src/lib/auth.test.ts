@@ -7,16 +7,20 @@ let setDocImpl: () => Promise<void> = async () => {}
 let docExiste = false
 let rolGuardado: string | undefined
 const setDocLlamadas: unknown[][] = []
+const envios: { tipo: string; ajustes: unknown }[] = []
+let envioImpl: (ajustes: unknown) => Promise<void> = async () => {}
+const usuarioFirebase = { uid: 'u1', email: 'ana@ull.edu.es', displayName: null, emailVerified: false, providerData: [{ providerId: 'password' }], getIdToken: async () => 't', reload: async () => {} }
 
 vi.mock('firebase/auth', () => ({
   onAuthStateChanged: vi.fn(),
   signInWithEmailAndPassword: vi.fn(),
-  createUserWithEmailAndPassword: async () => ({ user: { uid: 'u1', email: 'ana@ull.edu.es', displayName: null, getIdToken: async () => 't' } }),
+  createUserWithEmailAndPassword: async () => ({ user: usuarioFirebase }),
   signInWithPopup: vi.fn(),
   getAdditionalUserInfo: vi.fn(),
   GoogleAuthProvider: class {},
   signOut: vi.fn(),
-  sendPasswordResetEmail: vi.fn(),
+  sendPasswordResetEmail: (_a: unknown, _e: string, ajustes: unknown) => { envios.push({ tipo: 'reset', ajustes }); return envioImpl(ajustes) },
+  sendEmailVerification: (_u: unknown, ajustes: unknown) => { envios.push({ tipo: 'verificacion', ajustes }); return envioImpl(ajustes) },
   updateProfile: () => updateProfileImpl(),
 }))
 vi.mock('firebase/firestore', () => ({
@@ -25,11 +29,55 @@ vi.mock('firebase/firestore', () => ({
   setDoc: (...args: unknown[]) => { setDocLlamadas.push(args); return setDocImpl() },
   serverTimestamp: () => 'ts',
 }))
-vi.mock('./firebase', () => ({ auth: {}, db: {} }))
+vi.mock('./firebase', () => ({ auth: { currentUser: usuarioFirebase }, db: {} }))
 
-const { signUp, getUserRole } = await import('./auth')
+const { signUp, getUserRole, sendPasswordReset, recargarUsuario } = await import('./auth')
 
-const usuario = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', getIdToken: async () => 't' }
+const origen = window.location.origin
+
+describe('correos con enlace de vuelta al sitio', () => {
+  beforeEach(() => {
+    envios.length = 0
+    envioImpl = async () => {}
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  it('crear cuenta envía la verificación, que vuelve a Mi perfil en su idioma', async () => {
+    await signUp('Ana García', 'ana@ull.edu.es', 'viaje2canarias', '/en/perfil')
+    expect(envios).toEqual([{ tipo: 'verificacion', ajustes: { url: `${origen}/en/perfil` } }])
+  })
+
+  it('si la verificación no se puede enviar, la cuenta se crea igual', async () => {
+    envioImpl = async () => { throw Object.assign(new Error('x'), { code: 'auth/too-many-requests' }) }
+    const u = await signUp('Ana García', 'ana@ull.edu.es', 'viaje2canarias')
+    expect(u.uid).toBe('u1')
+  })
+
+  it('recuperar contraseña vuelve al login', async () => {
+    await sendPasswordReset('ana@ull.edu.es', '/fr/login')
+    expect(envios).toEqual([{ tipo: 'reset', ajustes: { url: `${origen}/fr/login` } }])
+  })
+
+  it('dominio no autorizado (ej. preview de Vercel): reintenta sin el enlace y el correo sale igual', async () => {
+    envioImpl = async ajustes => { if (ajustes) throw Object.assign(new Error('x'), { code: 'auth/unauthorized-continue-uri' }) }
+    await sendPasswordReset('ana@ull.edu.es')
+    expect(envios.map(e => e.ajustes)).toEqual([{ url: `${origen}/login` }, undefined])
+  })
+
+  it('otros errores sí se propagan (los muestra la pantalla)', async () => {
+    envioImpl = async () => { throw Object.assign(new Error('x'), { code: 'auth/too-many-requests' }) }
+    await expect(sendPasswordReset('ana@ull.edu.es')).rejects.toMatchObject({ code: 'auth/too-many-requests' })
+  })
+
+  it('recargarUsuario devuelve el estado de verificación al día', async () => {
+    usuarioFirebase.reload = async () => { usuarioFirebase.emailVerified = true }
+    expect((await recargarUsuario())?.emailVerified).toBe(true)
+    usuarioFirebase.emailVerified = false
+  })
+})
+
+const usuario = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana García', emailVerified: false, conContrasena: true, getIdToken: async () => 't' }
 
 describe('signUp', () => {
   beforeEach(() => {
