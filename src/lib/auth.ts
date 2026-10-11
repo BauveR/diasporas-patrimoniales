@@ -40,20 +40,32 @@ function toAppUser(user: FirebaseUser): AppUser {
 // (or by hand in the console) per the Security Rules. New accounts default
 // to 'user'; this only creates the doc if it's missing, so it never clobbers
 // a role an admin already set.
-async function ensureUserDoc(user: FirebaseUser): Promise<void> {
+//
+// merge: dos llamadas pueden cruzarse al crear la cuenta (signUp y el
+// onAuthStateChanged que dispara getUserRole); con merge ninguna borra el
+// nombre que haya puesto la otra. Sobre un doc inexistente es un create, y
+// lleva role 'user' como exigen las reglas.
+async function ensureUserDoc(user: { uid: string; email: string | null; displayName: string | null }): Promise<void> {
   const ref = doc(db, 'users', user.uid)
   const snap = await getDoc(ref)
   if (snap.exists()) return
   await setDoc(ref, {
     email: user.email,
-    displayName: user.displayName,
+    ...(user.displayName ? { displayName: user.displayName } : {}),
     role: 'user',
     createdAt: serverTimestamp(),
-  })
+  }, { merge: true })
 }
 
-export async function getUserRole(uid: string): Promise<UserRole> {
-  const snap = await getDoc(doc(db, 'users', uid))
+// Lee el rol y, de paso, crea la ficha si falta: si al crear la cuenta la
+// red bloqueó Firestore justo después, la cuenta existía sin ficha y nada la
+// volvía a crear (solo el login con Google lo hacía).
+export async function getUserRole(user: AppUser): Promise<UserRole> {
+  const snap = await getDoc(doc(db, 'users', user.uid))
+  if (!snap.exists()) {
+    await ensureUserDoc(user).catch(err => console.error('[auth] no se pudo crear la ficha del usuario:', err))
+    return 'user'
+  }
   return snap.data()?.role === 'admin' ? 'admin' : 'user'
 }
 
@@ -68,11 +80,20 @@ export async function signIn(email: string, password: string): Promise<AppUser> 
 
 export async function signUp(name: string, email: string, password: string): Promise<AppUser> {
   const { user } = await createUserWithEmailAndPassword(auth, email, password)
-  // Mutates `user` in place (and persists server-side) — toAppUser() below
-  // picks up the new displayName since it reads straight off this object.
-  await updateProfile(user, { displayName: name })
-  await ensureUserDoc(user)
-  return toAppUser(user)
+  // A partir de aquí la cuenta ya existe y la sesión está iniciada: si el
+  // nombre o la ficha fallan (red que bloquea Firestore), no se lanza el
+  // error. Antes se veía "Algo salió mal", y al reintentar, "Este email ya
+  // está registrado" — sin salida. La ficha se vuelve a intentar en
+  // getUserRole() y, si hace falta, al inscribirse (lib/db.ts).
+  try {
+    // Mutates `user` in place (and persists server-side).
+    await updateProfile(user, { displayName: name })
+  } catch (err) {
+    console.error('[auth] no se pudo guardar el nombre:', err)
+  }
+  await ensureUserDoc({ uid: user.uid, email: user.email, displayName: name })
+    .catch(err => console.error('[auth] no se pudo crear la ficha del usuario:', err))
+  return { ...toAppUser(user), displayName: user.displayName ?? name }
 }
 
 // isNewUser: el mismo popup sirve para entrar y para crear cuenta — la

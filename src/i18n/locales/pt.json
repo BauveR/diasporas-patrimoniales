@@ -257,6 +257,23 @@
     "email": "Email",
     "emailPlaceholder": "o.seu@email.com",
     "contrasena": "Palavra-passe",
+    "contrasenaRepetir": "Repita a palavra-passe",
+    "mostrarContrasena": "Mostrar palavra-passe",
+    "ocultarContrasena": "Ocultar palavra-passe",
+    "requisitos": {
+      "titulo": "A sua palavra-passe deve ter:",
+      "longitud": "Pelo menos {{n}} caracteres",
+      "letra": "Uma letra",
+      "numero": "Um número",
+      "cumplido": "cumprido",
+      "pendiente": "por cumprir"
+    },
+    "fuerza": {
+      "etiqueta": "Segurança",
+      "debil": "fraca",
+      "aceptable": "razoável",
+      "fuerte": "forte"
+    },
     "olvidaste": "Esqueceu-se da palavra-passe?",
     "sinCuenta": "Não tem conta?",
     "conCuenta": "Já tem conta?",
@@ -267,10 +284,25 @@
       "nombreApellidos": "Escreva o seu nome e apelidos",
       "contrasenaCorta": "A palavra-passe deve ter pelo menos 8 caracteres",
       "credenciales": "Email ou palavra-passe incorretos",
-      "emailRegistrado": "Este email já está registado",
+      "emailRegistrado": "Já existe uma conta com este email. Inicie sessão com a sua palavra-passe ou com «Continuar com o Google».",
       "emailMalFormado": "Email inválido",
       "demasiadosIntentos": "Demasiadas tentativas. Aguarde alguns minutos.",
-      "generico": "Algo correu mal, tente novamente"
+      "generico": "Algo correu mal, tente novamente",
+      "contrasenasNoCoinciden": "As palavras-passe não coincidem",
+      "contrasenaRequisitos": "A palavra-passe não cumpre todos os requisitos",
+      "contrasenaComun": "É uma palavra-passe muito comum e fácil de adivinhar. Experimente outra.",
+      "contrasenaEmail": "Não use o seu email na palavra-passe",
+      "cuentaOtroMetodo": "Este email já tem uma conta com palavra-passe. Inicie sessão aqui em baixo com o seu email e palavra-passe.",
+      "popupBloqueado": "O seu navegador bloqueou a janela do Google. Permita janelas pop-up para este site ou use o seu email e palavra-passe.",
+      "red": "Sem ligação. Verifique a sua internet e tente novamente.",
+      "cuentaDesactivada": "Esta conta está desativada.",
+      "credencialesAyuda": "Se criou a sua conta com o Google, use «Continuar com o Google».",
+      "contacto": "Se continuar a acontecer, escreva-nos para"
+    },
+    "acciones": {
+      "iniciarSesion": "Iniciar sessão",
+      "recuperar": "Recuperar palavra-passe",
+      "olvideContrasena": "Não me lembro da palavra-passe"
     },
     "bienvenida": {
       "cuentaCreada": "Conta criada!",
@@ -282,6 +314,12 @@
       "inscribirmeSub": "Escolha o seu dia do simpósio",
       "misActividades": "Ver as minhas atividades",
       "misActividadesSub": "As suas inscrições e a sua conta"
+    },
+    "sesionIniciada": {
+      "titulo": "Já iniciou sessão",
+      "como": "Tem sessão iniciada como {{quien}}.",
+      "admin": "Ir para o painel de administração",
+      "noSoyYo": "Não é você? Terminar sessão"
     },
     "reset": {
       "titulo": "Recuperar palavra-passe",

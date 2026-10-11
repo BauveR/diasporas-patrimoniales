@@ -257,6 +257,23 @@
     "email": "E-mail",
     "emailPlaceholder": "vous@email.com",
     "contrasena": "Mot de passe",
+    "contrasenaRepetir": "Confirmez le mot de passe",
+    "mostrarContrasena": "Afficher le mot de passe",
+    "ocultarContrasena": "Masquer le mot de passe",
+    "requisitos": {
+      "titulo": "Votre mot de passe doit contenir :",
+      "longitud": "Au moins {{n}} caractères",
+      "letra": "Une lettre",
+      "numero": "Un chiffre",
+      "cumplido": "respecté",
+      "pendiente": "non respecté"
+    },
+    "fuerza": {
+      "etiqueta": "Sécurité",
+      "debil": "faible",
+      "aceptable": "moyenne",
+      "fuerte": "élevée"
+    },
     "olvidaste": "Mot de passe oublié ?",
     "sinCuenta": "Pas encore de compte ?",
     "conCuenta": "Vous avez déjà un compte ?",
@@ -267,10 +284,25 @@
       "nombreApellidos": "Saisissez votre prénom et votre nom",
       "contrasenaCorta": "Le mot de passe doit contenir au moins 8 caractères",
       "credenciales": "E-mail ou mot de passe incorrect",
-      "emailRegistrado": "Cette adresse e-mail est déjà enregistrée",
+      "emailRegistrado": "Un compte existe déjà avec cette adresse. Connectez-vous avec votre mot de passe ou avec « Continuer avec Google ».",
       "emailMalFormado": "E-mail invalide",
       "demasiadosIntentos": "Trop de tentatives. Patientez quelques minutes.",
-      "generico": "Une erreur s'est produite, veuillez réessayer"
+      "generico": "Une erreur s'est produite, veuillez réessayer",
+      "contrasenasNoCoinciden": "Les mots de passe ne correspondent pas",
+      "contrasenaRequisitos": "Le mot de passe ne remplit pas toutes les conditions",
+      "contrasenaComun": "Ce mot de passe est trop courant et facile à deviner. Essayez-en un autre.",
+      "contrasenaEmail": "N'utilisez pas votre adresse e-mail dans le mot de passe",
+      "cuentaOtroMetodo": "Cette adresse a déjà un compte avec mot de passe. Connectez-vous ci-dessous avec votre adresse e-mail et votre mot de passe.",
+      "popupBloqueado": "Votre navigateur a bloqué la fenêtre de Google. Autorisez les fenêtres pop-up pour ce site ou utilisez votre e-mail et mot de passe.",
+      "red": "Pas de connexion. Vérifiez votre accès à Internet et réessayez.",
+      "cuentaDesactivada": "Ce compte est désactivé.",
+      "credencialesAyuda": "Si vous avez créé votre compte avec Google, utilisez « Continuer avec Google ».",
+      "contacto": "Si le problème persiste, écrivez-nous à"
+    },
+    "acciones": {
+      "iniciarSesion": "Se connecter",
+      "recuperar": "Réinitialiser le mot de passe",
+      "olvideContrasena": "J'ai oublié mon mot de passe"
     },
     "bienvenida": {
       "cuentaCreada": "Compte créé !",
@@ -282,6 +314,12 @@
       "inscribirmeSub": "Choisissez votre journée du symposium",
       "misActividades": "Voir mes activités",
       "misActividadesSub": "Vos inscriptions et votre compte"
+    },
+    "sesionIniciada": {
+      "titulo": "Vous êtes déjà connecté·e",
+      "como": "Vous êtes connecté·e en tant que {{quien}}.",
+      "admin": "Aller au panneau d'administration",
+      "noSoyYo": "Ce n'est pas vous ? Se déconnecter"
     },
     "reset": {
       "titulo": "Réinitialiser le mot de passe",
