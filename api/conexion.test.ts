@@ -8,7 +8,7 @@ vi.mock('firebase-admin/firestore', () => ({
 }))
 vi.mock('./_lib/firebaseAdmin.js', () => ({ getAdminApp: () => ({}) }))
 
-const { default: handler, esEventoValido, diaDe } = await import('./conexion.js')
+const { default: handler, esEventoValido, diaDe, origenPermitido, dentroDelLimite, MAX_POR_IP, VENTANA_MS } = await import('./conexion.js')
 
 function respuesta() {
   const res = { statusCode: 0, headers: {} as Record<string, string> } as unknown as VercelResponse & { statusCode: number }
@@ -40,7 +40,7 @@ describe('api/conexion', () => {
   it('suma 1 al contador del día (cuerpo JSON o texto de sendBeacon)', async () => {
     for (const body of [{ evento: 'modo_compatible' }, JSON.stringify({ evento: 'modo_compatible' })]) {
       const res = respuesta()
-      await handler({ method: 'POST', body } as VercelRequest, res)
+      await handler({ method: 'POST', body, headers: { origin: 'https://www.diasporaspatrimoniales.com', 'x-forwarded-for': '1.1.1.1' } } as unknown as VercelRequest, res)
       expect(res.statusCode).toBe(204)
     }
     expect(set).toHaveBeenCalledTimes(2)
@@ -52,11 +52,45 @@ describe('api/conexion', () => {
 
   it('rechaza eventos desconocidos y otros métodos sin escribir nada', async () => {
     const malo = respuesta()
-    await handler({ method: 'POST', body: { evento: 'borrar_todo' } } as VercelRequest, malo)
+    await handler({ method: 'POST', body: { evento: 'borrar_todo' }, headers: { origin: 'https://www.diasporaspatrimoniales.com', 'x-forwarded-for': '2.2.2.2' } } as unknown as VercelRequest, malo)
     expect(malo.statusCode).toBe(400)
     const get = respuesta()
-    await handler({ method: 'GET' } as VercelRequest, get)
+    await handler({ method: 'GET', headers: {} } as unknown as VercelRequest, get)
     expect(get.statusCode).toBe(405)
     expect(set).not.toHaveBeenCalled()
+  })
+
+  it('solo acepta avisos desde la propia web', async () => {
+    expect(origenPermitido('https://www.diasporaspatrimoniales.com', undefined)).toBe(true)
+    expect(origenPermitido('https://diasporaspatrimoniales.com', undefined)).toBe(true)
+    expect(origenPermitido(undefined, 'https://www.diasporaspatrimoniales.com/login')).toBe(true)
+    expect(origenPermitido('https://algo-git-deploy.vercel.app', undefined)).toBe(true)
+    expect(origenPermitido('http://localhost:5180', undefined)).toBe(true)
+    expect(origenPermitido('https://otra-web.com', undefined)).toBe(false)
+    expect(origenPermitido('https://diasporaspatrimoniales.com.evil.com', undefined)).toBe(false)
+    expect(origenPermitido(undefined, undefined)).toBe(false)
+    const res = respuesta()
+    await handler({ method: 'POST', body: { evento: 'modo_compatible' }, headers: { origin: 'https://otra-web.com' } } as unknown as VercelRequest, res)
+    expect(res.statusCode).toBe(403)
+    expect(set).not.toHaveBeenCalled()
+  })
+
+  it(`por IP, como mucho ${MAX_POR_IP} avisos cada 10 minutos; después vuelve a dejar`, async () => {
+    const t0 = 1_000_000
+    for (let i = 0; i < MAX_POR_IP; i++) expect(dentroDelLimite('9.9.9.9', t0 + i)).toBe(true)
+    expect(dentroDelLimite('9.9.9.9', t0 + 100)).toBe(false)
+    expect(dentroDelLimite('8.8.8.8', t0 + 100)).toBe(true)
+    expect(dentroDelLimite('9.9.9.9', t0 + VENTANA_MS + 1)).toBe(true)
+  })
+
+  it('pasado el límite responde 429 y no escribe', async () => {
+    const pedir = async () => {
+      const res = respuesta()
+      await handler({ method: 'POST', body: { evento: 'recuperado' }, headers: { origin: 'https://www.diasporaspatrimoniales.com', 'x-forwarded-for': '7.7.7.7, 10.0.0.1' } } as unknown as VercelRequest, res)
+      return res.statusCode
+    }
+    for (let i = 0; i < MAX_POR_IP; i++) expect(await pedir()).toBe(204)
+    expect(await pedir()).toBe(429)
+    expect(set).toHaveBeenCalledTimes(MAX_POR_IP)
   })
 })
