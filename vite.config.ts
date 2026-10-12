@@ -32,7 +32,19 @@ function seoPrerender(): Plugin {
   }
 }
 
+// `npm run build && npx vite preview`: las mismas cabeceras de seguridad que
+// pone Vercel en producción (vercel.json), para probar la CSP en local
+// antes de desplegar — `vite dev` no las aplica.
+function cabecerasDeVercel(): Record<string, string> {
+  const config = JSON.parse(fs.readFileSync(new URL('./vercel.json', import.meta.url), 'utf8')) as {
+    headers?: { source: string; headers: { key: string; value: string }[] }[]
+  }
+  const globales = config.headers?.find(h => h.source === '/(.*)')?.headers ?? []
+  return Object.fromEntries(globales.map(h => [h.key, h.value]))
+}
+
 export default defineConfig({
+  preview: { headers: cabecerasDeVercel() },
   // svgr: lets `import Foo from './x.svg?react'` bring an SVG in as a real
   // React component (individual <path>/<text> elements reachable via ref),
   // instead of the opaque `<img src>` embed used for static logos elsewhere.
