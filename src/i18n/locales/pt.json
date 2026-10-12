@@ -418,5 +418,25 @@
     "politica": "Política de privacidade",
     "aceptar": "Aceitar",
     "etiqueta": "Aviso de cookies"
+  },
+  "perfil": {
+    "miCuenta": "A minha conta",
+    "proximas_one": "{{count}} próxima",
+    "proximas_other": "{{count}} próximas",
+    "pasadas_one": "{{count}} passada",
+    "pasadas_other": "{{count}} passadas",
+    "canceladas_one": "{{count}} cancelada",
+    "canceladas_other": "{{count}} canceladas",
+    "cuentaLista": "A sua conta está pronta",
+    "bienvenida": "Bem-vindo/a",
+    "bienvenidaNombre": "Bem-vindo/a, {{nombre}}",
+    "sinInscripciones": "Ainda não tem inscrições.",
+    "eligeJornada": "Ainda não tem inscrições. Escolha o seu dia do simpósio para reservar a sua vaga:",
+    "verPrograma": "Ver o programa",
+    "todas": "Todas",
+    "proximasTab": "Próximas",
+    "vacio": "Não há sessões nesta secção",
+    "cancelado": "Cancelado",
+    "finalizada": "Terminada"
   }
 }

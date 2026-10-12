@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { getLocaleFromPathname } from '../i18n/routing'
+import { DEFAULT_LOCALE } from '../i18n/config'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import type { AppUser } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
@@ -30,6 +33,7 @@ type GridCardProps = {
 }
 
 function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
+  const { t } = useTranslation()
   const { actividades } = useDataContext()
   const actividad = actividades.find(a => a.id === actividadId)
   const [confirmando, setConfirmando] = useState(false)
@@ -56,7 +60,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
       <ActividadCard actividad={actividad} inactiva={inactiva || isCancelada} from="perfil" />
       {isCancelada && (
         <p className="text-[10px] tracking-widest uppercase text-red-400 px-1" style={labelStyle}>
-          Evento cancelado
+          {t('reserva.cancelado')}
         </p>
       )}
       {/* Botones tipo pill, negro (bg-stone-900) en vez de texto plano — mismo
@@ -69,21 +73,21 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
       {!inactiva && !isCancelada && (
         confirmando ? (
           <div className="flex flex-col gap-1.5 px-1">
-            <p className="text-center font-mattone text-xs font-bold text-stone-500">¿Liberar tu plaza?</p>
+            <p className="text-center font-mattone text-xs font-bold text-stone-500">{t('reserva.liberarPregunta')}</p>
             <div className="flex gap-2">
               <button
                 onClick={handleLiberar}
                 disabled={liberando}
                 className="flex-1 rounded-xl bg-red-500 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-red-600 disabled:opacity-40 cursor-pointer"
               >
-                {liberando ? '...' : 'Sí, liberar'}
+                {liberando ? '...' : t('reserva.siLiberar')}
               </button>
               <button
                 onClick={() => setConfirmando(false)}
                 disabled={liberando}
                 className="flex-1 rounded-xl bg-stone-900 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 disabled:opacity-40 cursor-pointer"
               >
-                Mantener
+                {t('reserva.mantener')}
               </button>
             </div>
           </div>
@@ -93,7 +97,7 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
               onClick={() => setConfirmando(true)}
               className="w-full rounded-xl bg-stone-900 py-2 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-colors hover:bg-stone-700 cursor-pointer"
             >
-              Liberar plaza
+              {t('reserva.liberarPlaza')}
             </button>
           </div>
         )
@@ -103,6 +107,9 @@ function GridCardWrapper({ actividadId, uid, inactiva }: GridCardProps) {
 }
 
 export function ProfilePage() {
+  const { t } = useTranslation()
+  const locale = getLocaleFromPathname(useLocation().pathname)
+  const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
   const { user, inscripcionIds, inscripcionesLoading, inscripcionesError } = useAuth()
   const { actividades } = useDataContext()
   const navigate = useNavigate()
@@ -126,8 +133,8 @@ export function ProfilePage() {
   const abierta = (inscritas.length === 0 ? disponibles : visible).find(a => a.id === openActividadId)
 
   const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: 'todas',    label: 'Todas',    count: inscritas.length },
-    { key: 'proximas', label: 'Próximas', count: proximas.length  },
+    { key: 'todas',    label: t('perfil.todas'),       count: inscritas.length },
+    { key: 'proximas', label: t('perfil.proximasTab'), count: proximas.length  },
   ]
 
   const makeLiberar = (actividadId: number) => async () => {
@@ -157,7 +164,7 @@ export function ProfilePage() {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="font-mattone font-bold text-[10px] tracking-widest uppercase text-white/50 mb-1">Mi cuenta</p>
+            <p className="font-mattone font-bold text-[10px] tracking-widest uppercase text-white/50 mb-1">{t('perfil.miCuenta')}</p>
             <h1 className="font-mattone font-bold text-xl sm:text-2xl text-white uppercase tracking-tight truncate">
               {user?.displayName ?? user?.email?.split('@')[0]}
             </h1>
@@ -165,17 +172,17 @@ export function ProfilePage() {
               <div className="flex flex-wrap gap-2 mt-2">
                 {proximas.length > 0 && (
                   <span className="px-3 py-1 rounded-full text-white font-mattone text-xs font-bold tracking-widest uppercase" style={{ backgroundColor: '#50664d' }}>
-                    {proximas.length} próxima{proximas.length !== 1 ? 's' : ''}
+                    {t('perfil.proximas', { count: proximas.length })}
                   </span>
                 )}
                 {pasadas.length > 0 && (
                   <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 font-mattone text-xs font-bold tracking-widest uppercase">
-                    {pasadas.length} pasada{pasadas.length !== 1 ? 's' : ''}
+                    {t('perfil.pasadas', { count: pasadas.length })}
                   </span>
                 )}
                 {canceladas.length > 0 && (
                   <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 font-mattone text-xs font-bold tracking-widest uppercase">
-                    {canceladas.length} cancelada{canceladas.length !== 1 ? 's' : ''}
+                    {t('perfil.canceladas', { count: canceladas.length })}
                   </span>
                 )}
               </div>
@@ -194,7 +201,7 @@ export function ProfilePage() {
 
         ) : inscripcionesLoading ? (
           <div className="py-20 flex items-center justify-center">
-            <p className="text-sm text-stone-500 tracking-widest uppercase">Cargando...</p>
+            <p className="text-sm text-stone-500 tracking-widest uppercase">{t('conexion.cargando')}</p>
           </div>
 
         ) : inscritas.length === 0 ? (
@@ -204,14 +211,16 @@ export function ProfilePage() {
           // inscripción que en Home (inline en desktop, sheet en móvil).
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
-              <p className="font-mattone text-[10px] font-bold tracking-widest uppercase text-brand-red">Tu cuenta está lista</p>
+              <p className="font-mattone text-[10px] font-bold tracking-widest uppercase text-brand-red">{t('perfil.cuentaLista')}</p>
               <h2 className="font-mattone text-lg font-bold text-stone-900 sm:text-xl">
-                Te damos la bienvenida{user?.displayName ? `, ${user.displayName.trim().split(/\s+/)[0]}` : ''}
+                {user?.displayName
+                  ? t('perfil.bienvenidaNombre', { nombre: user.displayName.trim().split(/\s+/)[0] })
+                  : t('perfil.bienvenida')}
               </h2>
               <p className="max-w-xl text-sm leading-relaxed text-stone-600">
                 {disponibles.length > 0
-                  ? 'Aún no tienes inscripciones. Elige tu jornada del simposio para reservar tu plaza:'
-                  : 'Aún no tienes inscripciones.'}
+                  ? t('perfil.eligeJornada')
+                  : t('perfil.sinInscripciones')}
               </p>
             </div>
 
@@ -235,10 +244,10 @@ export function ProfilePage() {
               </AnimatePresence>
             ) : (
               <Link
-                to="/#programa"
+                to={prefix ? `${prefix}#programa` : '/#programa'}
                 className="w-fit px-6 py-2.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors"
               >
-                Ver el programa
+                {t('perfil.verPrograma')}
               </Link>
             )}
           </div>
@@ -247,20 +256,20 @@ export function ProfilePage() {
           <>
             {/* Tabs */}
             <div className="flex gap-2 mb-8 flex-wrap">
-              {tabs.map(t => (
+              {tabs.map(pestana => (
                 <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
+                  key={pestana.key}
+                  onClick={() => setTab(pestana.key)}
                   className={`flex items-center gap-1.5 px-5 py-2 rounded-full font-mattone text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer border ${
-                    tab === t.key
+                    tab === pestana.key
                       ? 'bg-brand-red text-white border-transparent'
                       : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400'
                   }`}
                 >
-                  {t.label}
-                  {t.count > 0 && (
-                    <span className={`text-xs ${tab === t.key ? 'text-white/60' : 'text-stone-500'}`}>
-                      {t.count}
+                  {pestana.label}
+                  {pestana.count > 0 && (
+                    <span className={`text-xs ${tab === pestana.key ? 'text-white/60' : 'text-stone-500'}`}>
+                      {pestana.count}
                     </span>
                   )}
                 </button>
@@ -269,7 +278,7 @@ export function ProfilePage() {
 
             {visible.length === 0 ? (
               <p className="text-sm text-stone-400 py-12 text-center">
-                No hay actividades en esta sección
+                {t('perfil.vacio')}
               </p>
             ) : (
               <>

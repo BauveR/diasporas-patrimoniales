@@ -418,5 +418,25 @@
     "politica": "Privacy policy",
     "aceptar": "Accept",
     "etiqueta": "Cookie notice"
+  },
+  "perfil": {
+    "miCuenta": "My account",
+    "proximas_one": "{{count}} upcoming",
+    "proximas_other": "{{count}} upcoming",
+    "pasadas_one": "{{count}} past",
+    "pasadas_other": "{{count}} past",
+    "canceladas_one": "{{count}} cancelled",
+    "canceladas_other": "{{count}} cancelled",
+    "cuentaLista": "Your account is ready",
+    "bienvenida": "Welcome",
+    "bienvenidaNombre": "Welcome, {{nombre}}",
+    "sinInscripciones": "You have no registrations yet.",
+    "eligeJornada": "You have no registrations yet. Choose your symposium day to book your place:",
+    "verPrograma": "View the programme",
+    "todas": "All",
+    "proximasTab": "Upcoming",
+    "vacio": "There are no sessions in this section",
+    "cancelado": "Cancelled",
+    "finalizada": "Finished"
   }
 }
