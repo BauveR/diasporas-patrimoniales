@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, type PanInfo } from 'framer-motion'
 import { useDataContext } from '../../contexts/DataContext'
@@ -11,6 +12,7 @@ import { ActividadExpandido } from './ActividadExpandido'
 // layout: su grid ya es `grid-cols-1 sm:grid-cols-[6fr_4fr]`, así que a este
 // ancho (siempre < sm acá) ya renderiza en una sola columna apilada.
 export function ActividadSheet() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { actividades } = useDataContext()
@@ -50,7 +52,7 @@ export function ActividadSheet() {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t('reserva.cerrar')}
           className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

@@ -145,6 +145,9 @@ export async function signOutUser(): Promise<void> {
   await firebaseSignOut(auth)
 }
 
-export async function sendPasswordReset(email: string, rutaLogin = '/login'): Promise<void> {
+// idioma: el correo de Firebase sale en el idioma de la web (antes siempre
+// en el de la plantilla, español).
+export async function sendPasswordReset(email: string, rutaLogin = '/login', idioma?: string): Promise<void> {
+  if (idioma) auth.languageCode = idioma
   await conEnlaceDeVuelta(rutaLogin, ajustes => sendPasswordResetEmail(auth, email, ajustes))
 }

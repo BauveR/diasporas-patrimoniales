@@ -128,3 +128,27 @@ describe('renderConfirmacionEmail', () => {
     expect(html).toContain('&lt;script&gt;')
   })
 })
+
+describe('renderConfirmacionEmail — idiomas', () => {
+  it('en español por defecto, sin voseo', () => {
+    const { subject, html, text } = renderConfirmacionEmail({ ...base, dias: [dia1] })
+    expect(subject).toBe('Confirmación de inscripción — Día 1 — 12 de noviembre')
+    expect(html).toContain('Si necesitas liberar tu plaza, puedes hacerlo')
+    expect(html).not.toMatch(/necesitás|podés/)
+    expect(text).toContain('https://www.diasporaspatrimoniales.com/perfil')
+  })
+
+  it.each([
+    ['en', 'Registration confirmed — Both days', 'Hello Ana,', 'Go to your profile', '/en/perfil', 'Chair Jorge Onrubia'],
+    ['fr', 'Inscription confirmée — Les deux journées', 'Bonjour Ana,', 'Aller à votre profil', '/fr/perfil', 'Modération Jorge Onrubia'],
+    ['pt', 'Inscrição confirmada — Ambos os dias', 'Olá Ana,', 'Ir para o seu perfil', '/pt/perfil', 'Moderação Jorge Onrubia'],
+  ] as const)('%s: asunto, saludo, botón, enlace al perfil en su idioma y moderador', (idioma, asunto, hola, boton, ruta, modera) => {
+    const { subject, html, text } = renderConfirmacionEmail({ ...base, idioma, dias: [dia1, dia2] })
+    expect(subject).toBe(asunto)
+    expect(html).toContain(hola)
+    expect(html).toContain(boton)
+    expect(html).toContain(`https://www.diasporaspatrimoniales.com${ruta}`)
+    expect(html).toContain(modera)
+    expect(text).toContain(`https://www.diasporaspatrimoniales.com${ruta}`)
+  })
+})

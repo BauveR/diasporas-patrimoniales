@@ -1,7 +1,8 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import i18n from '../../i18n/config'
 import { BookingWidget } from './BookingWidget'
 import type { Actividad } from '../../data/actividades'
 
@@ -295,5 +296,37 @@ describe('BookingWidget — correo de confirmación que no salió', () => {
   it('si el correo salió, no hay aviso', () => {
     renderWidget({ inscrito: true })
     expect(screen.queryByText(aviso)).not.toBeInTheDocument()
+  })
+})
+
+describe('BookingWidget — en otros idiomas', () => {
+  afterEach(async () => { await i18n.changeLanguage('es') })
+
+  it('en inglés: botón, estado de plazas y aviso gratuito traducidos', async () => {
+    await i18n.changeLanguage('en')
+    renderWidget()
+    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
+    expect(screen.getByText(/places available/i)).toBeInTheDocument()
+    expect(screen.getByText('Free registration · Confirmation required')).toBeInTheDocument()
+  })
+
+  it('los errores de los hooks (claves) se muestran en el idioma activo', async () => {
+    await i18n.changeLanguage('fr')
+    renderWidget({ inscripcionError: 'reserva.errores.sinPlazas' })
+    expect(screen.getByText("Il n'y a plus de places disponibles.")).toBeInTheDocument()
+  })
+
+  it('formulario en portugués, con el enlace a la privacidad en su idioma', async () => {
+    await i18n.changeLanguage('pt')
+    render(<MemoryRouter initialEntries={['/pt/actividades/1']}><BookingWidget {...baseProps} mostrandoTelefono /></MemoryRouter>)
+    expect(screen.getByText('Telefone de contacto')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'política de privacidade' })).toHaveAttribute('href', '/pt/privacidad')
+    expect(screen.getByRole('button', { name: 'Confirmar e continuar' })).toBeInTheDocument()
+  })
+
+  it('inscrito (tarjeta oscura): fecha del "nos vemos" en el idioma activo', async () => {
+    await i18n.changeLanguage('en')
+    render(<MemoryRouter><BookingWidget {...baseProps} inscrito compact dark /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: /See you on 1 January|See you on January 1/ })).toBeInTheDocument()
   })
 })

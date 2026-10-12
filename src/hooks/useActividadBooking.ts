@@ -22,6 +22,8 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   // El correo de confirmación no salió (tope diario, fallo de Resend o de
   // red): la tarjeta de "inscripción confirmada" lo avisa.
   const [correoNoEnviado, setCorreoNoEnviado] = useState(false)
+  // Claves de traducción (reserva.errores.*): BookingWidget las traduce al
+  // pintarlas, así el mensaje sigue el idioma activo.
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -81,7 +83,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   const handleConfirmarInscripcion = async () => {
     if (!user || !actividad) return
     if (!isValidTelefono(telefono)) {
-      setTelefonoError('Introduce un teléfono válido (España o formato internacional +XX...)')
+      setTelefonoError('reserva.errores.telefono')
       return
     }
     // Defensa además del botón deshabilitado en BookingWidget — por si algo
@@ -109,21 +111,21 @@ export function useActividadBooking(actividad: Actividad | undefined) {
       enviarCorreoConfirmacion(user, [actividad.id]).then(ok => setCorreoNoEnviado(!ok))
     } catch (err) {
       if (err instanceof db.SinPlazasError) {
-        setInscripcionError('Ya no quedan plazas disponibles.')
+        setInscripcionError('reserva.errores.sinPlazas')
       } else if (err instanceof db.EventoCanceladoError) {
-        setInscripcionError('Este evento ha sido cancelado.')
+        setInscripcionError('reserva.errores.cancelado')
       } else if (err instanceof db.InscripcionNoAbiertaError) {
-        setInscripcionError('Las inscripciones todavía no están abiertas para esta actividad.')
+        setInscripcionError('reserva.errores.noAbierta')
       } else if (err instanceof db.ActividadNoEncontradaError) {
         // No debería pasar nunca en producción — si pasa, es indicio de algo
         // serio (ej. desajuste de proyecto de Firebase). console.error deja
         // rastro real para diagnosticarlo, algo que antes de este cambio no
         // existía (la transacción fallaba en silencio, sin lanzar nada).
         console.error('inscribirse(): la actividad no existe en Firestore', actividad?.id)
-        setInscripcionError('No pudimos procesar la inscripción. Por favor, contactanos.')
+        setInscripcionError('reserva.errores.noEncontrada')
       } else {
         console.error('inscribirse() falló:', err)
-        setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
+        setInscripcionError('reserva.errores.generico')
       }
     } finally {
       setInscribiendo(false)

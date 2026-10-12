@@ -223,7 +223,7 @@ export function AuthPage({ isModal = false }: Props) {
     if (ahora.agotado || ahora.esperaS > 0) return
     setBusy(true)
     try {
-      await sendPasswordReset(email, `${prefix}/login`)
+      await sendPasswordReset(email, `${prefix}/login`, locale)
       registrarEnvioReset()
       setResetSent(true)
     } catch (err) {

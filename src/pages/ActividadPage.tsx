@@ -127,34 +127,34 @@ export function ActividadPage() {
           </AnimatePresence>
 
           <div>
-            <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4">Detalles de la actividad</p>
+            <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-4">{t('reserva.detalles')}</p>
             <div className="grid grid-cols-2 gap-y-5">
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Fecha</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.fecha')}</span>
                 <span className="text-sm text-stone-800 capitalize wrap-break-word">{fecha}</span>
               </div>
               {actividad.hora && (
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Hora</span>
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.hora')}</span>
                   <span className="text-sm text-stone-800">{actividad.hora}</span>
                 </div>
               )}
               {actividad.duracion && (
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Duración</span>
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.duracion')}</span>
                   <span className="text-sm text-stone-800">{actividad.duracion}</span>
                 </div>
               )}
             </div>
             {actividad.puntoEncuentro && (
               <div className="flex flex-col gap-0.5 mt-5">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Punto de encuentro</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.puntoEncuentro')}</span>
                 <span className="text-sm text-stone-800 leading-snug">{actividad.puntoEncuentro}</span>
               </div>
             )}
             {actividad.organizador && (
               <div className="flex flex-col gap-0.5 mt-5">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400">Organizador</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.organizador')}</span>
                 <span className="text-sm text-stone-800">{actividad.organizador}</span>
                 {actividad.contacto && (
                   <a
@@ -184,7 +184,7 @@ export function ActividadPage() {
               className="inline-flex items-center gap-1.5 text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors"
               style={labelStyle}
             >
-              ← Volver
+              {t('reserva.volver')}
             </button>
           </div>
         )}
@@ -240,12 +240,12 @@ export function ActividadPage() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0">
                     <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                   </svg>
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400">Ubicación</span>
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400">{t('reserva.ubicacion')}</span>
                 </div>
                 <p className="text-sm text-stone-800">{sede.nombre}</p>
                 <p className="text-[11px] text-stone-400">{sede.municipio}, {sede.isla}</p>
                 <p className="text-[10px] tracking-widest uppercase text-stone-400 underline underline-offset-2 mt-1">
-                  Ver en Google Maps
+                  {t('reserva.verMaps')}
                 </p>
               </a>
             )}

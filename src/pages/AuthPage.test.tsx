@@ -295,7 +295,7 @@ describe('AuthPage — tras crear cuenta y recuperar contraseña', () => {
     fireEvent.click(screen.getByRole('button', { name: i18n.t('auth.olvidaste') }))
     fireEvent.change(screen.getByPlaceholderText(i18n.t('auth.emailPlaceholder')), { target: { value: 'ana@ull.edu.es' } })
     fireEvent.click(screen.getByRole('button', { name: i18n.t('auth.reset.enviar') }))
-    await vi.waitFor(() => expect(sendPasswordReset).toHaveBeenCalledWith('ana@ull.edu.es', '/pt/login'))
+    await vi.waitFor(() => expect(sendPasswordReset).toHaveBeenCalledWith('ana@ull.edu.es', '/pt/login', 'pt'))
   })
 })
 

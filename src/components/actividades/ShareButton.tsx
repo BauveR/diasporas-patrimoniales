@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { labelStyle } from '../../lib/styles'
 
@@ -9,6 +10,7 @@ type Props = {
 }
 
 export function ShareButton({ url, title, text, dark = false }: Props) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
@@ -39,7 +41,7 @@ export function ShareButton({ url, title, text, dark = false }: Props) {
         <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
         <path d="M8.6 13.5 15.4 17.5M15.4 6.5 8.6 10.5" />
       </svg>
-      {copied ? 'Enlace copiado' : 'Compartir'}
+      {copied ? t('reserva.enlaceCopiado') : t('reserva.compartir')}
     </button>
   )
 }

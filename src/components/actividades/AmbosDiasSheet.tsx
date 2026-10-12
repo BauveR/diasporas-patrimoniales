@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion'
 import { AmbosDiasExpandido } from './AmbosDiasExpandido'
@@ -13,6 +14,7 @@ import type { Actividad } from '../../data/actividades'
 // viewport aunque InscripcionSection lo monte dentro de wrappers de
 // framer-motion que le aplican `transform` a sus ancestros.
 export function AmbosDiasSheet({ dia1, dia2, open, onClose }: { dia1: Actividad; dia2: Actividad; open: boolean; onClose: () => void }) {
+  const { t } = useTranslation()
   const handleDragEnd = (_e: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
     if (info.offset.y > 120 || info.velocity.y > 500) onClose()
   }
@@ -46,7 +48,7 @@ export function AmbosDiasSheet({ dia1, dia2, open, onClose }: { dia1: Actividad;
             <button
               type="button"
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label={t('reserva.cerrar')}
               className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

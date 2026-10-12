@@ -13,11 +13,12 @@ import { formatFechaLarga } from '../../utils/formatMes'
 import { ikImage } from '../../lib/imagekit'
 
 export function CerrarButton({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
   return (
     <button
       type="button"
       onClick={onClose}
-      aria-label="Cerrar"
+      aria-label={t('reserva.cerrar')}
       className="absolute top-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white shadow-sm transition-colors hover:bg-white/20 cursor-pointer"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -200,12 +201,12 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
 
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Fecha</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>{t('reserva.fecha')}</span>
                 <span className="font-mattone text-sm font-bold text-white capitalize wrap-break-word">{fecha}</span>
               </div>
               {actividad.hora && (
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>Hora</span>
+                  <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>{t('reserva.hora')}</span>
                   <span className="font-mattone text-sm font-bold text-white">{actividad.hora}</span>
                 </div>
               )}
