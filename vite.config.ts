@@ -39,8 +39,11 @@ function cabecerasDeVercel(): Record<string, string> {
   const config = JSON.parse(fs.readFileSync(new URL('./vercel.json', import.meta.url), 'utf8')) as {
     headers?: { source: string; headers: { key: string; value: string }[] }[]
   }
-  const globales = config.headers?.find(h => h.source === '/(.*)')?.headers ?? []
-  return Object.fromEntries(globales.map(h => [h.key, h.value]))
+  // Las de todo el sitio y las de todo menos /__/auth/ (el proxy del login de
+  // Firebase, que en local no existe): en el preview aplican las dos.
+  const paginas = new Set(['/(.*)', '/((?!__/auth/).*)'])
+  const cabeceras = config.headers?.filter(h => paginas.has(h.source)).flatMap(h => h.headers) ?? []
+  return Object.fromEntries(cabeceras.map(h => [h.key, h.value]))
 }
 
 export default defineConfig({
