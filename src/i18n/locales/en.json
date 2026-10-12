@@ -309,10 +309,11 @@
       "contrasenaEmail": "Don't use your email in your password",
       "cuentaOtroMetodo": "This email already has an account with a password. Sign in below with your email and password.",
       "popupBloqueado": "Your browser blocked the Google window. Allow pop-ups for this site or use your email and password.",
-      "red": "No connection. Check your internet and try again.",
+      "red": "We couldn't reach the sign-in service. If you're on a university or institutional network, it may be blocking it: try mobile data or another network.",
       "cuentaDesactivada": "This account has been disabled.",
       "credencialesAyuda": "If you created your account with Google, use “Continue with Google”.",
-      "contacto": "If it keeps happening, write to us at"
+      "contacto": "If it keeps happening, write to us at",
+      "sinInternet": "No internet connection. Check your Wi-Fi or mobile data and try again."
     },
     "acciones": {
       "iniciarSesion": "Sign in",

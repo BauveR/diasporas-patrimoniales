@@ -309,10 +309,11 @@
       "contrasenaEmail": "N'utilisez pas votre adresse e-mail dans le mot de passe",
       "cuentaOtroMetodo": "Cette adresse a déjà un compte avec mot de passe. Connectez-vous ci-dessous avec votre adresse e-mail et votre mot de passe.",
       "popupBloqueado": "Votre navigateur a bloqué la fenêtre de Google. Autorisez les fenêtres pop-up pour ce site ou utilisez votre e-mail et mot de passe.",
-      "red": "Pas de connexion. Vérifiez votre accès à Internet et réessayez.",
+      "red": "Impossible de joindre le service de connexion. Si vous êtes sur le réseau d'une université ou d'une institution, il le bloque peut-être : essayez avec les données mobiles ou un autre réseau.",
       "cuentaDesactivada": "Ce compte est désactivé.",
       "credencialesAyuda": "Si vous avez créé votre compte avec Google, utilisez « Continuer avec Google ».",
-      "contacto": "Si le problème persiste, écrivez-nous à"
+      "contacto": "Si le problème persiste, écrivez-nous à",
+      "sinInternet": "Pas de connexion Internet. Vérifiez votre Wi-Fi ou vos données mobiles et réessayez."
     },
     "acciones": {
       "iniciarSesion": "Se connecter",

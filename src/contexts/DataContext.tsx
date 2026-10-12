@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { Actividad } from '../data/actividades'
 import type { Sede } from '../data/sedes'
 import { loadDb } from '../lib/firebaseLoaders'
-import { AVISO_LENTO_MS, GRACIA_SIN_SERVIDOR_MS, TIMEOUT_CONEXION_MS, cambiarAModoCompatibleAutomatico, reportarSiRecuperado, sinInternet } from '../lib/conexion'
+import { AVISO_LENTO_MS, GRACIA_SIN_SERVIDOR_MS, TIMEOUT_CONEXION_MS, cambiarAModoCompatibleAutomatico, enPantallaDeLogin, reportarSiRecuperado, sinInternet } from '../lib/conexion'
 
 type DataContextValue = {
   actividades: Actividad[]
@@ -43,6 +43,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // gastaría su único intento de la pestaña). ConexionError lo dice y
       // recarga sola al volver la conexión.
       if (sinInternet()) { setDataError(true); return }
+      // En el login, nada de recargas por sorpresa (ver enPantallaDeLogin).
+      if (enPantallaDeLogin()) { setDataError(true); return }
       // Primer fallo de la pestaña: recarga sola en modo compatible. Solo
       // si eso ya se intentó, se muestra el aviso con "Reintentar".
       if (cambiarAModoCompatibleAutomatico()) setConexion('reconectando')

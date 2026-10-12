@@ -1,8 +1,14 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { AppUser, UserRole } from '../lib/auth'
 import { loadAuth, loadDb } from '../lib/firebaseLoaders'
 import { TIMEOUT_CONEXION_MS } from '../lib/conexion'
+
+// Tras entrar, el rol (admin o no) se lee en Firestore. En una red que
+// bloquea Firestore esa lectura tarda ~10 s en fallar y el botón se quedaba
+// en "…" todo ese tiempo. Se espera como mucho esto: si no llega, se sigue
+// como usuario normal y el rol se actualiza solo cuando responda.
+export const ESPERA_ROL_MS = 3_000
 
 export type { UserRole }
 
@@ -51,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [rawInscripcionIds, setRawInscripcionIds] = useState<number[]>([])
   const [rawInscripcionesLoading, setRawInscripcionesLoading] = useState(false)
   const [authError, setAuthError] = useState(false)
+  const uidActual = useRef<string | undefined>(undefined)
+  useEffect(() => { uidActual.current = user?.uid }, [user?.uid])
   const [rawInscripcionesError, setRawInscripcionesError] = useState(false)
 
   useEffect(() => {
@@ -142,12 +150,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const inscripcionesLoading = user ? rawInscripcionesLoading : false
   const inscripcionesError = user ? rawInscripcionesError : false
 
+  // Solo en los inicios de sesión de esta pantalla (signIn/signUp/Google), no
+  // en onAuthStateChanged: ahí `loading` sí debe esperar el rol real, o el
+  // admin rebotaría de /admin a /perfil.
+  const rolSinBloquear = async (leerRol: (u: AppUser) => Promise<UserRole>, u: AppUser): Promise<UserRole> => {
+    const lectura = leerRol(u).catch(() => 'user' as UserRole)
+    const limite = new Promise<'tarde'>(resolve => setTimeout(() => resolve('tarde'), ESPERA_ROL_MS))
+    const primero = await Promise.race([lectura, limite])
+    if (primero !== 'tarde') {
+      setUserRole(primero)
+      return primero
+    }
+    // Llegó tarde: se aplica cuando responda, solo si sigue siendo la misma
+    // persona (no cerró sesión ni entró otra cuenta mientras tanto).
+    lectura.then(rol => { if (uidActual.current === u.uid) setUserRole(rol) })
+    return 'user'
+  }
+
   const signIn = async (email: string, password: string): Promise<UserRole> => {
     const { signIn: authSignIn, getUserRole } = await loadAuth()
     const u = await authSignIn(email, password)
     setUser(u)
-    const role = await getUserRole(u).catch(() => 'user' as UserRole)
-    setUserRole(role)
+    const role = await rolSinBloquear(getUserRole, u)
     return role
   }
 
@@ -155,8 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { signUp: authSignUp, getUserRole } = await loadAuth()
     const u = await authSignUp(name, email, password)
     setUser(u)
-    const role = await getUserRole(u).catch(() => 'user' as UserRole)
-    setUserRole(role)
+    const role = await rolSinBloquear(getUserRole, u)
     return role
   }
 
@@ -164,8 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { signInWithGoogle: authSignInWithGoogle, getUserRole } = await loadAuth()
     const { user: u, isNewUser } = await authSignInWithGoogle()
     setUser(u)
-    const role = await getUserRole(u).catch(() => 'user' as UserRole)
-    setUserRole(role)
+    const role = await rolSinBloquear(getUserRole, u)
     return { role, isNewUser }
   }
 
@@ -179,8 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const resultado = await completar()
     if (!resultado) return null
     setUser(resultado.user)
-    const role = await getUserRole(resultado.user).catch(() => 'user' as UserRole)
-    setUserRole(role)
+    const role = await rolSinBloquear(getUserRole, resultado.user)
     return { role, isNewUser: resultado.isNewUser }
   }
 

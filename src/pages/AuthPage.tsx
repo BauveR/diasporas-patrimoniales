@@ -11,6 +11,7 @@ import { consumirLoginGooglePendiente, guardarLoginGooglePendiente, hayLoginGoog
 import { getLocaleFromPathname } from '../i18n/routing'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { detectarNavegadorIntegrado, usaRedireccionParaGoogle } from '../utils/navegadorIntegrado'
+import { sinInternet } from '../lib/conexion'
 import { AvisoNavegadorIntegrado } from '../components/auth/AvisoNavegadorIntegrado'
 
 // user-not-found and wrong-password map to the same message on purpose —
@@ -40,6 +41,9 @@ const AUTH_ERRORS: Record<string, string> = {
 
 function parseError(err: unknown): string {
   const code = (err as { code?: string }).code ?? ''
+  // Sin internet de verdad, o internet sí pero la red (típicamente la de una
+  // institución) bloquea el servicio de acceso de Google: mensajes distintos.
+  if (code === 'auth/network-request-failed' && sinInternet()) return 'auth.errores.sinInternet'
   return AUTH_ERRORS[code] ?? 'auth.errores.generico'
 }
 
@@ -324,7 +328,7 @@ export function AuthPage({ isModal = false }: Props) {
         {error === 'auth.errores.credenciales' && (
           <p className="text-xs text-stone-500">{t('auth.errores.credencialesAyuda')}</p>
         )}
-        {(error === 'auth.errores.generico' || error === 'auth.errores.cuentaDesactivada') && (
+        {(error === 'auth.errores.generico' || error === 'auth.errores.cuentaDesactivada' || error === 'auth.errores.red') && (
           <p className="text-xs text-stone-500">
             {t('auth.errores.contacto')}{' '}
             <a href="mailto:diasporaspatrimoniales@gmail.com" className="underline underline-offset-2">diasporaspatrimoniales@gmail.com</a>

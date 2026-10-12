@@ -23,6 +23,15 @@ export const GRACIA_SIN_SERVIDOR_MS = 10_000
 // Sin internet en el propio dispositivo (wifi caído, modo avión): no es un
 // bloqueo de la red y el modo compatible no ayudaría. `false` solo cuando el
 // navegador lo sabe seguro — `true` no garantiza que haya internet.
+// En la pantalla de login (página o ventana: en los dos casos la URL es
+// /login o /:lang/login) no se recarga sola a modo compatible: borraría lo
+// que se está escribiendo o cortaría la vuelta de Google ("Entrando…"). El
+// login no necesita Firestore; las jornadas mostrarán el aviso con
+// "Reintentar" (que activa el modo compatible) cuando se vuelva a ellas.
+export function enPantallaDeLogin(pathname = window.location.pathname): boolean {
+  return /(^|\/)login\/?$/.test(pathname)
+}
+
 export function sinInternet(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false
 }

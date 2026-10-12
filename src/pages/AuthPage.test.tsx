@@ -215,6 +215,30 @@ describe('AuthPage — cada error tiene salida', () => {
     expect(await screen.findByText(/Si creaste tu cuenta con Google/)).toBeInTheDocument()
   })
 
+  it('fallo de red con internet (red institucional): lo explica, sugiere datos móviles y da el contacto', async () => {
+    signIn = async () => { throw Object.assign(new Error('firebase'), { code: 'auth/network-request-failed' }) }
+    await montar('/login', 'es')
+    fireEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'ana@ull.edu.es' } })
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'loquesea1' } })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Iniciar sesión' }).at(-1)!)
+    expect(await screen.findByText(/red de una universidad o institución/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'diasporaspatrimoniales@gmail.com' })).toBeInTheDocument()
+  })
+
+  it('fallo de red sin internet en el dispositivo: dice que no hay internet', async () => {
+    signIn = async () => { throw Object.assign(new Error('firebase'), { code: 'auth/network-request-failed' }) }
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
+    try {
+      await montar('/login', 'es')
+      fireEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'ana@ull.edu.es' } })
+      fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'loquesea1' } })
+      fireEvent.click(screen.getAllByRole('button', { name: 'Iniciar sesión' }).at(-1)!)
+      expect(await screen.findByText(/No hay conexión a internet/)).toBeInTheDocument()
+    } finally {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
+    }
+  })
+
   it('error desconocido: ofrece el correo de contacto', async () => {
     signIn = async () => { throw Object.assign(new Error('firebase'), { code: 'auth/internal-error' }) }
     await montar('/login', 'es')

@@ -113,3 +113,10 @@ describe('ultimosDias', () => {
     expect(ultimosDias(3, new Date('2026-10-10T12:00:00Z'))).toEqual(['2026-10-10', '2026-10-09', '2026-10-08'])
   })
 })
+
+describe('enPantallaDeLogin', () => {
+  it.each([['/login', true], ['/en/login', true], ['/pt/login/', true], ['/', false], ['/perfil', false], ['/actividades/1', false], ['/loginx', false]])('%s → %s', async (ruta, esperado) => {
+    const { enPantallaDeLogin } = await import('./conexion')
+    expect(enPantallaDeLogin(ruta)).toBe(esperado)
+  })
+})
