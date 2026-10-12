@@ -58,6 +58,7 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
     inscrito: booking.inscrito,
     inscribiendo: booking.inscribiendo,
     inscripcionError: booking.inscripcionError,
+    correoNoEnviado: booking.correoNoEnviado,
     confirmando: booking.confirmando,
     setConfirmando: booking.setConfirmando,
     liberando: booking.liberando,

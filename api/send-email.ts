@@ -4,6 +4,7 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { Resend } from 'resend'
 import { getAdminApp } from './_lib/firebaseAdmin.js'
 import { renderConfirmacionEmail, type DiaEmailData } from './_lib/emailTemplate.js'
+import { diaDe } from './_lib/dia.js'
 import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../src/data/programa.js'
 
 type ActividadDoc = {
@@ -21,17 +22,25 @@ type ActividadDoc = {
 // a cada una. Mismo mapeo hardcodeado que ya usa ActividadExpandido.tsx en
 // el sitio; sin match (no debería pasar hoy) el email simplemente no
 // incluye agenda para esa actividad.
-// Tope de emails de confirmación por usuario y actividad, de por vida — no
-// por inscripción: el contador vive en emailsConfirmacion/{uid}_{id} (fuera
-// de inscritos/, que se borra al liberar plaza), así que darse de baja y
-// volver a inscribirse en bucle no lo resetea. Sin esto, cualquiera con una
-// cuenta email/contraseña (sin verificar) podía registrarse con el correo
-// de otra persona y llamar a este endpoint sin límite para llenarle la
-// bandeja (y gastar la cuota de Resend). 3 y no 1: deja margen para una
-// baja + reinscripción real sin quedarse sin confirmación. Las reglas de
+// Tope de emails de confirmación por usuario y actividad, POR DÍA (hora de
+// Canarias) — no por inscripción: el contador vive en
+// emailsConfirmacion/{uid}_{id} (fuera de inscritos/, que se borra al
+// liberar plaza), así que darse de baja y volver a inscribirse en bucle no
+// lo resetea. Sin esto, cualquiera con una cuenta email/contraseña (sin
+// verificar) podía registrarse con el correo de otra persona y llamar a
+// este endpoint sin límite para llenarle la bandeja (y gastar la cuota de
+// Resend). Antes era de por vida y bloqueaba las pruebas del admin; por día
+// sigue acotando el abuso (6 correos/día como mucho a una dirección, una
+// cuenta por email en Firebase). El admin no tiene tope. Las reglas de
 // Firestore no abren esta colección al cliente (catch-all `if false`), así
 // que solo este endpoint (Admin SDK) puede leer/escribir el contador.
-const MAX_EMAILS_POR_ACTIVIDAD = 3
+export const MAX_EMAILS_POR_DIA = 3
+
+// Envíos ya hechos HOY según el contador guardado. Uno de otro día — o de
+// antes de que se guardara el día (contadores de por vida) — cuenta como 0.
+export function enviadosHoy(datos: { enviados?: number; dia?: string } | undefined, hoy: string): number {
+  return datos?.dia === hoy ? (datos.enviados ?? 0) : 0
+}
 
 function getProgramaDia(actividadId: number) {
   if (actividadId === 1) return PROGRAMA_DIA_1
@@ -76,12 +85,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'no_email' })
   }
 
-  const snaps = await Promise.all(
-    ids.map(id => Promise.all([
-      db.doc(`actividades/${id}/inscritos/${uid}`).get(),
-      db.doc(`actividades/${id}`).get(),
-    ])),
-  )
+  const [snaps, userSnap] = await Promise.all([
+    Promise.all(
+      ids.map(id => Promise.all([
+        db.doc(`actividades/${id}/inscritos/${uid}`).get(),
+        db.doc(`actividades/${id}`).get(),
+      ])),
+    ),
+    db.doc(`users/${uid}`).get(),
+  ])
+  const esAdmin = userSnap.data()?.role === 'admin'
 
   if (snaps.some(([inscritoSnap]) => !inscritoSnap.exists)) {
     return res.status(403).json({ error: 'not_registered' })
@@ -125,16 +138,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Reserva el envío en una transacción ANTES de mandar: dos llamadas en
-  // paralelo no pueden colarse las dos por debajo del tope.
+  // paralelo no pueden colarse las dos por debajo del tope. El admin no
+  // reserva nada (sin tope, para poder probar).
   const contadorRefs = ids.map(id => db.doc(`emailsConfirmacion/${uid}_${id}`))
-  const permitido = await db.runTransaction(async tx => {
-    const contadores = await Promise.all(contadorRefs.map(ref => tx.get(ref)))
-    if (contadores.some(snap => ((snap.data()?.enviados as number | undefined) ?? 0) >= MAX_EMAILS_POR_ACTIVIDAD)) return false
-    contadorRefs.forEach(ref => tx.set(ref, { enviados: FieldValue.increment(1) }, { merge: true }))
-    return true
-  })
-  if (!permitido) {
-    return res.status(429).json({ error: 'email_limit_reached' })
+  if (!esAdmin) {
+    const hoy = diaDe(new Date())
+    const permitido = await db.runTransaction(async tx => {
+      const contadores = await Promise.all(contadorRefs.map(ref => tx.get(ref)))
+      const previos = contadores.map(snap => enviadosHoy(snap.data() as { enviados?: number; dia?: string } | undefined, hoy))
+      if (previos.some(n => n >= MAX_EMAILS_POR_DIA)) return false
+      contadorRefs.forEach((ref, i) => tx.set(ref, { dia: hoy, enviados: previos[i] + 1 }))
+      return true
+    })
+    if (!permitido) {
+      return res.status(429).json({ error: 'email_limit_reached' })
+    }
   }
 
   const { error } = await resend.emails.send({ from, to: tokenEmail, subject, html, text })
@@ -143,8 +161,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // sin esto el 502 queda sin ninguna pista en los Runtime Logs.
     console.error('resend.emails.send failed:', error)
     // El email no salió — devolver la reserva para que no cuente contra el tope.
-    await Promise.all(contadorRefs.map(ref => ref.set({ enviados: FieldValue.increment(-1) }, { merge: true })))
-      .catch(err => console.error('no se pudo devolver la reserva de email:', err))
+    if (!esAdmin) {
+      await Promise.all(contadorRefs.map(ref => ref.set({ enviados: FieldValue.increment(-1) }, { merge: true })))
+        .catch(err => console.error('no se pudo devolver la reserva de email:', err))
+    }
     return res.status(502).json({ error: 'email_send_failed' })
   }
 

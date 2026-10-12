@@ -70,6 +70,7 @@ export function ActividadPage() {
     inscrito: booking.inscrito,
     inscribiendo: booking.inscribiendo,
     inscripcionError: booking.inscripcionError,
+    correoNoEnviado: booking.correoNoEnviado,
     confirmando: booking.confirmando,
     setConfirmando: booking.setConfirmando,
     liberando: booking.liberando,
