@@ -1,17 +1,13 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 import { getPlazasEstado, type Actividad } from '../../data/actividades'
 import { labelStyle } from '../../lib/styles'
+import { formatFechaDiaMes, formatFechaDiaMesAnio } from '../../utils/formatMes'
 import { AnimatedCheckmark } from './AnimatedCheckmark'
 import { getLocaleFromPathname } from '../../i18n/routing'
 import { DEFAULT_LOCALE } from '../../i18n/config'
 
-const PLAZAS_ESTADO_LABEL = {
-  disponibles: 'Plazas disponibles',
-  algunas: 'Algunas plazas disponibles',
-  pocas: 'Pocas plazas disponibles',
-  agotada: 'Sin plazas disponibles',
-} as const
 
 type BookingWidgetProps = {
   actividad: Actividad
@@ -69,8 +65,10 @@ export function BookingWidget({
 }: BookingWidgetProps) {
   // Con el prefijo del idioma actual: desde /en, "Ver mis actividades"
   // llevaba al perfil en español.
+  const { t } = useTranslation()
   const locale = getLocaleFromPathname(useLocation().pathname)
   const perfilPath = locale === DEFAULT_LOCALE ? '/perfil' : `/${locale}/perfil`
+  const privacidadPath = locale === DEFAULT_LOCALE ? '/privacidad' : `/${locale}/privacidad`
   // En modo compact, cada texto de acá abajo pierde su inline Open Sans (ver
   // los `style={textFont}` más abajo) y hereda Mattone Regular del wrapper
   // que lo envuelve — eso deja el modo no-compact (la página completa)
@@ -94,9 +92,9 @@ export function BookingWidget({
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-red-400 shrink-0">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
-          <span className="text-[10px] tracking-widest uppercase text-red-400">Evento cancelado</span>
+          <span className="text-[10px] tracking-widest uppercase text-red-400">{t('reserva.cancelado')}</span>
         </div>
-        <p className={`text-sm ${dark ? 'text-stone-300' : 'text-stone-500'}`}>Este evento ha sido cancelado por los organizadores.</p>
+        <p className={`text-sm ${dark ? 'text-stone-300' : 'text-stone-500'}`}>{t('reserva.canceladoTexto')}</p>
       </div>
     )
   }
@@ -111,7 +109,7 @@ export function BookingWidget({
       <span
         className={`inline-flex self-start rounded-full px-3 py-1 text-[11px] font-bold tracking-wide text-white uppercase ${plazasEstado === 'agotada' ? 'bg-stone-700' : 'bg-brand-red'}`}
       >
-        {PLAZAS_ESTADO_LABEL[plazasEstado]}
+        {t(`reserva.plazas.${plazasEstado}`)}
       </span>
       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
         <div className="h-full rounded-full bg-brand-red transition-all duration-500" style={{ width: `${pct}%` }} />
@@ -120,7 +118,7 @@ export function BookingWidget({
   ) : (
     <div>
       <div className="text-[11px] text-stone-500 mb-2" style={textFont}>
-        <span>{PLAZAS_ESTADO_LABEL[plazasEstado]}</span>
+        <span>{t(`reserva.plazas.${plazasEstado}`)}</span>
       </div>
       <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
         <div className="h-full rounded-full bg-stone-400 transition-all duration-500" style={{ width: `${pct}%` }} />
@@ -130,13 +128,13 @@ export function BookingWidget({
 
   const avisoCorreo = (oscuro: boolean) => correoNoEnviado && (
     <p role="status" className={`rounded-xl px-3 py-2 text-[12px] leading-relaxed ${oscuro ? 'bg-amber-400/15 text-amber-200' : 'bg-amber-50 text-amber-900 border border-amber-200'}`} style={textFont}>
-      Tu inscripción está hecha, pero no pudimos enviarte el correo de confirmación. La tienes siempre en tu perfil.
+      {t('reserva.correoNoEnviado')}
     </p>
   )
 
   if (inscrito && !esPasada) {
     if (compact && dark) {
-      const fechaCorta = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+      const fechaCorta = formatFechaDiaMes(actividad.fecha)
       return (
         <div className="flex flex-col gap-4 font-mattone font-normal">
           <span
@@ -144,35 +142,35 @@ export function BookingWidget({
             style={{ backgroundColor: '#50664d' }}
           >
             <AnimatedCheckmark size={18} />
-            <span>Inscripción confirmada</span>
+            <span>{t('reserva.confirmada')}</span>
           </span>
 
           <div className="flex flex-col gap-1.5">
-            <h3 className="text-lg leading-snug font-bold text-white">¡Nos vemos el {fechaCorta}!</h3>
+            <h3 className="text-lg leading-snug font-bold text-white">{t('reserva.nosVemos', { fecha: fechaCorta })}</h3>
             {correoNoEnviado ? avisoCorreo(true) : (
               <p className="text-[13px] leading-relaxed text-stone-400">
-                Te enviamos la confirmación y el programa completo por correo. Podés liberar tu plaza cuando quieras desde tu perfil.
+                {t('reserva.correoEnviado')}
               </p>
             )}
           </div>
 
           {confirmando ? (
             <div className="flex flex-col gap-2">
-              <p className="text-[11px] text-stone-400 text-center">¿Liberar tu plaza?</p>
+              <p className="text-[11px] text-stone-400 text-center">{t('reserva.liberarPregunta')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={onLiberar}
                   disabled={liberando}
                   className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                 >
-                  {liberando ? '...' : 'Sí, liberar'}
+                  {liberando ? '...' : t('reserva.siLiberar')}
                 </button>
                 <button
                   onClick={() => setConfirmando(false)}
                   disabled={liberando}
                   className="flex-1 py-2.5 rounded-xl bg-white/10 text-white text-[11px] tracking-widest uppercase hover:bg-white/15 transition-colors disabled:opacity-40 cursor-pointer"
                 >
-                  Mantener
+                  {t('reserva.mantener')}
                 </button>
               </div>
             </div>
@@ -182,13 +180,13 @@ export function BookingWidget({
                 to={perfilPath}
                 className="w-full py-3 rounded-xl bg-brand-orange text-white text-[11px] tracking-widest uppercase text-center block transition-opacity hover:opacity-90"
               >
-                Ver mi perfil
+                {t('reserva.verPerfil')}
               </Link>
               <button
                 onClick={() => setConfirmando(true)}
                 className="w-full py-2.5 rounded-xl border-[1.5px] border-brand-red text-white text-[11px] tracking-widest uppercase hover:bg-brand-red/10 transition-colors cursor-pointer"
               >
-                Liberar plaza
+                {t('reserva.liberarPlaza')}
               </button>
             </div>
           )}
@@ -209,26 +207,26 @@ export function BookingWidget({
           <div className="rounded-2xl overflow-hidden border border-stone-200">
             <div className="px-4 py-1.5 flex items-center justify-center gap-2" style={{ backgroundColor: '#50664d' }}>
               <AnimatedCheckmark size={16} />
-              <span className="text-[10px] tracking-widest uppercase text-white/80">Inscripción confirmada</span>
+              <span className="text-[10px] tracking-widest uppercase text-white/80">{t('reserva.confirmada')}</span>
             </div>
             <div className="px-4 pt-2 pb-1.5">{plazasBar}</div>
             {confirmando ? (
               <div className="px-4 py-2 border-t border-stone-100 flex flex-col gap-1.5">
-                <p className="text-[11px] text-stone-500 text-center">¿Liberar tu plaza?</p>
+                <p className="text-[11px] text-stone-500 text-center">{t('reserva.liberarPregunta')}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={onLiberar}
                     disabled={liberando}
                     className="flex-1 py-2 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                   >
-                    {liberando ? '...' : 'Sí, liberar'}
+                    {liberando ? '...' : t('reserva.siLiberar')}
                   </button>
                   <button
                     onClick={() => setConfirmando(false)}
                     disabled={liberando}
                     className="flex-1 py-2 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
                   >
-                    Mantener
+                    {t('reserva.mantener')}
                   </button>
                 </div>
               </div>
@@ -239,19 +237,19 @@ export function BookingWidget({
                   className="w-full py-1.5 rounded-xl text-white text-[11px] tracking-widest uppercase cursor-not-allowed opacity-90"
                   style={{ backgroundColor: '#50664d' }}
                 >
-                  Ya inscrito ✓
+                  {t('reserva.yaInscrito')}
                 </button>
                 <button
                   onClick={() => setConfirmando(true)}
                   className="w-full py-1.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
                 >
-                  Liberar plaza
+                  {t('reserva.liberarPlaza')}
                 </button>
               </div>
             )}
           </div>
           {avisoCorreo(false)}
-          <p className="text-[10px] text-stone-400 text-center">Inscripción gratuita · Se requiere confirmación</p>
+          <p className="text-[10px] text-stone-400 text-center">{t('reserva.gratuita')}</p>
         </div>
       )
     }
@@ -265,13 +263,13 @@ export function BookingWidget({
             <div className="flex items-center gap-2">
               <AnimatedCheckmark size={22} />
               <span className="text-[10px] tracking-widest uppercase text-white/80" style={textFont}>
-                Inscripción confirmada
+                {t('reserva.confirmada')}
               </span>
             </div>
             <p className="text-white text-sm leading-snug" style={textFont}>{actividad.titulo}</p>
           </div>
           <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-            <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Fecha</span>
+            <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.fecha')}</span>
             <span className="text-sm text-stone-800 capitalize" style={textFont}>{fecha}</span>
             {(actividad.hora || actividad.duracion) && (
               <span className="text-[11px] text-stone-400" style={textFont}>
@@ -281,13 +279,13 @@ export function BookingWidget({
           </div>
           {actividad.puntoEncuentro && (
             <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Punto de encuentro</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.puntoEncuentro')}</span>
               <span className="text-sm text-stone-800 leading-snug" style={textFont}>{actividad.puntoEncuentro}</span>
             </div>
           )}
           {actividad.organizador && (
             <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Organizador</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.organizador')}</span>
               <span className="text-sm text-stone-800" style={textFont}>{actividad.organizador}</span>
               {actividad.contacto && (
                 <a
@@ -307,12 +305,12 @@ export function BookingWidget({
           className="w-full py-3.5 rounded-xl text-[11px] tracking-widest uppercase text-white text-center block transition-opacity hover:opacity-90"
           style={{ ...labelStyle, backgroundColor: '#3f6395' }}
         >
-          Ver mis actividades
+          {t('reserva.verActividades')}
         </Link>
 
         {confirmando ? (
           <div className="flex flex-col gap-2">
-            <p className="text-[11px] text-stone-500 text-center" style={textFont}>¿Liberar tu plaza?</p>
+            <p className="text-[11px] text-stone-500 text-center" style={textFont}>{t('reserva.liberarPregunta')}</p>
             <div className="flex gap-2">
               <button
                 onClick={onLiberar}
@@ -320,7 +318,7 @@ export function BookingWidget({
                 className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[11px] tracking-widest uppercase hover:bg-red-600 transition-colors disabled:opacity-40 cursor-pointer"
                 style={textFont}
               >
-                {liberando ? '...' : 'Sí, liberar'}
+                {liberando ? '...' : t('reserva.siLiberar')}
               </button>
               <button
                 onClick={() => setConfirmando(false)}
@@ -328,7 +326,7 @@ export function BookingWidget({
                 className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 cursor-pointer"
                 style={textFont}
               >
-                Mantener
+                {t('reserva.mantener')}
               </button>
             </div>
           </div>
@@ -338,7 +336,7 @@ export function BookingWidget({
             className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] tracking-widest uppercase border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
             style={textFont}
           >
-            Liberar plaza
+            {t('reserva.liberarPlaza')}
           </button>
         )}
       </div>
@@ -353,22 +351,22 @@ export function BookingWidget({
       {!compact && (
         <div>
           <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-3" style={textFont}>
-            Detalles de la actividad
+            {t('reserva.detalles')}
           </p>
           <div className="grid grid-cols-2 gap-y-4 gap-x-4">
             <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Fecha</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.fecha')}</span>
               <span className="text-sm text-stone-800 capitalize wrap-break-word" style={textFont}>{fecha}</span>
             </div>
             {actividad.hora && (
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Hora</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.hora')}</span>
                 <span className="text-sm text-stone-800" style={textFont}>{actividad.hora}</span>
               </div>
             )}
             {actividad.duracion && (
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>Duración</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.duracion')}</span>
                 <span className="text-sm text-stone-800" style={textFont}>{actividad.duracion}</span>
               </div>
             )}
@@ -378,17 +376,17 @@ export function BookingWidget({
 
       {plazasEstado === 'pocas' && (
         <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>
-          ¡Pocas plazas disponibles, inscríbete cuanto antes!
+          {t('reserva.pocasAviso')}
         </p>
       )}
 
       {inscripcionError && (
-        <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>{inscripcionError}</p>
+        <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>{t(inscripcionError)}</p>
       )}
 
       {noAbierto && actividad.fechaAperturaInscripciones && (
         <p className={`text-[11px] ${dark ? 'text-stone-400' : 'text-stone-500'}`} style={textFont}>
-          Las inscripciones abren el {new Date(actividad.fechaAperturaInscripciones + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          {t('reserva.abren', { fecha: formatFechaDiaMesAnio(actividad.fechaAperturaInscripciones) })}
         </p>
       )}
 
@@ -399,22 +397,22 @@ export function BookingWidget({
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden>
                 <path d="M20 6 9 17l-5-5" />
               </svg>
-              Ya has iniciado sesión. Completa tu inscripción:
+              {t('reserva.sesionIniciada')}
             </p>
           )}
           <label className={`text-[10px] tracking-widest uppercase ${dark ? 'text-stone-400' : 'text-stone-400'}`} style={textFont}>
-            Teléfono de contacto
+            {t('reserva.telefono')}
           </label>
           <input
             type="tel"
             value={telefono}
             onChange={e => onTelefonoChange(e.target.value)}
-            placeholder="612345678 o +34612345678"
+            placeholder={t('reserva.telefonoPlaceholder')}
             className={`w-full rounded-xl px-3 py-2.5 text-base focus:outline-none transition-colors ${dark ? 'border border-white/15 bg-white/5 text-white placeholder:text-stone-500 focus:border-white/30' : 'border border-stone-200 text-stone-800 focus:border-stone-400'}`}
             style={dark ? { ...textFont, color: '#ffffff', colorScheme: 'dark' } : textFont}
           />
           {telefonoError && (
-            <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>{telefonoError}</p>
+            <p className={`text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>{t(telefonoError)}</p>
           )}
           {/* Todo el recuadro es el <label>: tocar en cualquier parte marca
               el checkbox, no solo el cuadradito — área táctil cómoda en
@@ -438,15 +436,15 @@ export function BookingWidget({
               className="h-5 w-5 shrink-0 cursor-pointer accent-brand-orange"
             />
             <span>
-              He leído y acepto la{' '}
-              <Link to="/privacidad" target="_blank" rel="noopener noreferrer" className={`underline underline-offset-2 ${dark ? 'hover:text-white' : 'hover:text-stone-900'}`}>
-                política de privacidad
+              {t('reserva.aceptoPre')}{' '}
+              <Link to={privacidadPath} target="_blank" rel="noopener noreferrer" className={`underline underline-offset-2 ${dark ? 'hover:text-white' : 'hover:text-stone-900'}`}>
+                {t('reserva.politica')}
               </Link>
             </span>
           </label>
           {faltaAceptar && (
             <p id={`aviso-terminos-${actividad.id}`} role="alert" className={`-mt-1 text-[11px] ${dark ? 'text-red-300' : 'text-red-500'}`} style={textFont}>
-              Para inscribirte tienes que aceptar la política de privacidad.
+              {t('reserva.faltaAceptar')}
             </p>
           )}
           <div className="flex gap-2">
@@ -459,7 +457,7 @@ export function BookingWidget({
               className={`flex-1 py-3 rounded-xl text-white text-[11px] tracking-widest uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${dark ? 'bg-brand-orange hover:opacity-90' : 'bg-stone-900 hover:bg-stone-700'}`}
               style={textFont}
             >
-              {inscribiendo ? '...' : 'Confirmar y continuar'}
+              {inscribiendo ? '...' : t('reserva.confirmar')}
             </button>
             <button
               onClick={() => { setAvisoTerminos(false); onCancelarTelefono() }}
@@ -467,7 +465,7 @@ export function BookingWidget({
               className={`flex-1 py-3 rounded-xl text-[11px] tracking-widest uppercase transition-colors disabled:opacity-40 cursor-pointer ${dark ? 'border border-white/15 text-stone-300 hover:bg-white/5' : 'border border-stone-200 text-stone-500 hover:bg-stone-50'}`}
               style={textFont}
             >
-              Cancelar
+              {t('reserva.cancelar')}
             </button>
           </div>
         </div>
@@ -478,12 +476,12 @@ export function BookingWidget({
           className={`w-full ${compact ? 'py-3' : 'py-3.5'} rounded-xl text-white text-[11px] tracking-widest uppercase transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${dark ? 'bg-brand-orange hover:opacity-90' : 'bg-stone-900 hover:bg-stone-700'}`}
           style={textFont}
         >
-          {inscribiendo ? '...' : esPasada ? 'Actividad finalizada' : noAbierto ? 'Inscripciones aún no abiertas' : actividad.plazasDisponibles === 0 ? 'Sin plazas disponibles' : 'Inscribirme'}
+          {inscribiendo ? '...' : esPasada ? t('reserva.finalizada') : noAbierto ? t('reserva.noAbiertas') : actividad.plazasDisponibles === 0 ? t('reserva.sinPlazas') : t('reserva.inscribirme')}
         </button>
       )}
 
       <p className={`text-[10px] text-center ${dark ? 'text-stone-500' : 'text-stone-400'}`} style={textFont}>
-        Inscripción gratuita · Se requiere confirmación
+        {t('reserva.gratuita')}
       </p>
     </div>
   )

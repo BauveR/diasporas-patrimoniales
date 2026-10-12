@@ -25,6 +25,8 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   // El correo de confirmación no salió (tope diario, fallo de Resend o de
   // red): la tarjeta de "inscripción confirmada" lo avisa.
   const [correoNoEnviado, setCorreoNoEnviado] = useState(false)
+  // Claves de traducción (reserva.errores.*): BookingWidget las traduce al
+  // pintarlas, así el mensaje sigue el idioma activo.
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -79,7 +81,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   const handleConfirmarInscripcion = async () => {
     if (!user) return
     if (!isValidTelefono(telefono)) {
-      setTelefonoError('Introduce un teléfono válido (España o formato internacional +XX...)')
+      setTelefonoError('reserva.errores.telefono')
       return
     }
     if (!aceptoTerminos) return
@@ -95,17 +97,17 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
       enviarCorreoConfirmacion(user, ids).then(ok => setCorreoNoEnviado(!ok))
     } catch (err) {
       if (err instanceof db.SinPlazasError) {
-        setInscripcionError('Ya no quedan plazas disponibles en una de las dos jornadas.')
+        setInscripcionError('reserva.errores.sinPlazasAmbos')
       } else if (err instanceof db.EventoCanceladoError) {
-        setInscripcionError('Una de las dos jornadas ha sido cancelada.')
+        setInscripcionError('reserva.errores.canceladoAmbos')
       } else if (err instanceof db.InscripcionNoAbiertaError) {
-        setInscripcionError('Las inscripciones todavía no están abiertas para una de las dos jornadas.')
+        setInscripcionError('reserva.errores.noAbiertaAmbos')
       } else if (err instanceof db.ActividadNoEncontradaError) {
         console.error('inscribirseAmbosDias(): una actividad no existe en Firestore', ids)
-        setInscripcionError('No pudimos procesar la inscripción. Por favor, contactanos.')
+        setInscripcionError('reserva.errores.noEncontrada')
       } else {
         console.error('inscribirseAmbosDias() falló:', err)
-        setInscripcionError('Error al procesar la inscripción. Inténtalo de nuevo.')
+        setInscripcionError('reserva.errores.generico')
       }
     } finally {
       setInscribiendo(false)
