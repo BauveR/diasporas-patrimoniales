@@ -1,5 +1,25 @@
+// Igual que firestore.rules (telefonoValido): como mucho 24 caracteres y
+// solo dígitos, +, espacios, puntos, guiones y paréntesis. Si la web
+// aceptara algo que las reglas no, la inscripción fallaría con un error
+// genérico sin explicar por qué.
+export const TELEFONO_MAX = 24
+
+// Antes de validar y de guardar: lo que se pega desde una web o un PDF trae
+// a veces espacios "duros" (U+00A0) o guiones tipográficos (–, —) que a la
+// vista son iguales; "00" al principio es otra forma de escribir "+".
+export function normalizarTelefono(v: string): string {
+  return v
+    .normalize('NFKC')
+    .replace(/[\u2010-\u2015\u2212]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^00(?=\d)/, '+')
+}
+
 export function isValidTelefono(v: string): boolean {
-  const clean = v.replace(/[\s.\-()]/g, '')
+  const n = normalizarTelefono(v)
+  if (n.length > TELEFONO_MAX || !/^[+]?[0-9 ().-]+$/.test(n)) return false
+  const clean = n.replace(/[\s.\-()]/g, '')
   return /^[6-9]\d{8}$/.test(clean) || /^\+\d{8,15}$/.test(clean)
 }
 

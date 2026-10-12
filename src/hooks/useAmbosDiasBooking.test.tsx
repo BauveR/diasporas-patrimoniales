@@ -16,7 +16,9 @@ vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => authState,
 }))
 
-vi.mock('../lib/db', () => ({
+// El hook carga la base de datos con import() dinámico (lib/firebaseLoaders):
+// se simula ese cargador, o el test acabaría hablando con el Firestore real.
+const dbFalsa = vi.hoisted(() => ({
   inscribirseAmbosDias: vi.fn(),
   liberarAmbosDias: vi.fn(),
   getTelefonoForUser: vi.fn(() => Promise.resolve(null)),
@@ -26,6 +28,8 @@ vi.mock('../lib/db', () => ({
   InscripcionNoAbiertaError: class extends Error {},
   ActividadNoEncontradaError: class extends Error {},
 }))
+vi.mock('../lib/db', () => dbFalsa)
+vi.mock('../lib/firebaseLoaders', () => ({ loadDb: async () => dbFalsa, loadAuth: async () => ({}) }))
 
 const { useAmbosDiasBooking } = await import('./useAmbosDiasBooking')
 const { loginPath } = await import('../i18n/routing')

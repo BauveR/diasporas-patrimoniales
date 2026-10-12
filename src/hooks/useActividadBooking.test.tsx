@@ -16,8 +16,12 @@ vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => authState,
 }))
 
-vi.mock('../lib/db', () => ({
-  inscribirse: vi.fn(),
+const inscribirse = vi.hoisted(() => vi.fn(async (..._args: unknown[]) => {}))
+vi.mock('../lib/correoConfirmacion', () => ({ enviarCorreoConfirmacion: async () => true }))
+// El hook carga la base de datos con import() dinámico (lib/firebaseLoaders):
+// se simula ese cargador, o el test acabaría hablando con el Firestore real.
+const dbFalsa = vi.hoisted(() => ({
+  inscribirse: (...a: unknown[]) => inscribirse(...a),
   liberarPlaza: vi.fn(),
   getTelefonoForUser: vi.fn(() => Promise.resolve(null)),
   SinPlazasError: class extends Error {},
@@ -26,6 +30,8 @@ vi.mock('../lib/db', () => ({
   InscripcionNoAbiertaError: class extends Error {},
   ActividadNoEncontradaError: class extends Error {},
 }))
+vi.mock('../lib/db', () => dbFalsa)
+vi.mock('../lib/firebaseLoaders', () => ({ loadDb: async () => dbFalsa, loadAuth: async () => ({}) }))
 
 const { useActividadBooking } = await import('./useActividadBooking')
 
@@ -77,5 +83,19 @@ describe('useActividadBooking — volver del login lanzado desde "Inscribirme"',
     expect(result.current.mostrandoTelefono).toBe(false)
     expect(result.current.avisoSesionIniciada).toBe(false)
     expect(getInscripcionPendiente()).toBeNull()
+  })
+})
+
+describe('useActividadBooking — teléfono pegado con espacios especiales', () => {
+  it('guarda el teléfono normalizado (lo que aceptan las reglas)', async () => {
+    authState.user = { uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana', getIdToken: async () => 't' } as typeof authState.user
+    inscribirse.mockClear()
+    const { result } = renderHook(() => useActividadBooking(actividad(1)), { wrapper })
+    act(() => {
+      result.current.onTelefonoChange('0034\u00a0600\u00a0123\u00a0456')
+      result.current.setAceptoTerminos(true)
+    })
+    await act(async () => { await result.current.handleConfirmarInscripcion() })
+    expect(inscribirse).toHaveBeenCalledWith(1, 'u1', 'ana@ull.edu.es', 'Ana', '+34 600 123 456')
   })
 })
