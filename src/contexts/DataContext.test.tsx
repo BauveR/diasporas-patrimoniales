@@ -140,6 +140,15 @@ describe('DataProvider — sin conexión con Firestore', () => {
     expect(screen.getByText('error')).toBeInTheDocument()
   })
 
+  it.each(['/login', '/en/login'])('en la pantalla de login (%s) no recarga sola: avisa sin gastar el modo compatible', async ruta => {
+    Object.defineProperty(window, 'location', { value: { ...window.location, pathname: ruta, reload }, writable: true, configurable: true })
+    await montar()
+    act(() => { vi.advanceTimersByTime(TIMEOUT_CONEXION_MS) })
+    expect(screen.getByText('error')).toBeInTheDocument()
+    expect(reload).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem('firestore_modo_compatible_intentado')).toBeNull()
+  })
+
   it('sin internet en el dispositivo: avisa enseguida y no gasta el modo compatible', async () => {
     Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
     try {

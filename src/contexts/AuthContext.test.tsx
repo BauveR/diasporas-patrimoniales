@@ -1,4 +1,5 @@
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
+import { useState } from 'react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { TIMEOUT_CONEXION_MS } from '../lib/conexion'
 
@@ -117,5 +118,57 @@ describe('AuthProvider — inscripciones sin conexión', () => {
     await act(async () => { avisar({ uid: 'u1', email: 'a@ull.edu.es', displayName: 'Ana' }); await Promise.resolve() })
     await act(async () => { for (let i = 0; i < 5; i++) await Promise.resolve() })
     expect(suscripciones).toBe(1)
+  })
+})
+
+describe('AuthProvider — el login no espera al rol más de ESPERA_ROL_MS', () => {
+  let resolverRol: (r: string) => void = () => {}
+
+  // Botón que inicia sesión y muestra lo que devolvió signIn y el rol actual.
+  function Probe() {
+    const { signIn, userRole } = useAuth()
+    const [resultado, setResultado] = useState('pendiente')
+    return (
+      <>
+        <button onClick={() => { signIn('ana@ull.edu.es', 'clave1234').then(setResultado) }}>entrar</button>
+        <p data-testid="resultado">{resultado}</p>
+        <p data-testid="rol">{userRole ?? 'sin rol'}</p>
+      </>
+    )
+  }
+
+  const tic = async () => { for (let i = 0; i < 5; i++) await Promise.resolve() }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    loadAuth.mockReset().mockResolvedValue({
+      subscribeAuthState: () => () => {},
+      signIn: async () => ({ uid: 'u1', email: 'ana@ull.edu.es', displayName: 'Ana' }),
+      // Firestore bloqueado: el rol tarda (o no llega).
+      getUserRole: () => new Promise<string>(r => { resolverRol = r }),
+    })
+  })
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+
+  it('si el rol no llega en 3 s, entra como usuario normal; cuando llega, se actualiza', async () => {
+    const { ESPERA_ROL_MS } = await import('./AuthContext')
+    render(<AuthProvider><Probe /></AuthProvider>)
+    await act(tic)
+    await act(async () => { fireEvent.click(screen.getByText('entrar')); await tic() })
+    expect(screen.getByTestId('resultado')).toHaveTextContent('pendiente')
+    await act(async () => { vi.advanceTimersByTime(ESPERA_ROL_MS); await tic() })
+    expect(screen.getByTestId('resultado')).toHaveTextContent('user')
+    await act(async () => { resolverRol('admin'); await tic() })
+    expect(screen.getByTestId('rol')).toHaveTextContent('admin')
+  })
+
+  it('si el rol llega a tiempo, se usa directamente', async () => {
+    render(<AuthProvider><Probe /></AuthProvider>)
+    await act(tic)
+    await act(async () => { fireEvent.click(screen.getByText('entrar')); await tic() })
+    await act(async () => { resolverRol('admin'); await tic() })
+    expect(screen.getByTestId('resultado')).toHaveTextContent('admin')
+    expect(screen.getByTestId('rol')).toHaveTextContent('admin')
   })
 })

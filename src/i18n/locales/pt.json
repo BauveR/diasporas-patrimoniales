@@ -309,10 +309,11 @@
       "contrasenaEmail": "Não use o seu email na palavra-passe",
       "cuentaOtroMetodo": "Este email já tem uma conta com palavra-passe. Inicie sessão aqui em baixo com o seu email e palavra-passe.",
       "popupBloqueado": "O seu navegador bloqueou a janela do Google. Permita janelas pop-up para este site ou use o seu email e palavra-passe.",
-      "red": "Sem ligação. Verifique a sua internet e tente novamente.",
+      "red": "Não foi possível ligar ao serviço de acesso. Se estiver na rede de uma universidade ou instituição, pode estar a bloqueá-lo: experimente com dados móveis ou outra rede.",
       "cuentaDesactivada": "Esta conta está desativada.",
       "credencialesAyuda": "Se criou a sua conta com o Google, use «Continuar com o Google».",
-      "contacto": "Se continuar a acontecer, escreva-nos para"
+      "contacto": "Se continuar a acontecer, escreva-nos para",
+      "sinInternet": "Sem ligação à internet. Verifique o seu wi-fi ou os dados móveis e tente novamente."
     },
     "acciones": {
       "iniciarSesion": "Iniciar sessão",

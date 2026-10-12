@@ -309,10 +309,11 @@
       "contrasenaEmail": "No uses tu email dentro de la contraseña",
       "cuentaOtroMetodo": "Este email ya tiene una cuenta con contraseña. Inicia sesión aquí abajo con tu email y tu contraseña.",
       "popupBloqueado": "Tu navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio o usa tu email y contraseña.",
-      "red": "No hay conexión. Revisa tu internet e inténtalo de nuevo.",
+      "red": "No pudimos conectar con el servicio de acceso. Si estás en la red de una universidad o institución, puede que la bloquee: prueba con datos móviles u otra red.",
       "cuentaDesactivada": "Esta cuenta está desactivada.",
       "credencialesAyuda": "Si creaste tu cuenta con Google, usa «Continuar con Google».",
-      "contacto": "Si sigue pasando, escríbenos a"
+      "contacto": "Si sigue pasando, escríbenos a",
+      "sinInternet": "No hay conexión a internet. Revisa tu wifi o tus datos móviles e inténtalo de nuevo."
     },
     "acciones": {
       "iniciarSesion": "Iniciar sesión",
