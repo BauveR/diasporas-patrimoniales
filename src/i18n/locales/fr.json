@@ -346,7 +346,10 @@
       "punto3": "Le lien est à usage unique et expire au bout d'1 heure.",
       "punto4": "Une fois modifié, revenez ici et connectez-vous avec votre nouveau mot de passe.",
       "enviar": "Envoyer le lien",
-      "volver": "← Retour à la connexion"
+      "volver": "← Retour à la connexion",
+      "reenviar": "Renvoyer l'e-mail",
+      "reenviarEn": "Renvoyer dans {{s}} s",
+      "limite": "Nous vous avons déjà envoyé plusieurs e-mails. Vérifiez aussi vos spams. S'il n'arrive toujours pas, écrivez-nous à"
     },
     "cerrar": "Fermer",
     "entrando": "Connexion en cours…"

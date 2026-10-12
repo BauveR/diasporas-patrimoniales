@@ -346,7 +346,10 @@
       "punto3": "El enlace es de un solo uso y caduca en 1 hora.",
       "punto4": "Una vez cambiada, vuelve aquí e inicia sesión con tu nueva contraseña.",
       "enviar": "Enviar enlace",
-      "volver": "← Volver al inicio de sesión"
+      "volver": "← Volver al inicio de sesión",
+      "reenviar": "Reenviar correo",
+      "reenviarEn": "Reenviar en {{s}} s",
+      "limite": "Ya te hemos enviado varios correos. Revisa también tu carpeta de spam. Si no te llega, escríbenos a"
     },
     "cerrar": "Cerrar",
     "entrando": "Entrando…"

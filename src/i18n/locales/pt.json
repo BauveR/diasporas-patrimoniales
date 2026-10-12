@@ -346,7 +346,10 @@
       "punto3": "O link só pode ser usado uma vez e expira em 1 hora.",
       "punto4": "Depois de a alterar, volte aqui e inicie sessão com a nova palavra-passe.",
       "enviar": "Enviar link",
-      "volver": "← Voltar ao início de sessão"
+      "volver": "← Voltar ao início de sessão",
+      "reenviar": "Reenviar email",
+      "reenviarEn": "Reenviar dentro de {{s}} s",
+      "limite": "Já lhe enviámos vários emails. Verifique também a pasta de spam. Se mesmo assim não chegar, escreva-nos para"
     },
     "cerrar": "Fechar",
     "entrando": "A iniciar sessão…"

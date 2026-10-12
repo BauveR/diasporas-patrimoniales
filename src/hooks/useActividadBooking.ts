@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { loadDb } from '../lib/firebaseLoaders'
-import { isValidTelefono } from '../utils/validators'
+import { isValidTelefono, normalizarTelefono } from '../utils/validators'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import type { Actividad } from '../data/actividades'
 import { loginPath } from '../i18n/routing'
@@ -93,7 +93,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     setCorreoNoEnviado(false)
     setTelefonoError('')
     try {
-      await db.inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await db.inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', normalizarTelefono(telefono))
       limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
       // `inscrito` (arriba) viene de un listener de Firestore en tiempo real

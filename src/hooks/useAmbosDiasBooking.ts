@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { loadDb } from '../lib/firebaseLoaders'
-import { isValidTelefono } from '../utils/validators'
+import { isValidTelefono, normalizarTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import { loginPath } from '../i18n/routing'
@@ -89,7 +89,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     setCorreoNoEnviado(false)
     setTelefonoError('')
     try {
-      await db.inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
+      await db.inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', normalizarTelefono(telefono))
       limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
       enviarCorreoConfirmacion(user, ids).then(ok => setCorreoNoEnviado(!ok))

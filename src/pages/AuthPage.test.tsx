@@ -453,3 +453,30 @@ describe('AuthPage — Google por redirección (Chrome/Firefox/Edge de iPhone)',
     expect(screen.getByPlaceholderText('tu@email.com')).toHaveValue('ana@ull.edu.es')
   })
 })
+
+describe('AuthPage — recuperar contraseña con espera y máximo', () => {
+  beforeEach(async () => { sessionStorage.clear(); sendPasswordReset.mockClear(); await i18n.changeLanguage('es') })
+
+  async function irARecuperarYEnviar() {
+    await montar('/login', 'es')
+    fireEvent.click(screen.getByRole('button', { name: '¿Olvidaste tu contraseña?' }))
+    fireEvent.change(screen.getByPlaceholderText('tu@email.com'), { target: { value: 'ana@ull.edu.es' } })
+  }
+
+  it('tras enviar, "Reenviar" espera 60 s', async () => {
+    await irARecuperarYEnviar()
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar enlace' }))
+    expect(await screen.findByText(/Si existe una cuenta con ese email/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Reenviar en \d+ s/ })).toBeDisabled()
+    expect(sendPasswordReset).toHaveBeenCalledTimes(1)
+  })
+
+  it('con 3 envíos ya hechos en esta pestaña no envía más y ofrece el contacto', async () => {
+    sessionStorage.setItem('reset_envios', JSON.stringify({ n: 3, ultimo: 0 }))
+    await irARecuperarYEnviar()
+    expect(screen.queryByRole('button', { name: 'Enviar enlace' })).not.toBeInTheDocument()
+    expect(screen.getByText(/Ya te hemos enviado varios correos/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'diasporaspatrimoniales@gmail.com' })).toBeInTheDocument()
+    expect(sendPasswordReset).not.toHaveBeenCalled()
+  })
+})
