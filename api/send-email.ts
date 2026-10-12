@@ -3,7 +3,7 @@ import { getAuth } from 'firebase-admin/auth'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { Resend } from 'resend'
 import { getAdminApp } from './_lib/firebaseAdmin.js'
-import { renderConfirmacionEmail, type DiaEmailData } from './_lib/emailTemplate.js'
+import { renderConfirmacionEmail, IDIOMAS_EMAIL, type DiaEmailData, type IdiomaEmail } from './_lib/emailTemplate.js'
 import { diaDe } from './_lib/dia.js'
 import { PROGRAMA_DIA_1, PROGRAMA_DIA_2 } from '../src/data/programa.js'
 
@@ -54,7 +54,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'method_not_allowed' })
   }
 
-  const { idToken, actividadIds } = (req.body ?? {}) as { idToken?: unknown; actividadIds?: unknown }
+  const { idToken, actividadIds, idioma: idiomaPedido } = (req.body ?? {}) as { idToken?: unknown; actividadIds?: unknown; idioma?: unknown }
+  // El idioma en que se hizo la inscripción (la web lo manda); cualquier otro
+  // valor, en español.
+  const idioma: IdiomaEmail = IDIOMAS_EMAIL.includes(idiomaPedido as IdiomaEmail) ? idiomaPedido as IdiomaEmail : 'es'
+  const etiquetaFecha = { es: 'es-ES', en: 'en-GB', fr: 'fr-FR', pt: 'pt-PT' }[idioma]
   const idsValidas = Array.isArray(actividadIds) && actividadIds.length > 0 && actividadIds.every(id => typeof id === 'number')
   if (typeof idToken !== 'string' || !idToken || !idsValidas) {
     return res.status(400).json({ error: 'invalid_body' })
@@ -110,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const dias: DiaEmailData[] = actividades.map(actividad => ({
     titulo: actividad.titulo,
-    fecha: new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+    fecha: new Date(actividad.fecha + 'T00:00:00').toLocaleDateString(etiquetaFecha, {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     }),
     hora: actividad.hora,
@@ -124,6 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const primeraActividad = actividades[0]
 
   const { subject, html, text } = renderConfirmacionEmail({
+    idioma,
     nombre,
     dias,
     contacto: primeraActividad.contacto,

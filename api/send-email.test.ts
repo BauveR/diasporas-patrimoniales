@@ -49,9 +49,9 @@ function respuesta() {
   return res
 }
 
-async function pedir() {
+async function pedir(idioma?: unknown) {
   const res = respuesta()
-  await handler({ method: 'POST', body: { idToken: 't', actividadIds: [1] } } as VercelRequest, res)
+  await handler({ method: 'POST', body: { idToken: 't', actividadIds: [1], idioma } } as VercelRequest, res)
   return res.statusCode
 }
 
@@ -103,5 +103,12 @@ describe('api/send-email — tope diario', () => {
     resendError = { message: 'fallo' }
     expect(await pedir()).toBe(502)
     expect(docs.get('emailsConfirmacion/u1_1')?.enviados).toBe(0)
+  })
+
+  it('el correo sale en el idioma que manda la web; uno desconocido, en español', async () => {
+    expect(await pedir('en')).toBe(200)
+    expect((enviados.at(-1) as { subject: string }).subject).toBe('Registration confirmed — Jornada 1')
+    expect(await pedir('xx')).toBe(200)
+    expect((enviados.at(-1) as { subject: string }).subject).toBe('Confirmación de inscripción — Jornada 1')
   })
 })
