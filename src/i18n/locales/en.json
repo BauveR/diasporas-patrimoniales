@@ -347,6 +347,7 @@
       "enviar": "Send link",
       "volver": "← Back to sign in"
     },
-    "cerrar": "Close"
+    "cerrar": "Close",
+    "entrando": "Signing you in…"
   }
 }

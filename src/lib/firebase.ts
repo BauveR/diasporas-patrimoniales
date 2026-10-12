@@ -24,6 +24,6 @@ export const db = initializeFirestore(app, modoCompatibleActivo() ? { experiment
 // dev:emuladores): crear cuentas, entrar, recuperar contraseña… sin tocar la
 // base de datos real. En producción la variable no existe y esto no corre.
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
   connectFirestoreEmulator(db, '127.0.0.1', 8080)
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectarNavegadorIntegrado, enlaceAbrirEnChrome } from './navegadorIntegrado'
+import { detectarNavegadorIntegrado, enlaceAbrirEnChrome, usaRedireccionParaGoogle } from './navegadorIntegrado'
 
 // Agentes de usuario reales (recortados lo justo).
 const UA = {
@@ -54,5 +54,27 @@ describe('enlaceAbrirEnChrome', () => {
     expect(enlaceAbrirEnChrome(url)).toBe(
       `intent://diasporaspatrimoniales.com/en/login?x=1#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`,
     )
+  })
+})
+
+describe('usaRedireccionParaGoogle', () => {
+  it.each([
+    ['Chrome iPhone', UA.chromeIos],
+    ['Firefox iPhone', UA.firefoxIos],
+    ['Edge iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 EdgiOS/126.2592.56 Mobile/15E148 Safari/605.1.15'],
+    ['app de Google en iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/325.0.661642875 Mobile/15E148 Safari/604.1'],
+    ['Chrome iPad (modo escritorio)', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.54 Mobile/15E148 Safari/604.1'],
+  ])('%s → redirección', (_n, ua) => {
+    expect(usaRedireccionParaGoogle(ua)).toBe(true)
+  })
+
+  it.each([
+    ['Safari iPhone', UA.safariIos],
+    ['Chrome Android', UA.chromeAndroid],
+    ['Samsung Android', UA.samsungAndroid],
+    ['Chrome Mac', UA.chromeMac],
+    ['Safari Mac', UA.safariMac],
+  ])('%s → ventana emergente (como ahora)', (_n, ua) => {
+    expect(usaRedireccionParaGoogle(ua)).toBe(false)
   })
 })

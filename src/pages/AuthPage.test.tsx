@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { render, screen, fireEvent, act } from '@testing-library/react'
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import i18n from '../i18n/config'
 
@@ -11,6 +11,8 @@ const signUp = vi.hoisted(() => vi.fn(async () => 'user'))
 const signOut = vi.hoisted(() => vi.fn(async () => {}))
 let signUpImpl: (() => Promise<unknown>) | null = null
 let signInWithGoogle: () => Promise<unknown> = async () => ({ role: 'user', isNewUser: false })
+const iniciarGoogleRedireccion = vi.hoisted(() => vi.fn(async () => {}))
+let completarGoogleRedireccion: () => Promise<unknown> = async () => null
 let usuarioActual: { uid: string; email: string; displayName: string | null } | null = null
 let rolActual: 'user' | 'admin' | null = null
 vi.mock('../contexts/AuthContext', () => ({
@@ -20,6 +22,8 @@ vi.mock('../contexts/AuthContext', () => ({
     signIn: (e: string, p: string) => signIn(e, p),
     signUp: (...a: unknown[]) => (signUpImpl ? signUpImpl() : signUp(...(a as []))),
     signInWithGoogle: () => signInWithGoogle(),
+    iniciarGoogleRedireccion,
+    completarGoogleRedireccion: () => completarGoogleRedireccion(),
     signOut,
   }),
 }))
@@ -27,6 +31,7 @@ const sendPasswordReset = vi.hoisted(() => vi.fn(async () => {}))
 vi.mock('../lib/auth', () => ({ sendPasswordReset }))
 
 const { AuthPage } = await import('./AuthPage')
+const { marcarInscripcionPendiente, getInscripcionPendiente, limpiarInscripcionPendiente } = await import('../lib/inscripcionPendiente')
 // jsdom no implementa scrollTo (AuthPage sube al cambiar de pantalla).
 window.scrollTo = vi.fn() as typeof window.scrollTo
 
@@ -326,5 +331,101 @@ describe('AuthPage — dentro del navegador de una app', () => {
     await montar('/login', 'es')
     expect(screen.queryByText(/Abre esta página en tu navegador/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeEnabled()
+  })
+})
+
+describe('AuthPage — Google por redirección (Chrome/Firefox/Edge de iPhone)', () => {
+  const uaOriginal = navigator.userAgent
+  const CHROME_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.54 Mobile/15E148 Safari/604.1'
+  const SAFARI_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+  const ponerUA = (ua: string) => Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true })
+  const pendiente = () => JSON.parse(sessionStorage.getItem('login_google_redireccion') ?? 'null')
+
+  beforeEach(async () => {
+    sessionStorage.clear()
+    iniciarGoogleRedireccion.mockClear()
+    completarGoogleRedireccion = async () => null
+    signInWithGoogle = async () => ({ role: 'user', isNewUser: false })
+    limpiarInscripcionPendiente()
+    await i18n.changeLanguage('es')
+  })
+  afterEach(() => ponerUA(uaOriginal))
+
+  function Ruta() { return <p data-testid="ruta">{useLocation().pathname}</p> }
+  function montarEn(entradas: Parameters<typeof MemoryRouter>[0]['initialEntries'], indice?: number) {
+    render(
+      <MemoryRouter initialEntries={entradas} initialIndex={indice}>
+        <Routes>
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/en/login" element={<AuthPage />} />
+          <Route path="*" element={<Ruta />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+  }
+
+  it('Chrome de iPhone: va a Google en la misma pestaña (no ventana emergente) guardando el destino', async () => {
+    ponerUA(CHROME_IPHONE)
+    let popup = false
+    signInWithGoogle = async () => { popup = true; return { role: 'user', isNewUser: false } }
+    montarEn(['/login'])
+    fireEvent.click(screen.getByRole('button', { name: /Continuar con Google/ }))
+    await vi.waitFor(() => expect(iniciarGoogleRedireccion).toHaveBeenCalledOnce())
+    expect(popup).toBe(false)
+    expect(pendiente()).toMatchObject({ destino: { tipo: 'bienvenida' }, inscripcion: null })
+  })
+
+  it('desde "Inscribirme" de una jornada: guarda la jornada y la inscripción pendiente', async () => {
+    ponerUA(CHROME_IPHONE)
+    marcarInscripcionPendiente(1)
+    montarEn(['/actividades/1', { pathname: '/login', state: { background: { pathname: '/actividades/1', search: '', hash: '' } } }], 1)
+    fireEvent.click(screen.getByRole('button', { name: /Continuar con Google/ }))
+    await vi.waitFor(() => expect(iniciarGoogleRedireccion).toHaveBeenCalledOnce())
+    expect(pendiente()).toMatchObject({ destino: { tipo: 'volver', ruta: '/actividades/1' }, inscripcion: 1 })
+  })
+
+  it('Safari de iPhone sigue con la ventana emergente', async () => {
+    ponerUA(SAFARI_IPHONE)
+    let popup = false
+    signInWithGoogle = async () => { popup = true; return { role: 'user', isNewUser: false } }
+    montarEn(['/login'])
+    fireEvent.click(screen.getByRole('button', { name: /Continuar con Google/ }))
+    await vi.waitFor(() => expect(popup).toBe(true))
+    expect(iniciarGoogleRedireccion).not.toHaveBeenCalled()
+  })
+
+  it('al volver de Google: "Entrando…" y luego a la jornada, con el formulario de inscripción pendiente', async () => {
+    sessionStorage.setItem('login_google_redireccion', JSON.stringify({ destino: { tipo: 'volver', ruta: '/en/actividades/1' }, inscripcion: 1, en: Date.now() }))
+    let resolver: (v: unknown) => void = () => {}
+    completarGoogleRedireccion = () => new Promise(r => { resolver = r })
+    montarEn(['/en/login'])
+    expect(screen.getByRole('status')).toHaveTextContent(i18n.t('auth.entrando'))
+    await act(async () => { resolver({ role: 'user', isNewUser: false }) })
+    expect(screen.getByTestId('ruta')).toHaveTextContent('/en/actividades/1')
+    expect(getInscripcionPendiente()).toBe(1)
+    expect(pendiente()).toBeNull()
+  })
+
+  it('al volver de Google desde el menú: bienvenida', async () => {
+    sessionStorage.setItem('login_google_redireccion', JSON.stringify({ destino: { tipo: 'bienvenida' }, inscripcion: null, en: Date.now() }))
+    completarGoogleRedireccion = async () => ({ role: 'user', isNewUser: true })
+    montarEn(['/login'])
+    expect(await screen.findByRole('heading', { name: '¡Cuenta creada!' })).toBeInTheDocument()
+  })
+
+  it('volvió de Google sin elegir cuenta: de vuelta al formulario, sin errores', async () => {
+    sessionStorage.setItem('login_google_redireccion', JSON.stringify({ destino: { tipo: 'bienvenida' }, inscripcion: null, en: Date.now() }))
+    completarGoogleRedireccion = async () => null
+    montarEn(['/login'])
+    expect(await screen.findByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('error al volver (email con contraseña): mensaje con salida, email escrito', async () => {
+    sessionStorage.setItem('login_google_redireccion', JSON.stringify({ destino: { tipo: 'bienvenida' }, inscripcion: null, en: Date.now() }))
+    completarGoogleRedireccion = async () => { throw Object.assign(new Error('x'), { code: 'auth/account-exists-with-different-credential', customData: { email: 'ana@ull.edu.es' } }) }
+    montarEn(['/login'])
+    expect(await screen.findByText(/Este email ya tiene una cuenta con contraseña/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('tu@email.com')).toHaveValue('ana@ull.edu.es')
   })
 })
