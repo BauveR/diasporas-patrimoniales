@@ -1,6 +1,6 @@
 import { render, screen, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { AVISO_LENTO_MS, TIMEOUT_CONEXION_MS } from '../lib/conexion'
+import { AVISO_LENTO_MS, GRACIA_SIN_SERVIDOR_MS, TIMEOUT_CONEXION_MS } from '../lib/conexion'
 
 // Firestore simulado: cada test decide si los listeners responden, fallan
 // o se quedan callados (lo que pasa cuando un proxy corta la conexión).
@@ -99,20 +99,65 @@ describe('DataProvider — sin conexión con Firestore', () => {
     expect(screen.getByText('error')).toBeInTheDocument()
   })
 
-  // Lo que hace Firestore real cuando un proxy lo bloquea: a los pocos
-  // segundos pasa a "offline" y entrega la caché, que la primera vez está
-  // vacía. Antes eso contaba como "cargado" y la sección desaparecía.
-  it('una respuesta vacía desde caché (Firestore offline) cuenta como fallo enseguida', async () => {
+  // Lo que hace Firestore real cuando falla un intento de conexión: pasa a
+  // "offline" y entrega la caché, vacía la primera vez — y sigue
+  // reintentando. Un proxy que bloquea de verdad deja la caché vacía para
+  // siempre; un corte de un segundo, no. De ahí el periodo de gracia.
+  it('caché vacía (Firestore offline): no avisa enseguida, espera la gracia', async () => {
     yaSeIntentoModoCompatible()
     await montar()
     act(() => { listeners.actividades![0]([], cache); listeners.sedes![0]([], cache) })
+    expect(screen.queryByText('error')).not.toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(GRACIA_SIN_SERVIDOR_MS) })
     expect(screen.getByText('error')).toBeInTheDocument()
+  })
+
+  it('corte pasajero: caché vacía y el servidor responde dentro de la gracia → sin aviso ni recarga', async () => {
+    await montar()
+    act(() => { listeners.actividades![0]([], cache); listeners.sedes![0]([], cache) })
+    act(() => { vi.advanceTimersByTime(2_000) })
+    act(() => { listeners.actividades![0]([{ id: 1 }], servidor); listeners.sedes![0]([{ id: 1 }], servidor) })
+    act(() => { vi.advanceTimersByTime(TIMEOUT_CONEXION_MS) })
+    expect(screen.getByText('listo')).toBeInTheDocument()
+    expect(reload).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem('firestore_modo_compatible_intentado')).toBeNull()
+  })
+
+  it('bloqueo real: la caché sigue vacía al acabar la gracia → recarga en modo compatible', async () => {
+    await montar()
+    act(() => { listeners.actividades![0]([], cache); listeners.sedes![0]([], cache) })
+    act(() => { vi.advanceTimersByTime(GRACIA_SIN_SERVIDOR_MS) })
+    expect(screen.getByText('reconectando')).toBeInTheDocument()
+    expect(reload).toHaveBeenCalledOnce()
+  })
+
+  it('la gracia cuenta desde que empezó la carga, no desde el aviso de offline', async () => {
+    yaSeIntentoModoCompatible()
+    await montar()
+    act(() => { vi.advanceTimersByTime(GRACIA_SIN_SERVIDOR_MS - 1_000) })
+    act(() => { listeners.actividades![0]([], cache) })
+    act(() => { vi.advanceTimersByTime(1_000) })
+    expect(screen.getByText('error')).toBeInTheDocument()
+  })
+
+  it('sin internet en el dispositivo: avisa enseguida y no gasta el modo compatible', async () => {
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
+    try {
+      await montar()
+      act(() => { listeners.actividades![0]([], cache) })
+      expect(screen.getByText('error')).toBeInTheDocument()
+      expect(reload).not.toHaveBeenCalled()
+      expect(sessionStorage.getItem('firestore_modo_compatible_intentado')).toBeNull()
+    } finally {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
+    }
   })
 
   it('tras el aviso por caché vacía, si luego responde el servidor, queda listo', async () => {
     yaSeIntentoModoCompatible()
     await montar()
     act(() => { listeners.actividades![0]([], cache); listeners.sedes![0]([], cache) })
+    act(() => { vi.advanceTimersByTime(GRACIA_SIN_SERVIDOR_MS) })
     act(() => { listeners.actividades![0]([{ id: 1 }], servidor); listeners.sedes![0]([{ id: 1 }], servidor) })
     expect(screen.getByText('listo')).toBeInTheDocument()
   })

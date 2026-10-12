@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { getAdminApp } from './_lib/firebaseAdmin.js'
+import { diaDe } from './_lib/dia.js'
+
+export { diaDe }
 
 // Contador anónimo de problemas de conexión con Firestore (ver
 // src/lib/conexion.ts): lo manda el navegador cuando activa el modo
@@ -13,11 +16,6 @@ export type EventoConexion = typeof EVENTOS_CONEXION[number]
 
 export function esEventoValido(evento: unknown): evento is EventoConexion {
   return typeof evento === 'string' && (EVENTOS_CONEXION as readonly string[]).includes(evento)
-}
-
-// Fecha en Canarias (Atlantic/Canary) — el día "de hoy" que verá el admin.
-export function diaDe(fecha: Date): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Atlantic/Canary' }).format(fecha)
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

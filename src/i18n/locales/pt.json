@@ -233,7 +233,9 @@
     "boton": "Tentar novamente",
     "cargando": "A carregar…",
     "lento": "Está a demorar mais do que o habitual…",
-    "reconectando": "A ligar novamente em modo compatível…"
+    "reconectando": "A ligar novamente em modo compatível…",
+    "sinInternetTitulo": "Sem ligação à internet",
+    "sinInternetTexto": "Verifique o seu wi-fi ou os dados móveis. Assim que a ligação voltar, a página atualiza-se sozinha."
   },
   "auth": {
     "titulo": {

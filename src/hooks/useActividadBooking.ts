@@ -6,6 +6,7 @@ import { isValidTelefono } from '../utils/validators'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import type { Actividad } from '../data/actividades'
 import { loginPath } from '../i18n/routing'
+import { enviarCorreoConfirmacion } from '../lib/correoConfirmacion'
 
 // Todo el estado y los handlers de inscripción/liberación de plaza, sacados
 // de ActividadPage.tsx para que ActividadExpandido (el panel inline dentro
@@ -18,6 +19,9 @@ export function useActividadBooking(actividad: Actividad | undefined) {
 
   const inscrito = !!actividad && inscripcionIds.includes(actividad.id)
   const [inscribiendo, setInscribiendo] = useState(false)
+  // El correo de confirmación no salió (tope diario, fallo de Resend o de
+  // red): la tarjeta de "inscripción confirmada" lo avisa.
+  const [correoNoEnviado, setCorreoNoEnviado] = useState(false)
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -86,6 +90,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     const db = await loadDb()
     setInscribiendo(true)
     setInscripcionError('')
+    setCorreoNoEnviado(false)
     setTelefonoError('')
     try {
       await db.inscribirse(actividad.id, user.uid, user.email ?? '', user.displayName ?? '', telefono)
@@ -101,13 +106,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
       // todo el contenido desde Firestore a partir de actividadId — no manda
       // texto libre, así el endpoint no puede usarse para emails con datos
       // arbitrarios (ver api/send-email.ts).
-      user.getIdToken().then(idToken => {
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken, actividadIds: [actividad.id] }),
-        }).catch(() => { /* silencioso — inscripción ya completada */ })
-      }).catch(() => { /* silencioso */ })
+      enviarCorreoConfirmacion(user, [actividad.id]).then(ok => setCorreoNoEnviado(!ok))
     } catch (err) {
       if (err instanceof db.SinPlazasError) {
         setInscripcionError('Ya no quedan plazas disponibles.')
@@ -135,6 +134,7 @@ export function useActividadBooking(actividad: Actividad | undefined) {
     isLoggedIn: !!user,
     inscrito,
     inscribiendo, inscripcionError,
+    correoNoEnviado,
     confirmando, setConfirmando,
     liberando,
     mostrandoTelefono: mostrandoTelefono || continuarTrasLogin,

@@ -6,6 +6,7 @@ import { isValidTelefono } from '../utils/validators'
 import type { Actividad } from '../data/actividades'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import { loginPath } from '../i18n/routing'
+import { enviarCorreoConfirmacion } from '../lib/correoConfirmacion'
 
 // Misma forma que useActividadBooking, pero operando sobre las 2 jornadas a
 // la vez (ver inscribirseAmbosDias/liberarAmbosDias en lib/db.ts) — un solo
@@ -21,6 +22,9 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   const inscritoParcial = inscritoEn.length > 0 && inscritoEn.length < ids.length
 
   const [inscribiendo, setInscribiendo] = useState(false)
+  // El correo de confirmación no salió (tope diario, fallo de Resend o de
+  // red): la tarjeta de "inscripción confirmada" lo avisa.
+  const [correoNoEnviado, setCorreoNoEnviado] = useState(false)
   const [inscripcionError, setInscripcionError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const [liberando, setLiberando] = useState(false)
@@ -82,18 +86,13 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
     const db = await loadDb()
     setInscribiendo(true)
     setInscripcionError('')
+    setCorreoNoEnviado(false)
     setTelefonoError('')
     try {
       await db.inscribirseAmbosDias(ids, user.uid, user.email ?? '', user.displayName ?? '', telefono)
       limpiarInscripcionPendiente()
       setMostrandoTelefono(false)
-      user.getIdToken().then(idToken => {
-        fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken, actividadIds: ids }),
-        }).catch(() => { /* silencioso — inscripción ya completada */ })
-      }).catch(() => { /* silencioso */ })
+      enviarCorreoConfirmacion(user, ids).then(ok => setCorreoNoEnviado(!ok))
     } catch (err) {
       if (err instanceof db.SinPlazasError) {
         setInscripcionError('Ya no quedan plazas disponibles en una de las dos jornadas.')
@@ -115,6 +114,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
 
   return {
     isLoggedIn: !!user,
+    correoNoEnviado,
     inscrito: inscritoAmbos,
     inscritoParcial,
     diasInscritos: inscritoEn,

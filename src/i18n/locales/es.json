@@ -233,7 +233,9 @@
     "boton": "Reintentar",
     "cargando": "Cargando…",
     "lento": "Está tardando más de lo normal…",
-    "reconectando": "Reconectando en modo compatible…"
+    "reconectando": "Reconectando en modo compatible…",
+    "sinInternetTitulo": "Sin conexión a internet",
+    "sinInternetTexto": "Revisa tu wifi o tus datos móviles. En cuanto vuelva la conexión, la página se actualizará sola."
   },
   "auth": {
     "titulo": {

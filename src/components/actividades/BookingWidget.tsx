@@ -24,6 +24,9 @@ type BookingWidgetProps = {
   isLoggedIn: boolean
   inscribiendo: boolean
   inscripcionError: string
+  // Inscripción hecha pero sin correo de confirmación (ver
+  // lib/correoConfirmacion.ts): se avisa en vez de prometer un correo.
+  correoNoEnviado?: boolean
   confirmando: boolean
   setConfirmando: (v: boolean) => void
   liberando: boolean
@@ -53,6 +56,7 @@ export function BookingWidget({
   actividad, fecha, pct,
   inscrito, esPasada, esCancelada, noAbierto, isLoggedIn,
   inscribiendo, inscripcionError,
+  correoNoEnviado = false,
   confirmando, setConfirmando,
   liberando, onLiberar, onRequestLogin,
   mostrandoTelefono, setMostrandoTelefono,
@@ -124,6 +128,12 @@ export function BookingWidget({
     </div>
   )
 
+  const avisoCorreo = (oscuro: boolean) => correoNoEnviado && (
+    <p role="status" className={`rounded-xl px-3 py-2 text-[12px] leading-relaxed ${oscuro ? 'bg-amber-400/15 text-amber-200' : 'bg-amber-50 text-amber-900 border border-amber-200'}`} style={textFont}>
+      Tu inscripción está hecha, pero no pudimos enviarte el correo de confirmación. La tienes siempre en tu perfil.
+    </p>
+  )
+
   if (inscrito && !esPasada) {
     if (compact && dark) {
       const fechaCorta = new Date(actividad.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
@@ -139,9 +149,11 @@ export function BookingWidget({
 
           <div className="flex flex-col gap-1.5">
             <h3 className="text-lg leading-snug font-bold text-white">¡Nos vemos el {fechaCorta}!</h3>
-            <p className="text-[13px] leading-relaxed text-stone-400">
-              Te enviamos la confirmación y el programa completo por correo. Podés liberar tu plaza cuando quieras desde tu perfil.
-            </p>
+            {correoNoEnviado ? avisoCorreo(true) : (
+              <p className="text-[13px] leading-relaxed text-stone-400">
+                Te enviamos la confirmación y el programa completo por correo. Podés liberar tu plaza cuando quieras desde tu perfil.
+              </p>
+            )}
           </div>
 
           {confirmando ? (
@@ -238,6 +250,7 @@ export function BookingWidget({
               </div>
             )}
           </div>
+          {avisoCorreo(false)}
           <p className="text-[10px] text-stone-400 text-center">Inscripción gratuita · Se requiere confirmación</p>
         </div>
       )
@@ -246,6 +259,7 @@ export function BookingWidget({
     // Ticket completo (vista principal)
     return (
       <div className="flex flex-col gap-3">
+        {avisoCorreo(false)}
         <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm">
           <div className="px-6 py-5 flex flex-col gap-3" style={{ backgroundColor: '#50664d' }}>
             <div className="flex items-center gap-2">

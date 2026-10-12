@@ -273,3 +273,27 @@ describe('BookingWidget — modo compact', () => {
     expect(screen.getByText(/evento cancelado/i)).toBeInTheDocument()
   })
 })
+
+describe('BookingWidget — correo de confirmación que no salió', () => {
+  const aviso = /no pudimos enviarte el correo de confirmación/i
+
+  it.each([
+    ['ticket completo', {}],
+    ['compacto', { compact: true }],
+  ])('%s: avisa sin dejar de mostrar la inscripción confirmada', (_n, extra) => {
+    renderWidget({ inscrito: true, correoNoEnviado: true, ...extra } as Partial<typeof baseProps>)
+    expect(screen.getByText(aviso)).toBeInTheDocument()
+    expect(screen.getAllByText(/inscripción confirmada/i).length).toBeGreaterThan(0)
+  })
+
+  it('tarjeta oscura: reemplaza el "te enviamos la confirmación por correo"', () => {
+    render(<MemoryRouter><BookingWidget {...baseProps} inscrito correoNoEnviado compact dark /></MemoryRouter>)
+    expect(screen.getByText(aviso)).toBeInTheDocument()
+    expect(screen.queryByText(/Te enviamos la confirmación/)).not.toBeInTheDocument()
+  })
+
+  it('si el correo salió, no hay aviso', () => {
+    renderWidget({ inscrito: true })
+    expect(screen.queryByText(aviso)).not.toBeInTheDocument()
+  })
+})
