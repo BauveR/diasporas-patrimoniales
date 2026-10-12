@@ -573,6 +573,52 @@ async function testInscribirseSinFicha() {
   await borrarActividad(ID)
 }
 
+// ── Límites de nombre, teléfono y consentimiento (SE4) ────────────────────
+
+// Como inscribirseTest(), pero con los campos del inscrito sobreescribibles.
+async function inscribirseConCampos(db: Firestore, actividadId: number, uid: string, email: string, extra: Record<string, unknown>) {
+  const actividadRef = doc(db, 'actividades', String(actividadId))
+  const inscritoRef = doc(db, 'actividades', String(actividadId), 'inscritos', uid)
+  await runTransaction(db, async tx => {
+    const actividadSnap = await tx.get(actividadRef)
+    const actividad = actividadSnap.data() as { plazasDisponibles: number }
+    tx.set(inscritoRef, {
+      uid, email, displayName: 'Ana García', telefono: '600 123 456',
+      inscritoEn: serverTimestamp(), aceptoTerminos: true, terminosVersion: 'v1',
+      ...extra,
+    })
+    tx.update(actividadRef, { plazasDisponibles: actividad.plazasDisponibles - 1 })
+  })
+}
+
+async function testLimitesDeCampos() {
+  console.log('\n11. Las reglas limitan nombre, teléfono y consentimiento (y la ficha users/{uid})')
+  const ID = 910013
+  await seedActividad(ID, 20)
+  const rechazado = async (fn: () => Promise<unknown>) => {
+    try { await fn(); return false } catch (err) { return (err as { code?: string }).code === 'permission-denied' }
+  }
+  const [a, b, c, d, e, f] = await crearUsuarios(6, 'limites')
+  check('nombre de 151 caracteres: rechazado', await rechazado(() => inscribirseConCampos(a.db, ID, a.uid, a.email, { displayName: 'x'.repeat(151) })))
+  check('teléfono con texto: rechazado', await rechazado(() => inscribirseConCampos(b.db, ID, b.uid, b.email, { telefono: '<script>alert(1)</script>' })))
+  check('teléfono demasiado corto: rechazado', await rechazado(() => inscribirseConCampos(c.db, ID, c.uid, c.email, { telefono: '123' })))
+  check('sin aceptar los términos: rechazado', await rechazado(() => inscribirseConCampos(d.db, ID, d.uid, d.email, { aceptoTerminos: false })))
+  check('fecha de inscripción inventada: rechazada', await rechazado(() => inscribirseConCampos(e.db, ID, e.uid, e.email, { inscritoEn: new Date('2020-01-01') })))
+  let error = ''
+  try { await inscribirseConCampos(f.db, ID, f.uid, f.email, { telefono: '+34 (600) 123-456' }) } catch (err) { error = String((err as { code?: string }).code ?? err) }
+  check('inscripción normal (teléfono con espacios, paréntesis y guiones): pasa', error === '', error)
+  check('el contador solo bajó por la inscripción válida', (await leerActividad(ID))?.plazasDisponibles === 19 && (await contarInscritos(ID)) === 1)
+
+  check('ficha users con un campo extra: rechazada', await rechazado(() =>
+    setDoc(doc(a.db, 'users', a.uid), { role: 'user', esAdmin: true }, { merge: true })))
+  check('ficha users con teléfono inválido: rechazada', await rechazado(() =>
+    setDoc(doc(b.db, 'users', b.uid), { telefono: 'llámame' }, { merge: true })))
+  let error2 = ''
+  try { await setDoc(doc(c.db, 'users', c.uid), { telefono: '600123456' }, { merge: true }) } catch (err) { error2 = String((err as { code?: string }).code ?? err) }
+  check('guardar un teléfono válido en la ficha: pasa', error2 === '', error2)
+  await borrarActividad(ID)
+}
+
 async function main() {
   console.log(`Stress test de inscripciones — proyecto emulado "${PROJECT_ID}" (Firestore ${process.env.FIRESTORE_EMULATOR_HOST}, Auth ${AUTH_EMULATOR_URL})`)
   await testCarreraSimple()
@@ -585,6 +631,7 @@ async function main() {
   await testAdminQuitaInscrito()
   await testTelemetriaSoloAdmin()
   await testInscribirseSinFicha()
+  await testLimitesDeCampos()
 
   console.log(`\n${pass} pasaron, ${fail} fallaron.`)
   // exit explícito también en éxito: las N apps de Firebase siguen con

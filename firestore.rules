@@ -18,18 +18,41 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Datos que escribe la propia persona (nombre, teléfono): la web ya los
+    // valida, pero las reglas son la única barrera real — sin esto se podía
+    // guardar un nombre de miles de caracteres o un "teléfono" con cualquier
+    // texto, que luego sale en el panel de asistentes y en el CSV.
+    function textoHasta(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    // Lo que acepta isValidTelefono() de la web, con sus espacios, puntos,
+    // guiones o paréntesis: móvil español de 9 cifras o internacional +XX.
+    function telefonoValido(v) {
+      return v is string && v.size() <= 25 && v.matches('^[+]?[0-9 ().-]{8,24}$');
+    }
+
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();
 
       // A new account creates its own doc, always as role 'user' — role
       // escalation happens by hand in the console (or a future admin UI),
       // never from the client that owns the doc.
-      allow create: if isOwner(uid) && request.resource.data.role == 'user';
+      allow create: if isOwner(uid) && request.resource.data.role == 'user' &&
+        request.resource.data.keys().hasOnly(['email', 'displayName', 'role', 'createdAt', 'telefono']) &&
+        (!('displayName' in request.resource.data) || request.resource.data.displayName == null ||
+          textoHasta(request.resource.data.displayName, 150)) &&
+        (!('telefono' in request.resource.data) || telefonoValido(request.resource.data.telefono));
 
       // Owner can update their own doc (e.g. telefono) but not touch `role`;
       // an admin can update anything, including promoting another user.
       allow update: if isAdmin() ||
-        (isOwner(uid) && request.resource.data.role == resource.data.role);
+        (isOwner(uid) && request.resource.data.role == resource.data.role &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['email', 'displayName', 'telefono', 'createdAt']) &&
+          (!('displayName' in request.resource.data) || request.resource.data.displayName == null ||
+            textoHasta(request.resource.data.displayName, 150)) &&
+          (!('telefono' in request.resource.data) || telefonoValido(request.resource.data.telefono)));
 
       allow delete: if isAdmin();
     }
@@ -94,6 +117,11 @@ service cloud.firestore {
             'inscritoEn', 'aceptoTerminos', 'terminosVersion']) &&
           request.resource.data.uid == uid &&
           request.resource.data.email == request.auth.token.email &&
+          textoHasta(request.resource.data.displayName, 150) &&
+          telefonoValido(request.resource.data.telefono) &&
+          request.resource.data.aceptoTerminos == true &&
+          textoHasta(request.resource.data.terminosVersion, 20) &&
+          request.resource.data.inscritoEn == request.time &&
           getAfter(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles ==
             get(/databases/$(database)/documents/actividades/$(actividadId)).data.plazasDisponibles - 1;
 
