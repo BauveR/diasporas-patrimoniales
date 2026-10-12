@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { reintentarEnModoCompatible } from '../lib/conexion'
+import { reintentarEnModoCompatible, sinInternet } from '../lib/conexion'
 import { labelStyle } from '../lib/styles'
 
 const CONTACTO = 'diasporaspatrimoniales@gmail.com'
@@ -11,6 +12,31 @@ export function ConexionError({ oscuro = false }: { oscuro?: boolean }) {
   const { t } = useTranslation()
   const texto = oscuro ? 'text-white' : 'text-stone-800'
   const suave = oscuro ? 'text-white/80' : 'text-stone-600'
+  // Sin internet en el dispositivo: no es la red de la institución, así que
+  // no se habla de bloqueos ni de modo compatible — y al volver la
+  // conexión la página se recarga sola.
+  const [offline, setOffline] = useState(sinInternet)
+  useEffect(() => {
+    const alPerder = () => setOffline(true)
+    const alVolver = () => window.location.reload()
+    window.addEventListener('offline', alPerder)
+    window.addEventListener('online', alVolver)
+    return () => {
+      window.removeEventListener('offline', alPerder)
+      window.removeEventListener('online', alVolver)
+    }
+  }, [])
+
+  if (offline) return (
+    <div
+      role="alert"
+      className={`flex flex-col gap-3 rounded-2xl p-6 max-w-lg ${oscuro ? 'bg-black/25 border border-white/15' : 'bg-stone-50 border border-stone-200'}`}
+      style={labelStyle}
+    >
+      <p className={`text-base font-semibold ${texto}`}>{t('conexion.sinInternetTitulo')}</p>
+      <p className={`text-sm leading-relaxed ${suave}`}>{t('conexion.sinInternetTexto')}</p>
+    </div>
+  )
 
   return (
     <div

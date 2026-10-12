@@ -233,7 +233,9 @@
     "boton": "Try again",
     "cargando": "Loading…",
     "lento": "This is taking longer than usual…",
-    "reconectando": "Reconnecting in compatibility mode…"
+    "reconectando": "Reconnecting in compatibility mode…",
+    "sinInternetTitulo": "No internet connection",
+    "sinInternetTexto": "Check your Wi-Fi or mobile data. As soon as the connection is back, the page will refresh on its own."
   },
   "auth": {
     "titulo": {

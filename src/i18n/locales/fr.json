@@ -233,7 +233,9 @@
     "boton": "Réessayer",
     "cargando": "Chargement…",
     "lento": "Le chargement prend plus de temps que d'habitude…",
-    "reconectando": "Reconnexion en mode compatible…"
+    "reconectando": "Reconnexion en mode compatible…",
+    "sinInternetTitulo": "Pas de connexion Internet",
+    "sinInternetTexto": "Vérifiez votre Wi-Fi ou vos données mobiles. Dès que la connexion sera rétablie, la page se mettra à jour toute seule."
   },
   "auth": {
     "titulo": {

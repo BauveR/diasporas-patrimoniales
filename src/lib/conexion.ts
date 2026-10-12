@@ -11,6 +11,22 @@
 export const AVISO_LENTO_MS = 8_000
 export const TIMEOUT_CONEXION_MS = 20_000
 
+// Periodo de gracia: Firestore se declara "offline" (y entrega la caché
+// vacía) en cuanto falla UN intento de conexión — un corte de un segundo, el
+// wifi cambiando, la pestaña despertando — y sigue reintentando en silencio,
+// que en una red normal funciona al momento. Antes eso se tomaba como
+// bloqueo definitivo: recargaba en modo compatible o mostraba el aviso en
+// redes normales. Ahora solo cuenta como fallo si a los GRACIA_SIN_SERVIDOR_MS
+// de empezar a cargar los datos siguen sin llegar.
+export const GRACIA_SIN_SERVIDOR_MS = 10_000
+
+// Sin internet en el propio dispositivo (wifi caído, modo avión): no es un
+// bloqueo de la red y el modo compatible no ayudaría. `false` solo cuando el
+// navegador lo sabe seguro — `true` no garantiza que haya internet.
+export function sinInternet(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false
+}
+
 const MODO_COMPATIBLE_KEY = 'firestore_modo_compatible'
 const MODO_COMPATIBLE_INTENTADO_KEY = 'firestore_modo_compatible_intentado'
 const REPORTADOS_KEY = 'conexion_reportados'
