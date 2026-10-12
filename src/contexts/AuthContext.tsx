@@ -21,6 +21,10 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<UserRole>
   signUp: (name: string, email: string, password: string) => Promise<UserRole>
   signInWithGoogle: () => Promise<{ role: UserRole; isNewUser: boolean }>
+  // Variante por redirección (misma pestaña) para navegadores de iPhone que
+  // no son Safari — ver AuthPage y lib/loginGoogleRedireccion.ts.
+  iniciarGoogleRedireccion: () => Promise<void>
+  completarGoogleRedireccion: () => Promise<{ role: UserRole; isNewUser: boolean } | null>
   signOut: () => Promise<void>
 }
 
@@ -165,6 +169,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { role, isNewUser }
   }
 
+  const iniciarGoogleRedireccion = async () => {
+    const { iniciarGoogleRedireccion: iniciar } = await loadAuth()
+    await iniciar()
+  }
+
+  const completarGoogleRedireccion = async (): Promise<{ role: UserRole; isNewUser: boolean } | null> => {
+    const { completarGoogleRedireccion: completar, getUserRole } = await loadAuth()
+    const resultado = await completar()
+    if (!resultado) return null
+    setUser(resultado.user)
+    const role = await getUserRole(resultado.user).catch(() => 'user' as UserRole)
+    setUserRole(role)
+    return { role, isNewUser: resultado.isNewUser }
+  }
+
   const signOut = async () => {
     const { signOutUser } = await loadAuth()
     await signOutUser()
@@ -173,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, authError, inscripcionesError, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userRole, loading, inscripcionIds, inscripcionesLoading, authError, inscripcionesError, signIn, signUp, signInWithGoogle, iniciarGoogleRedireccion, completarGoogleRedireccion, signOut }}>
       {children}
     </AuthContext.Provider>
   )

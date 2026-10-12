@@ -7,6 +7,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   getAdditionalUserInfo,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
@@ -118,6 +120,23 @@ export async function signUp(name: string, email: string, password: string): Pro
 // "Hola de nuevo" según el caso.
 export async function signInWithGoogle(): Promise<{ user: AppUser; isNewUser: boolean }> {
   const cred = await signInWithPopup(auth, new GoogleAuthProvider())
+  await ensureUserDoc(cred.user)
+  return { user: toAppUser(cred.user), isNewUser: getAdditionalUserInfo(cred)?.isNewUser ?? false }
+}
+
+// Login de Google por redirección (misma pestaña): para los navegadores de
+// iPhone que no son Safari, donde la pestaña emergente no se cierra sola
+// (ver usaRedireccionParaGoogle). La página se va a Google y vuelve; el
+// resultado se recoge con completarGoogleRedireccion() al cargar de nuevo.
+export async function iniciarGoogleRedireccion(): Promise<void> {
+  await signInWithRedirect(auth, new GoogleAuthProvider())
+}
+
+// null = no había un login por redirección pendiente (o se volvió de Google
+// sin elegir cuenta).
+export async function completarGoogleRedireccion(): Promise<{ user: AppUser; isNewUser: boolean } | null> {
+  const cred = await getRedirectResult(auth)
+  if (!cred) return null
   await ensureUserDoc(cred.user)
   return { user: toAppUser(cred.user), isNewUser: getAdditionalUserInfo(cred)?.isNewUser ?? false }
 }

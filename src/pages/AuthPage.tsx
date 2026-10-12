@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, type Location } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { sendPasswordReset } from '../lib/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { isValidEmail } from '../utils/validators'
 import { evaluarContrasena, LONGITUD_MAXIMA, LONGITUD_MINIMA, type EvaluacionContrasena } from '../utils/passwordPolicy'
 import { labelStyle } from '../lib/styles'
-import { limpiarInscripcionPendiente } from '../lib/inscripcionPendiente'
+import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
+import { consumirLoginGooglePendiente, guardarLoginGooglePendiente, hayLoginGooglePendiente, type DestinoTrasLogin } from '../lib/loginGoogleRedireccion'
 import { getLocaleFromPathname } from '../i18n/routing'
 import { DEFAULT_LOCALE } from '../i18n/config'
-import { detectarNavegadorIntegrado } from '../utils/navegadorIntegrado'
+import { detectarNavegadorIntegrado, usaRedireccionParaGoogle } from '../utils/navegadorIntegrado'
 import { AvisoNavegadorIntegrado } from '../components/auth/AvisoNavegadorIntegrado'
 
 // user-not-found and wrong-password map to the same message on purpose —
@@ -48,7 +49,7 @@ type Props = { isModal?: boolean }
 
 export function AuthPage({ isModal = false }: Props) {
   const { t } = useTranslation()
-  const { user, userRole, signIn, signUp, signInWithGoogle, signOut } = useAuth()
+  const { user, userRole, signIn, signUp, signInWithGoogle, iniciarGoogleRedireccion, completarGoogleRedireccion, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const fromApp = location.key !== 'default'
@@ -71,7 +72,11 @@ export function AuthPage({ isModal = false }: Props) {
   // Desde que se pulsa "Entrar"/"Crear cuenta" hasta salir de esta pantalla:
   // `user` ya existe a mitad del proceso y no tiene que verse la vista de
   // "ya has iniciado sesión".
-  const [entrando, setEntrando] = useState(false)
+  // Volviendo de Google tras un login por redirección (navegadores de iPhone
+  // que no son Safari): la página se recargó y hay que terminarlo — mientras
+  // tanto, "Entrando…" en vez del formulario. Ver lib/loginGoogleRedireccion.ts.
+  const [completandoGoogle, setCompletandoGoogle] = useState(hayLoginGooglePendiente)
+  const [entrando, setEntrando] = useState(completandoGoogle)
   const [busy, setBusy] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const [cuentaNueva, setCuentaNueva] = useState(false)
@@ -84,6 +89,7 @@ export function AuthPage({ isModal = false }: Props) {
   // Navegador de una app (Instagram, Facebook, LinkedIn…), donde Google no
   // deja iniciar sesión — ver utils/navegadorIntegrado.ts.
   const [navApp] = useState(() => detectarNavegadorIntegrado(navigator.userAgent))
+  const [googlePorRedireccion] = useState(() => usaRedireccionParaGoogle(navigator.userAgent))
   const googleBloqueado = !!navApp?.segura
 
   // Desde el aviso de correo institucional o el recuadro de Google fallido:
@@ -116,11 +122,21 @@ export function AuthPage({ isModal = false }: Props) {
   // En los dos primeros se limpia la marca de inscripción pendiente: si
   // alguien abrió el login desde una tarjeta, lo cerró y después entró por
   // el navbar, esa tarjeta no tiene que abrirse sola más tarde.
-  const handleSuccess = (role: string, esNueva: boolean) => {
-    if (returnTo) {
+  const destinoActual = (): DestinoTrasLogin => {
+    if (returnTo) return { tipo: 'returnTo', ruta: returnTo }
+    if (redirectAfterLogin || !fromApp) return { tipo: 'bienvenida' }
+    const fondo = location.state?.background as Location | undefined
+    return { tipo: 'volver', ruta: fondo ? `${fondo.pathname}${fondo.search}${fondo.hash}` : null }
+  }
+
+  // trasRedireccion: la página se recargó al volver de Google, así que
+  // "volver" no puede ser navigate(-1) (el historial pasa por Google) sino
+  // ir a la ruta guardada antes de salir.
+  const handleSuccess = (role: string, esNueva: boolean, destino: DestinoTrasLogin = destinoActual(), trasRedireccion = false) => {
+    if (destino.tipo === 'returnTo') {
       limpiarInscripcionPendiente()
-      navigate(returnTo, { replace: true })
-    } else if (redirectAfterLogin || !fromApp) {
+      navigate(destino.ruta, { replace: true })
+    } else if (destino.tipo === 'bienvenida' || (trasRedireccion && !destino.ruta)) {
       limpiarInscripcionPendiente()
       if (role === 'admin') {
         navigate('/admin', { replace: true })
@@ -128,6 +144,8 @@ export function AuthPage({ isModal = false }: Props) {
         setCuentaNueva(esNueva)
         setView('bienvenida')
       }
+    } else if (trasRedireccion && destino.ruta) {
+      navigate(destino.ruta, { replace: true })
     } else {
       navigate(-1)
     }
@@ -205,32 +223,79 @@ export function AuthPage({ isModal = false }: Props) {
     }
   }
 
+  const falloGoogle = (err: unknown) => {
+    setEntrando(false)
+    const clave = parseError(err)
+    setError(clave)
+    setErrorDeGoogle(true)
+    if (clave === 'auth.errores.cuentaOtroMetodo') {
+      // Ya tiene cuenta con contraseña: se le lleva al login con su email
+      // escrito, no al recuadro de "crea tu cuenta" (ya la tiene).
+      const emailGoogle = (err as { customData?: { email?: string } }).customData?.email
+      if (emailGoogle) setEmail(emailGoogle)
+      setView('login')
+    } else {
+      setGoogleFallo(true)
+    }
+  }
+
   const handleGoogle = async () => {
     setError('')
     setGoogleFallo(false)
     setBusy(true)
     setEntrando(true)
+    if (googlePorRedireccion) {
+      // La página se va a Google y vuelve recargada: antes, guardar a dónde
+      // ir después y la inscripción pendiente (vive en memoria).
+      guardarLoginGooglePendiente(destinoActual(), getInscripcionPendiente())
+      try {
+        await iniciarGoogleRedireccion()
+      } catch (err) {
+        consumirLoginGooglePendiente()
+        falloGoogle(err)
+        setBusy(false)
+      }
+      return
+    }
     try {
       const { role, isNewUser } = await signInWithGoogle()
       handleSuccess(role, isNewUser)
     } catch (err) {
-      setEntrando(false)
-      const clave = parseError(err)
-      setError(clave)
-      setErrorDeGoogle(true)
-      if (clave === 'auth.errores.cuentaOtroMetodo') {
-        // Ya tiene cuenta con contraseña: se le lleva al login con su email
-        // escrito, no al recuadro de "crea tu cuenta" (ya la tiene).
-        const emailGoogle = (err as { customData?: { email?: string } }).customData?.email
-        if (emailGoogle) setEmail(emailGoogle)
-        setView('login')
-      } else {
-        setGoogleFallo(true)
-      }
+      falloGoogle(err)
     } finally {
       setBusy(false)
     }
   }
+
+  // Vuelta de Google en un login por redirección: recoger el resultado una
+  // sola vez (el ref evita repetirlo con el doble montaje de StrictMode) y
+  // seguir al destino guardado. Sin resultado (se volvió de Google sin
+  // elegir cuenta), de vuelta al formulario.
+  const completadoRef = useRef(false)
+  useEffect(() => {
+    if (!completandoGoogle || completadoRef.current) return
+    completadoRef.current = true
+    const pendiente = consumirLoginGooglePendiente()
+    completarGoogleRedireccion().then(resultado => {
+      setCompletandoGoogle(false)
+      if (!resultado) { setEntrando(false); return }
+      if (pendiente?.inscripcion != null) marcarInscripcionPendiente(pendiente.inscripcion)
+      handleSuccess(resultado.role, resultado.isNewUser, pendiente?.destino ?? { tipo: 'bienvenida' }, true)
+    }, err => {
+      setCompletandoGoogle(false)
+      falloGoogle(err)
+    })
+  // Solo al montar: es la vuelta de Google, no algo que cambie después.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (completandoGoogle) return (
+    <PageShell isModal={isModal}>
+      <div className={`flex flex-col items-center gap-3 px-8 py-16 ${isModal ? '' : 'max-w-sm mx-auto pt-40'}`} style={labelStyle}>
+        <p role="status" className="text-[11px] tracking-widest uppercase text-stone-500">{t('auth.entrando')}</p>
+      </div>
+    </PageShell>
+  )
 
   // A iniciar sesión con el email ya escrito y el cursor en la contraseña.
   const irAIniciarSesion = () => {

@@ -55,3 +55,15 @@ export function enlaceAbrirEnChrome(url: string): string {
   const u = new URL(url)
   return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(':', '')};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`
 }
+
+// Navegadores de iPhone/iPad que no son Safari (Chrome, Firefox, Edge,
+// Opera, la app de Google): en iOS usan el motor de Safari pero gestionan
+// sus pestañas a su manera, y la pestaña del login de Google no se puede
+// cerrar sola al terminar (se quedaba en /__/auth/handler hasta pulsar
+// "atrás", ya con la sesión iniciada). Con ellos el login va por
+// redirección en la misma pestaña — ver AuthPage. Safari y Android siguen
+// con la ventana emergente, que funciona.
+export function usaRedireccionParaGoogle(ua: string): boolean {
+  if (/\b(CriOS|FxiOS|EdgiOS|OPiOS)\//i.test(ua)) return true
+  return /iPhone|iPad|iPod/i.test(ua) && /\bGSA\//i.test(ua)
+}

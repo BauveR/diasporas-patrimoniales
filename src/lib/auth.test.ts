@@ -8,6 +8,8 @@ let docExiste = false
 let rolGuardado: string | undefined
 const setDocLlamadas: unknown[][] = []
 const envios: { tipo: string; ajustes: unknown }[] = []
+let redirecciones = 0
+let resultadoRedireccion: unknown = null
 let envioImpl: (ajustes: unknown) => Promise<void> = async () => {}
 const usuarioFirebase = { uid: 'u1', email: 'ana@ull.edu.es', displayName: null, getIdToken: async () => 't' }
 
@@ -16,7 +18,9 @@ vi.mock('firebase/auth', () => ({
   signInWithEmailAndPassword: vi.fn(),
   createUserWithEmailAndPassword: async () => ({ user: usuarioFirebase }),
   signInWithPopup: vi.fn(),
-  getAdditionalUserInfo: vi.fn(),
+  signInWithRedirect: async () => { redirecciones++ },
+  getRedirectResult: async () => resultadoRedireccion,
+  getAdditionalUserInfo: (cred: { nueva?: boolean }) => ({ isNewUser: !!cred?.nueva }),
   GoogleAuthProvider: class {},
   signOut: vi.fn(),
   sendPasswordResetEmail: (_a: unknown, _e: string, ajustes: unknown) => { envios.push({ tipo: 'reset', ajustes }); return envioImpl(ajustes) },
@@ -30,7 +34,27 @@ vi.mock('firebase/firestore', () => ({
 }))
 vi.mock('./firebase', () => ({ auth: { currentUser: usuarioFirebase }, db: {} }))
 
-const { signUp, getUserRole, sendPasswordReset } = await import('./auth')
+const { signUp, getUserRole, sendPasswordReset, iniciarGoogleRedireccion, completarGoogleRedireccion } = await import('./auth')
+
+describe('Google por redirección', () => {
+  beforeEach(() => { redirecciones = 0; resultadoRedireccion = null; setDocLlamadas.length = 0; docExiste = false; setDocImpl = async () => {} })
+
+  it('iniciar lanza la redirección de Firebase', async () => {
+    await iniciarGoogleRedireccion()
+    expect(redirecciones).toBe(1)
+  })
+
+  it('sin login pendiente devuelve null', async () => {
+    expect(await completarGoogleRedireccion()).toBeNull()
+  })
+
+  it('al volver: devuelve el usuario, si es cuenta nueva, y crea su ficha', async () => {
+    resultadoRedireccion = { user: { ...usuarioFirebase, displayName: 'Ana García' }, nueva: true }
+    const r = await completarGoogleRedireccion()
+    expect(r).toMatchObject({ user: { uid: 'u1', displayName: 'Ana García' }, isNewUser: true })
+    expect(setDocLlamadas[0][1]).toMatchObject({ role: 'user' })
+  })
+})
 
 const origen = window.location.origin
 
