@@ -12,6 +12,7 @@ import { getLocaleFromPathname } from '../i18n/routing'
 import { DEFAULT_LOCALE } from '../i18n/config'
 import { detectarNavegadorIntegrado, usaRedireccionParaGoogle } from '../utils/navegadorIntegrado'
 import { sinInternet } from '../lib/conexion'
+import { estadoReset, registrarEnvioReset } from '../lib/limiteReset'
 import { AvisoNavegadorIntegrado } from '../components/auth/AvisoNavegadorIntegrado'
 
 // user-not-found and wrong-password map to the same message on purpose —
@@ -83,6 +84,13 @@ export function AuthPage({ isModal = false }: Props) {
   const [entrando, setEntrando] = useState(completandoGoogle)
   const [busy, setBusy] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  // Espera entre envíos y máximo por pestaña (lib/limiteReset.ts).
+  const [reset, setReset] = useState(() => estadoReset())
+  useEffect(() => {
+    if (reset.esperaS <= 0) return
+    const id = setTimeout(() => setReset(estadoReset()), 1000)
+    return () => clearTimeout(id)
+  }, [reset])
   const [cuentaNueva, setCuentaNueva] = useState(false)
   // Si Google falla o se cierra el popup sin entrar, lo más probable con un
   // correo institucional es que su Workspace bloquee apps externas — Google
@@ -208,24 +216,53 @@ export function AuthPage({ isModal = false }: Props) {
     }
   }
 
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const enviarReset = async () => {
     setError('')
+    const ahora = estadoReset()
+    setReset(ahora)
+    if (ahora.agotado || ahora.esperaS > 0) return
     setBusy(true)
     try {
       await sendPasswordReset(email, `${prefix}/login`)
+      registrarEnvioReset()
       setResetSent(true)
     } catch (err) {
       const code = (err as { code?: string }).code ?? ''
       if (code === 'auth/user-not-found') {
+        registrarEnvioReset()
         setResetSent(true)
       } else {
         setError(parseError(err))
       }
     } finally {
+      setReset(estadoReset())
       setBusy(false)
     }
   }
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await enviarReset()
+  }
+
+  // "Reenviar" tras un envío, o el límite alcanzado con la salida de siempre.
+  const reenvioReset = (
+    reset.agotado ? (
+      <p role="status" className="text-xs text-stone-600 leading-relaxed">
+        {t('auth.reset.limite')}{' '}
+        <a href="mailto:diasporaspatrimoniales@gmail.com" className="underline underline-offset-2">diasporaspatrimoniales@gmail.com</a>
+      </p>
+    ) : (
+      <button
+        type="button"
+        onClick={enviarReset}
+        disabled={busy || reset.esperaS > 0}
+        className="self-start text-[11px] tracking-widest uppercase text-stone-700 underline underline-offset-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+      >
+        {reset.esperaS > 0 ? t('auth.reset.reenviarEn', { s: reset.esperaS }) : t('auth.reset.reenviar')}
+      </button>
+    )
+  )
 
   const falloGoogle = (err: unknown) => {
     setEntrando(false)
@@ -505,6 +542,7 @@ export function AuthPage({ isModal = false }: Props) {
                 </li>
               </ul>
             </div>
+            {reenvioReset}
             <button
               type="button"
               onClick={() => { setView('login'); setResetSent(false); setError('') }}
@@ -529,13 +567,15 @@ export function AuthPage({ isModal = false }: Props) {
 
             {error && <p className="text-xs text-red-500">{t(error)}</p>}
 
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {busy ? '...' : t('auth.reset.enviar')}
-            </button>
+            {reset.agotado ? reenvioReset : (
+              <button
+                type="submit"
+                disabled={busy || reset.esperaS > 0}
+                className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-[11px] tracking-widest uppercase hover:bg-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {busy ? '...' : reset.esperaS > 0 ? t('auth.reset.reenviarEn', { s: reset.esperaS }) : t('auth.reset.enviar')}
+              </button>
+            )}
 
             <button
               type="button"

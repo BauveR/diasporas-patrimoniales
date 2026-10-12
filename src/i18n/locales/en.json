@@ -346,7 +346,10 @@
       "punto3": "The link can only be used once and expires in 1 hour.",
       "punto4": "Once changed, come back here and sign in with your new password.",
       "enviar": "Send link",
-      "volver": "← Back to sign in"
+      "volver": "← Back to sign in",
+      "reenviar": "Resend email",
+      "reenviarEn": "Resend in {{s}} s",
+      "limite": "We've already sent you several emails. Please check your spam folder too. If it still doesn't arrive, write to us at"
     },
     "cerrar": "Close",
     "entrando": "Signing you in…"
