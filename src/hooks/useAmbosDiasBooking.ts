@@ -7,6 +7,7 @@ import type { Actividad } from '../data/actividades'
 import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcionPendiente } from '../lib/inscripcionPendiente'
 import { loginPath } from '../i18n/routing'
 import { enviarCorreoConfirmacion } from '../lib/correoConfirmacion'
+import { intentarAbrirEnChrome } from '../lib/salirDeApp'
 
 // Misma forma que useActividadBooking, pero operando sobre las 2 jornadas a
 // la vez (ver inscribirseAmbosDias/liberarAmbosDias en lib/db.ts) — un solo
@@ -40,6 +41,15 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   const [descartado, setDescartado] = useState(false)
   const continuarTrasLogin = !!user && ids.length > 0 && !inscritoAmbos && !inscritoParcial && !descartado && getInscripcionPendiente() === 'ambos'
 
+  // Igual que useActividadBooking: llegada desde una app con ?inscribirme=ambos.
+  const pedidoEnUrl = new URLSearchParams(location.search).get('inscribirme') === 'ambos'
+  useEffect(() => {
+    if (!pedidoEnUrl) return
+    marcarInscripcionPendiente('ambos')
+    navigate({ pathname: location.pathname, search: '' }, { replace: true, state: location.state })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidoEnUrl])
+
   useEffect(() => {
     if (!user) return
     const uid = user.uid
@@ -66,6 +76,7 @@ export function useAmbosDiasBooking(actividades: Actividad[]) {
   }
 
   const handleRequestLogin = () => {
+    if (intentarAbrirEnChrome(`${location.pathname}?inscribirme=ambos`)) return
     marcarInscripcionPendiente('ambos')
     navigate(loginPath(location.pathname), { state: { background: location } })
   }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 
 import { useAuth } from '../contexts/AuthContext'
+import { intentarAbrirEnChrome } from '../lib/salirDeApp'
 import { useIsDesktop } from '../hooks/useIsDesktop'
 import { ALL_LOCALES, DEFAULT_LOCALE } from '../i18n/config'
 import { getLocaleFromPathname, localizePathname } from '../i18n/routing'
@@ -139,6 +140,8 @@ export function Navbar() {
   const openLogin = () => {
     setOpen(false)
     const loginPath = `${prefix}/login`
+    // Dentro de Instagram/Facebook… en Android: el login en Chrome (lib/salirDeApp).
+    if (intentarAbrirEnChrome(loginPath)) return
     if (isDesktop) {
       navigate(loginPath, { state: { background: location, redirectAfterLogin: true } })
     } else {
