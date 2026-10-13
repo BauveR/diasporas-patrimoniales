@@ -69,7 +69,7 @@ Fátima Roque – Presidenta del Consejo Intergubernamental de Ibermuseos y coor
 Hanna Pennock – Asesora sénior de la Agencia del Patrimonio Cultural de los Países Bajos y presidenta del Grupo de Trabajo sobre Descolonización del ICOM.
 Maria Auxiliadora Llamas Márquez – Presidenta de ICOM España y directora del Museo de Cádiz, España.
 
-13:30–15:30 h | Pausa almuerzo
+13:30–15:30 h | Pausa
 
 Tarde
 15:30–16:45 h | Panel III. Experiencias internacionales: Europa, África y América Latina
@@ -116,7 +116,7 @@ Alejandra Gómez Colorado – Directora del Museo Nacional de las Culturas del M
 José Fenoll – Doctorando y especialista en escultura ibérica y en la Dama de Elche, Universidad Autónoma de Madrid, España.
 Badayco Said Karboune Rodríguez – Doctorando y especialista en la historia de la translocación de la Momia del Barranco de Erques, Universidad de La Laguna, España.
 
-12:30–14:30 h | Pausa almuerzo
+12:30–14:30 h | Pausa
 
 Tarde
 14:30–15:45 h | Panel VI. Restos humanos y ética: ciencia, sensibilidad y responsabilidad pública
