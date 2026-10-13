@@ -82,3 +82,14 @@ export function versionIOS(ua: string): number | null {
 export function enlaceAbrirEnSafari(url: string): string {
   return `x-safari-${url}`
 }
+
+// Los navegadores de las apps de Meta ignoran x-safari-https:// (probado en
+// Instagram en iPhone: el botón no hacía nada), así que ahí no se ofrece —
+// un botón muerto confunde más que no tenerlo; quedan los pasos de ⋯ y
+// "Copiar enlace". Facebook, Messenger y Threads usan el mismo navegador.
+const APPS_SIN_X_SAFARI = new Set(['Instagram', 'Facebook', 'Messenger', 'Threads'])
+
+export function ofreceAbrirEnSafari(nav: NavegadorIntegrado, ua: string): boolean {
+  if (!nav.ios || (versionIOS(ua) ?? 0) < 17) return false
+  return !(nav.app && APPS_SIN_X_SAFARI.has(nav.app))
+}

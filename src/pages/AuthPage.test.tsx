@@ -313,8 +313,8 @@ describe('AuthPage — dentro del navegador de una app', () => {
     await montar('/login', 'es')
     expect(screen.getByText('Estás dentro de Instagram y Google no permite iniciar sesión desde aquí.')).toBeInTheDocument()
     expect(screen.getByText(/elige «Abrir en Safari»/)).toBeInTheDocument()
-    // iOS 17.5: además, botón directo a Safari (x-safari-https://).
-    expect(screen.getByRole('link', { name: 'Abrir en Safari' }).getAttribute('href')).toMatch(/^x-safari-https?:\/\//)
+    // Sin botón directo a Safari: Instagram ignora x-safari-https://.
+    expect(screen.queryByRole('link', { name: 'Abrir en Safari' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeDisabled()
     expect(screen.queryByRole('link', { name: 'Abrir en Chrome' })).not.toBeInTheDocument()
     expect(screen.getByText(/sigue aquí con tu email y contraseña/)).toBeInTheDocument()
@@ -337,6 +337,12 @@ describe('AuthPage — dentro del navegador de una app', () => {
     await montar('/login', 'es')
     fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }))
     expect(await screen.findByLabelText('Enlace de esta página')).toHaveValue(window.location.href)
+  })
+
+  it('LinkedIn en iOS 17+: botón directo "Abrir en Safari" (x-safari-https://)', async () => {
+    ponerUA('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [LinkedInApp]/9.29.6340')
+    await montar('/login', 'es')
+    expect(screen.getByRole('link', { name: 'Abrir en Safari' }).getAttribute('href')).toMatch(/^x-safari-https?:\/\//)
   })
 
   it('iOS 16: sin botón de Safari (el enlace especial no existe), quedan las instrucciones y copiar enlace', async () => {

@@ -252,7 +252,7 @@
       "titulo": "Abre esta página en tu navegador para entrar con Google",
       "texto": "Estás dentro de {{app}} y Google no permite iniciar sesión desde aquí.",
       "textoGenerico": "Parece que estás en el navegador de una app, y Google puede no permitir iniciar sesión desde aquí.",
-      "pasosIos": "Toca ⋯ o el icono de compartir y elige «Abrir en Safari» (o «Abrir en el navegador»). También puedes copiar el enlace y pegarlo en Safari.",
+      "pasosIos": "Toca ⋯ o el icono de compartir y elige «Abrir en Safari» (o «Abrir en el navegador externo»). También puedes copiar el enlace y pegarlo en Safari.",
       "pasosAndroid": "Toca ⋮ y elige «Abrir en Chrome» (o «Abrir en el navegador»), o usa este botón:",
       "abrirChrome": "Abrir en Chrome",
       "copiar": "Copiar enlace",
