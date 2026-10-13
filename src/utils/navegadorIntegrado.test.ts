@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectarNavegadorIntegrado, enlaceAbrirEnChrome, enlaceAbrirEnSafari, usaRedireccionParaGoogle, versionIOS } from './navegadorIntegrado'
+import { detectarNavegadorIntegrado, enlaceAbrirEnChrome, enlaceAbrirEnSafari, ofreceAbrirEnSafari, usaRedireccionParaGoogle, versionIOS } from './navegadorIntegrado'
 
 // Agentes de usuario reales (recortados lo justo).
 const UA = {
@@ -87,5 +87,23 @@ describe('versionIOS y enlaceAbrirEnSafari', () => {
   })
   it('arma el enlace x-safari-https://', () => {
     expect(enlaceAbrirEnSafari('https://www.diasporaspatrimoniales.com/en/login')).toBe('x-safari-https://www.diasporaspatrimoniales.com/en/login')
+  })
+})
+
+describe('ofreceAbrirEnSafari', () => {
+  const linkedinIos = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [LinkedInApp]/9.29.6340'
+  const fbIos = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/470.0.0.40.97]'
+  const ofrece = (ua: string) => ofreceAbrirEnSafari(detectarNavegadorIntegrado(ua)!, ua)
+
+  it('no en Instagram ni Facebook (ignoran x-safari-https)', () => {
+    expect(ofrece(UA.instagramIos)).toBe(false)
+    expect(ofrece(fbIos)).toBe(false)
+  })
+  it('sí en otras apps con iOS 17+', () => {
+    expect(ofrece(linkedinIos)).toBe(true)
+  })
+  it('no antes de iOS 17 ni en Android', () => {
+    expect(ofrece(linkedinIos.replace('17_5', '16_7'))).toBe(false)
+    expect(ofrece(UA.instagramAndroid)).toBe(false)
   })
 })

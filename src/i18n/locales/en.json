@@ -109,7 +109,7 @@
     },
     "d1-7": {
       "hora": "13:30–15:30",
-      "titulo": "Lunch break"
+      "titulo": "Break"
     },
     "d1-8": {
       "hora": "15:30–16:45",
@@ -158,7 +158,7 @@
     },
     "d2-5": {
       "hora": "13:45–15:45",
-      "titulo": "Lunch break"
+      "titulo": "Break"
     },
     "d2-6": {
       "hora": "15:45–16:30",
@@ -252,7 +252,7 @@
       "titulo": "Open this page in your browser to sign in with Google",
       "texto": "You're inside {{app}}, and Google doesn't allow signing in from here.",
       "textoGenerico": "It looks like you're in an app's built-in browser, and Google may not allow signing in from here.",
-      "pasosIos": "Tap ⋯ or the share icon and choose “Open in Safari” (or “Open in browser”). You can also copy the link and paste it into Safari.",
+      "pasosIos": "Tap ⋯ or the share icon and choose “Open in Safari” (or “Open in external browser”). You can also copy the link and paste it into Safari.",
       "pasosAndroid": "Tap ⋮ and choose “Open in Chrome” (or “Open in browser”), or use this button:",
       "abrirChrome": "Open in Chrome",
       "copiar": "Copy link",

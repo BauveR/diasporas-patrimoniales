@@ -109,7 +109,7 @@
     },
     "d1-7": {
       "hora": "13:30–15:30",
-      "titulo": "Pausa almuerzo"
+      "titulo": "Pausa"
     },
     "d1-8": {
       "hora": "15:30–16:45",
@@ -158,7 +158,7 @@
     },
     "d2-5": {
       "hora": "13:45–15:45",
-      "titulo": "Pausa almuerzo"
+      "titulo": "Pausa"
     },
     "d2-6": {
       "hora": "15:45–16:30",
@@ -252,7 +252,7 @@
       "titulo": "Abre esta página en tu navegador para entrar con Google",
       "texto": "Estás dentro de {{app}} y Google no permite iniciar sesión desde aquí.",
       "textoGenerico": "Parece que estás en el navegador de una app, y Google puede no permitir iniciar sesión desde aquí.",
-      "pasosIos": "Toca ⋯ o el icono de compartir y elige «Abrir en Safari» (o «Abrir en el navegador»). También puedes copiar el enlace y pegarlo en Safari.",
+      "pasosIos": "Toca ⋯ o el icono de compartir y elige «Abrir en Safari» (o «Abrir en el navegador externo»). También puedes copiar el enlace y pegarlo en Safari.",
       "pasosAndroid": "Toca ⋮ y elige «Abrir en Chrome» (o «Abrir en el navegador»), o usa este botón:",
       "abrirChrome": "Abrir en Chrome",
       "copiar": "Copiar enlace",

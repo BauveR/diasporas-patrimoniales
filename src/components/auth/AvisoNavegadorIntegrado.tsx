@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { enlaceAbrirEnChrome, enlaceAbrirEnSafari, versionIOS, type NavegadorIntegrado } from '../../utils/navegadorIntegrado'
+import { enlaceAbrirEnChrome, enlaceAbrirEnSafari, ofreceAbrirEnSafari, type NavegadorIntegrado } from '../../utils/navegadorIntegrado'
 
 // Aviso del login dentro del navegador de una app (ver
 // utils/navegadorIntegrado.ts): cómo abrir la página en Safari/Chrome — con
@@ -11,8 +11,9 @@ export function AvisoNavegadorIntegrado({ nav }: { nav: NavegadorIntegrado }) {
   const [copiado, setCopiado] = useState<'no' | 'si' | 'manual'>('no')
   const urlRef = useRef<HTMLInputElement>(null)
   const url = window.location.href
-  // iOS 17+: x-safari-https:// (no documentado; ver utils/navegadorIntegrado).
-  const safari = nav.ios && (versionIOS(navigator.userAgent) ?? 0) >= 17
+  // iOS 17+ fuera de las apps de Meta: x-safari-https:// (no documentado;
+  // ver utils/navegadorIntegrado).
+  const safari = ofreceAbrirEnSafari(nav, navigator.userAgent)
 
   const copiar = async () => {
     try {

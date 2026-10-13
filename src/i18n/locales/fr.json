@@ -109,7 +109,7 @@
     },
     "d1-7": {
       "hora": "13h30–15h30",
-      "titulo": "Pause déjeuner"
+      "titulo": "Pause"
     },
     "d1-8": {
       "hora": "15h30–16h45",
@@ -158,7 +158,7 @@
     },
     "d2-5": {
       "hora": "13h45–15h45",
-      "titulo": "Pause déjeuner"
+      "titulo": "Pause"
     },
     "d2-6": {
       "hora": "15h45–16h30",
@@ -252,7 +252,7 @@
       "titulo": "Ouvrez cette page dans votre navigateur pour vous connecter avec Google",
       "texto": "Vous êtes dans {{app}}, et Google ne permet pas de se connecter depuis ici.",
       "textoGenerico": "Vous semblez être dans le navigateur intégré d'une application, et Google peut ne pas autoriser la connexion depuis ici.",
-      "pasosIos": "Touchez ⋯ ou l'icône de partage et choisissez « Ouvrir dans Safari » (ou « Ouvrir dans le navigateur »). Vous pouvez aussi copier le lien et le coller dans Safari.",
+      "pasosIos": "Touchez ⋯ ou l'icône de partage et choisissez « Ouvrir dans Safari » (ou « Ouvrir dans un navigateur externe »). Vous pouvez aussi copier le lien et le coller dans Safari.",
       "pasosAndroid": "Touchez ⋮ et choisissez « Ouvrir dans Chrome » (ou « Ouvrir dans le navigateur »), ou utilisez ce bouton :",
       "abrirChrome": "Ouvrir dans Chrome",
       "copiar": "Copier le lien",

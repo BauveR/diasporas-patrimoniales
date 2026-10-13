@@ -53,7 +53,7 @@ export const PROGRAMA_DIA_1: ProgramaItem[] = [
       'Presidenta de ICOM España y conservadora de museos del Museo de Cádiz, España.',
     ],
   },
-  { id: 'd1-7', hora: '13:30–15:30', titulo: 'Pausa almuerzo' },
+  { id: 'd1-7', hora: '13:30–15:30', titulo: 'Pausa' },
   {
     id: 'd1-8',
     hora: '15:30–16:45',
@@ -115,7 +115,7 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
       'Curator: Bioarchaeology, Department of Egypt and Sudan, The British Museum, Reino Unido.',
     ],
   },
-  { id: 'd2-5', hora: '13:45–15:45', titulo: 'Pausa almuerzo' },
+  { id: 'd2-5', hora: '13:45–15:45', titulo: 'Pausa' },
   {
     id: 'd2-6',
     hora: '15:45–16:30',
