@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectarNavegadorIntegrado, enlaceAbrirEnChrome, usaRedireccionParaGoogle } from './navegadorIntegrado'
+import { detectarNavegadorIntegrado, enlaceAbrirEnChrome, enlaceAbrirEnSafari, usaRedireccionParaGoogle, versionIOS } from './navegadorIntegrado'
 
 // Agentes de usuario reales (recortados lo justo).
 const UA = {
@@ -76,5 +76,16 @@ describe('usaRedireccionParaGoogle', () => {
     ['Safari Mac', UA.safariMac],
   ])('%s → ventana emergente (como ahora)', (_n, ua) => {
     expect(usaRedireccionParaGoogle(ua)).toBe(false)
+  })
+})
+
+describe('versionIOS y enlaceAbrirEnSafari', () => {
+  it('lee la versión mayor de iOS', () => {
+    expect(versionIOS(UA.instagramIos)).toBe(17)
+    expect(versionIOS('Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 300.0')).toBe(16)
+    expect(versionIOS(UA.chromeAndroid)).toBeNull()
+  })
+  it('arma el enlace x-safari-https://', () => {
+    expect(enlaceAbrirEnSafari('https://www.diasporaspatrimoniales.com/en/login')).toBe('x-safari-https://www.diasporaspatrimoniales.com/en/login')
   })
 })

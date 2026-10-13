@@ -312,7 +312,9 @@ describe('AuthPage — dentro del navegador de una app', () => {
     ponerUA(INSTAGRAM_IOS)
     await montar('/login', 'es')
     expect(screen.getByText('Estás dentro de Instagram y Google no permite iniciar sesión desde aquí.')).toBeInTheDocument()
-    expect(screen.getByText(/Abrir en Safari/)).toBeInTheDocument()
+    expect(screen.getByText(/elige «Abrir en Safari»/)).toBeInTheDocument()
+    // iOS 17.5: además, botón directo a Safari (x-safari-https://).
+    expect(screen.getByRole('link', { name: 'Abrir en Safari' }).getAttribute('href')).toMatch(/^x-safari-https?:\/\//)
     expect(screen.getByRole('button', { name: /Continuar con Google/ })).toBeDisabled()
     expect(screen.queryByRole('link', { name: 'Abrir en Chrome' })).not.toBeInTheDocument()
     expect(screen.getByText(/sigue aquí con tu email y contraseña/)).toBeInTheDocument()
@@ -335,6 +337,13 @@ describe('AuthPage — dentro del navegador de una app', () => {
     await montar('/login', 'es')
     fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }))
     expect(await screen.findByLabelText('Enlace de esta página')).toHaveValue(window.location.href)
+  })
+
+  it('iOS 16: sin botón de Safari (el enlace especial no existe), quedan las instrucciones y copiar enlace', async () => {
+    ponerUA('Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 300.0')
+    await montar('/login', 'es')
+    expect(screen.queryByRole('link', { name: 'Abrir en Safari' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar enlace' })).toBeInTheDocument()
   })
 
   it('Instagram en Android: botón directo "Abrir en Chrome"', async () => {

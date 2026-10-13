@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderHook, act } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import type { Actividad } from '../data/actividades'
 import { limpiarInscripcionPendiente, getInscripcionPendiente } from '../lib/inscripcionPendiente'
@@ -97,5 +97,26 @@ describe('useActividadBooking — teléfono pegado con espacios especiales', () 
     })
     await act(async () => { await result.current.handleConfirmarInscripcion() })
     expect(inscribirse).toHaveBeenCalledWith(1, 'u1', 'ana@ull.edu.es', 'Ana', '+34 600 123 456')
+  })
+})
+
+describe('useActividadBooking — llegada desde una app con ?inscribirme=', () => {
+  beforeEach(() => { authState.user = null; limpiarInscripcionPendiente() })
+
+  it('marca la inscripción pendiente de esa jornada y quita el parámetro', async () => {
+    const { result } = renderHook(() => ({ booking: useActividadBooking(actividad(3)), loc: useLocation() }), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/en/actividades/3?inscribirme=3']}>{children}</MemoryRouter>,
+    })
+    await act(async () => { await Promise.resolve() })
+    expect(getInscripcionPendiente()).toBe(3)
+    expect(result.current.loc.search).toBe('')
+  })
+
+  it('el parámetro de otra jornada no marca esta', async () => {
+    renderHook(() => useActividadBooking(actividad(3)), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/actividades/3?inscribirme=4']}>{children}</MemoryRouter>,
+    })
+    await act(async () => { await Promise.resolve() })
+    expect(getInscripcionPendiente()).toBeNull()
   })
 })

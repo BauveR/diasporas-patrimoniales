@@ -259,7 +259,8 @@
       "copiado": "Ligação copiada. Cole-a no Safari ou no Chrome.",
       "enlace": "Ligação desta página",
       "alternativa": "Ou continue aqui com o seu email e palavra-passe: isso funciona neste navegador.",
-      "googleNoDisponible": "Indisponível dentro desta app"
+      "googleNoDisponible": "Indisponível dentro desta app",
+      "abrirSafari": "Abrir no Safari"
     },
     "crearCuentaFlecha": "Criar conta →",
     "separador": "ou com email e palavra-passe",

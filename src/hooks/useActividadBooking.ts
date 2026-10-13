@@ -7,6 +7,7 @@ import { getInscripcionPendiente, limpiarInscripcionPendiente, marcarInscripcion
 import type { Actividad } from '../data/actividades'
 import { loginPath } from '../i18n/routing'
 import { enviarCorreoConfirmacion } from '../lib/correoConfirmacion'
+import { intentarAbrirEnChrome } from '../lib/salirDeApp'
 
 // Todo el estado y los handlers de inscripción/liberación de plaza, sacados
 // de ActividadPage.tsx para que ActividadExpandido (el panel inline dentro
@@ -41,6 +42,18 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   const [descartado, setDescartado] = useState(false)
   const continuarTrasLogin = !!user && !!actividad && !inscrito && !descartado && getInscripcionPendiente() === actividad.id
 
+  // Llegada desde el navegador de una app (Instagram…) tras pulsar
+  // "Inscribirme" allí: la página se abrió en Chrome con ?inscribirme=<id>.
+  // La marca de inscripción pendiente vive en memoria y no viaja entre
+  // apps, así que se recrea desde la URL (y se quita el parámetro).
+  const pedidoEnUrl = !!actividad && new URLSearchParams(location.search).get('inscribirme') === String(actividad.id)
+  useEffect(() => {
+    if (!pedidoEnUrl || !actividad) return
+    marcarInscripcionPendiente(actividad.id)
+    navigate({ pathname: location.pathname, search: '' }, { replace: true, state: location.state })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidoEnUrl])
+
   // Precarga el teléfono guardado en el perfil (si existe) para no pedirlo de cero cada vez.
   useEffect(() => {
     if (!user) return
@@ -68,6 +81,9 @@ export function useActividadBooking(actividad: Actividad | undefined) {
   }
 
   const handleRequestLogin = () => {
+    // Dentro de Instagram/Facebook… en Android: a Chrome, a esta misma
+    // jornada, en vez de a un login donde Google no funciona (lib/salirDeApp).
+    if (actividad && intentarAbrirEnChrome(`${location.pathname}?inscribirme=${actividad.id}`)) return
     if (actividad) marcarInscripcionPendiente(actividad.id)
     navigate(loginPath(location.pathname), { state: { background: location } })
   }

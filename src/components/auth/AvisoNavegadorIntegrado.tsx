@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { enlaceAbrirEnChrome, type NavegadorIntegrado } from '../../utils/navegadorIntegrado'
+import { enlaceAbrirEnChrome, enlaceAbrirEnSafari, versionIOS, type NavegadorIntegrado } from '../../utils/navegadorIntegrado'
 
 // Aviso del login dentro del navegador de una app (ver
 // utils/navegadorIntegrado.ts): cómo abrir la página en Safari/Chrome — con
@@ -11,6 +11,8 @@ export function AvisoNavegadorIntegrado({ nav }: { nav: NavegadorIntegrado }) {
   const [copiado, setCopiado] = useState<'no' | 'si' | 'manual'>('no')
   const urlRef = useRef<HTMLInputElement>(null)
   const url = window.location.href
+  // iOS 17+: x-safari-https:// (no documentado; ver utils/navegadorIntegrado).
+  const safari = nav.ios && (versionIOS(navigator.userAgent) ?? 0) >= 17
 
   const copiar = async () => {
     try {
@@ -39,6 +41,11 @@ export function AvisoNavegadorIntegrado({ nav }: { nav: NavegadorIntegrado }) {
         {nav.android && (
           <a href={enlaceAbrirEnChrome(url)} className={`${boton} bg-amber-900 text-white hover:bg-amber-800`}>
             {t('auth.navegadorApp.abrirChrome')}
+          </a>
+        )}
+        {safari && (
+          <a href={enlaceAbrirEnSafari(url)} className={`${boton} bg-amber-900 text-white hover:bg-amber-800`}>
+            {t('auth.navegadorApp.abrirSafari')}
           </a>
         )}
         <button type="button" onClick={copiar} className={`${boton} border border-amber-900/30 text-amber-900 hover:bg-amber-100`}>

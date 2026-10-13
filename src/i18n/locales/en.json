@@ -259,7 +259,8 @@
       "copiado": "Link copied. Paste it into Safari or Chrome.",
       "enlace": "Link to this page",
       "alternativa": "Or continue here with your email and password: that does work in this browser.",
-      "googleNoDisponible": "Not available inside this app"
+      "googleNoDisponible": "Not available inside this app",
+      "abrirSafari": "Open in Safari"
     },
     "crearCuentaFlecha": "Create account →",
     "separador": "or with email and password",

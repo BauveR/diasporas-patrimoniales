@@ -67,3 +67,18 @@ export function usaRedireccionParaGoogle(ua: string): boolean {
   if (/\b(CriOS|FxiOS|EdgiOS|OPiOS)\//i.test(ua)) return true
   return /iPhone|iPad|iPod/i.test(ua) && /\bGSA\//i.test(ua)
 }
+
+// Versión mayor de iOS a partir del agente ("OS 17_5 like Mac OS X"); null
+// fuera de iPhone/iPad.
+export function versionIOS(ua: string): number | null {
+  if (!/iPhone|iPad|iPod/i.test(ua)) return null
+  const m = /\bOS (\d+)_/.exec(ua)
+  return m ? Number(m[1]) : null
+}
+
+// iOS 17+: el esquema x-safari-https:// abre la página en Safari desde el
+// navegador de otra app. No está documentado por Apple (puede dejar de
+// funcionar), así que solo se ofrece como botón, con "Copiar enlace" al lado.
+export function enlaceAbrirEnSafari(url: string): string {
+  return `x-safari-${url}`
+}
