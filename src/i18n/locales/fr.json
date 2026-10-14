@@ -214,6 +214,7 @@
     "verEnGoogleMaps": "Voir sur Google Maps"
   },
   "actividadCard": {
+    "presencial": "Inscription en présentiel",
     "verDetalle": "Voir le détail",
     "cancelado": "Annulé",
     "agotada": "Complet",

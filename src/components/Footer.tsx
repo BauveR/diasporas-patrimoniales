@@ -91,21 +91,23 @@ export function Footer() {
               fila larga, no para filas cortas). Cada fila centra sus logos
               con flex items-center justify-center, y la columna que las
               envuelve las centra a su vez entre sí, así que cambiar el
-              tamaño de cualquiera no descentra nada. La fila de 3 lleva
-              alturas y gap más chicos que el resto para entrar en ~327px
-              (375px menos el padding): ~265px medidos sobre el ancho
-              natural de cada logo. TEA+MUNA se quedan en el -20% original
-              sobre desktop (ver esos 2 en el bloque sm+ más abajo). */}
+              tamaño de cualquiera no descentra nada. Los colaboradores
+              van al mismo alto (h-12), salvo Gobierno algo más grande
+              (h-16, su logo lleva el lema y se veía chico) y Patrimonio
+              Cultural algo menor (h-11): la fila de 3 mide ~278px. MUNA
+              va a h-10 (es muy alargado): TEA+MUNA mide ~280px. Ambas filas
+              caben en los ~327px de 375px menos el
+              padding. */}
           <div className="flex flex-col items-center gap-6 sm:hidden">
-            <img src={logoDiasporasTea} alt="Diásporas Patrimoniales — TEA Tenerife" width={600} height={220} loading="lazy" className="h-14 w-auto object-contain" />
+            <img src={logoDiasporasTea} alt="Diásporas Patrimoniales — TEA Tenerife" width={600} height={220} loading="lazy" className="-translate-x-2 h-14 w-auto object-contain" />
             <div className="flex items-center justify-center gap-5">
-              <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-14 w-auto object-contain" />
-              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="h-11 w-auto object-contain" />
-              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-12 w-auto object-contain" />
+              <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="-translate-x-5 h-16 w-auto object-contain" />
+              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="-ml-4 -translate-x-2 h-11 w-auto object-contain" />
+              <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="ml-2 h-14 w-auto object-contain" />
             </div>
             <div className="flex items-center justify-center gap-8">
-              <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[3.36rem] w-auto object-contain" />
-              <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} loading="lazy" className="h-[2.7rem] w-auto object-contain" />
+              <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-12 w-auto object-contain" />
+              <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} loading="lazy" className="h-9 w-auto object-contain" />
             </div>
           </div>
 
@@ -124,14 +126,13 @@ export function Footer() {
             />
             <div className="h-14 w-px bg-white/20" />
             <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="h-[5.25rem] w-auto object-contain" />
-            {/* h-14 (3.5rem) = 70% de los h-20 (5rem) de antes */}
             <img
               src={logoDiasporasPoster}
               alt="Patrimonio Cultural de Canarias"
               width={700}
               height={350}
               loading="lazy"
-              className="h-14 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
             <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />
             <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />

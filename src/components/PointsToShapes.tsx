@@ -965,12 +965,12 @@ export default function PointsToShapes() {
                   así que en la fila caería al viewport): escala proporcional al
                   ancho disponible y nunca puede envolver ni desbordar. Los
                   valores salen de los tamaños de `xl` sobre la fila más
-                  ancha (~666px), con Patrimonio un 10% más chico: logos ≈
-                  78.9cqw + 4 gaps × 2.8cqw + 3.2cqw de TEA + 3.5cqw de Cabildo − 0.8cqw de Patrimonio ≈ 96cqw. */}
+                  ancha (~666px), con Patrimonio a 8cqw: logos ≈
+                  80.7cqw + 4 gaps × 2.8cqw + 3.2cqw de TEA + 3.5cqw de Cabildo − 0.8cqw de Patrimonio ≈ 98cqw. */}
               <div className="w-full [container-type:inline-size]" style={shift(off.logosX, off.logosY)}>
               <div className="flex flex-nowrap items-center gap-[2.8cqw]">
                 <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
-                <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[7.1cqw] w-auto object-contain" />
+                <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[8cqw] w-auto object-contain" />
                 <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="ml-[3.5cqw] h-[8.65cqw] w-auto object-contain" />
                 <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="ml-[3.2cqw] h-[7.9cqw] w-auto object-contain" />
                 <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />
@@ -1092,7 +1092,7 @@ export default function PointsToShapes() {
         <div className="w-full max-w-[620px] [container-type:inline-size]">
         <div className="flex flex-nowrap items-center justify-center gap-[2.8cqw]">
           <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
-          <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[7.1cqw] w-auto object-contain" />
+          <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[8cqw] w-auto object-contain" />
           <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="ml-[3.5cqw] h-[8.65cqw] w-auto object-contain" />
           <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="ml-[3.2cqw] h-[7.9cqw] w-auto object-contain" />
           <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />

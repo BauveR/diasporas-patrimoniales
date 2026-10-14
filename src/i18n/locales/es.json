@@ -214,6 +214,7 @@
     "verEnGoogleMaps": "Ver en Google Maps"
   },
   "actividadCard": {
+    "presencial": "Inscripción presencial",
     "verDetalle": "Ver detalle",
     "cancelado": "Cancelado",
     "agotada": "Aforo completo",
