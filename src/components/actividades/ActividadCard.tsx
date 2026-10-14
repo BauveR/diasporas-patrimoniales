@@ -111,11 +111,16 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
           <span>{actividad.duracion}</span>
         </div>
 
-        <p className="text-[11px] text-white/60" style={labelStyle}>
-          {esProximamente
-            ? t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })
-            : plazasEstadoLabel}
+        {/* El estado de plazas ya va en la pastilla sobre la imagen; aquí,
+            la modalidad. */}
+        <p className="font-mattone text-[11px] font-bold tracking-wide text-white uppercase">
+          {t('actividadCard.presencial')}
         </p>
+        {esProximamente && (
+          <p className="text-[11px] text-white/60" style={labelStyle}>
+            {t('actividadCard.inscripcionesDesde', { fecha: fechaApertura })}
+          </p>
+        )}
 
         <span
           className="mt-auto pt-1 text-[10px] tracking-widest uppercase text-white/60 group-hover:text-white transition-colors duration-200 flex items-center gap-1"

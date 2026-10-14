@@ -22,6 +22,7 @@ const TEXTOS: Record<IdiomaEmail, {
   asuntoAmbos: string; asunto: (titulo: string) => string; cabecera: string; hola: (n: string) => string
   introAmbos: string; intro: (tituloHtml: string) => string; introTexto: (titulo: string) => string; introAmbosTexto: string
   sede: string; contacto: string; modera: string; liberar: string; liberarTexto: string; boton: string
+  modalidad: string; presencial: string; presencialTitulo: string; presencialEn: (sede: string) => string; presencialSinSede: string
 }> = {
   es: {
     asuntoAmbos: 'Confirmación de inscripción — Ambos días', asunto: t => `Confirmación de inscripción — ${t}`,
@@ -32,6 +33,8 @@ const TEXTOS: Record<IdiomaEmail, {
     sede: 'Sede', contacto: 'Contacto', modera: 'Modera',
     liberar: 'Si necesitas liberar tu plaza, puedes hacerlo desde tu perfil en el sitio.',
     liberarTexto: 'Si necesitas liberar tu plaza, puedes hacerlo desde tu perfil en el sitio:', boton: 'Ir a tu perfil',
+    modalidad: 'Modalidad', presencial: 'Presencial', presencialTitulo: 'Evento presencial',
+    presencialEn: s => `Te esperamos en ${s}.`, presencialSinSede: 'La asistencia es en persona.',
   },
   en: {
     asuntoAmbos: 'Registration confirmed — Both days', asunto: t => `Registration confirmed — ${t}`,
@@ -42,6 +45,8 @@ const TEXTOS: Record<IdiomaEmail, {
     sede: 'Venue', contacto: 'Contact', modera: 'Chair',
     liberar: 'If you need to release your place, you can do so from your profile on the website.',
     liberarTexto: 'If you need to release your place, you can do so from your profile on the website:', boton: 'Go to your profile',
+    modalidad: 'Format', presencial: 'In person', presencialTitulo: 'In-person event',
+    presencialEn: s => `We look forward to seeing you at ${s}.`, presencialSinSede: 'Attendance is in person.',
   },
   fr: {
     asuntoAmbos: 'Inscription confirmée — Les deux journées', asunto: t => `Inscription confirmée — ${t}`,
@@ -52,6 +57,8 @@ const TEXTOS: Record<IdiomaEmail, {
     sede: 'Lieu', contacto: 'Contact', modera: 'Modération',
     liberar: 'Si vous devez libérer votre place, vous pouvez le faire depuis votre profil sur le site.',
     liberarTexto: 'Si vous devez libérer votre place, vous pouvez le faire depuis votre profil sur le site :', boton: 'Aller à votre profil',
+    modalidad: 'Modalité', presencial: 'En présentiel', presencialTitulo: 'Événement en présentiel',
+    presencialEn: s => `Nous vous attendons à ${s}.`, presencialSinSede: 'La participation se fait sur place.',
   },
   pt: {
     asuntoAmbos: 'Inscrição confirmada — Ambos os dias', asunto: t => `Inscrição confirmada — ${t}`,
@@ -62,6 +69,8 @@ const TEXTOS: Record<IdiomaEmail, {
     sede: 'Local', contacto: 'Contacto', modera: 'Moderação',
     liberar: 'Se precisar de libertar a sua vaga, pode fazê-lo a partir do seu perfil no site.',
     liberarTexto: 'Se precisar de libertar a sua vaga, pode fazê-lo a partir do seu perfil no site:', boton: 'Ir para o seu perfil',
+    modalidad: 'Modalidade', presencial: 'Presencial', presencialTitulo: 'Evento presencial',
+    presencialEn: s => `Esperamos por si em ${s}.`, presencialSinSede: 'A participação é presencial.',
   },
 }
 
@@ -152,6 +161,7 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
 
   // Filas de logística en texto plano — usadas tal cual en la versión text.
   const filasLogistica: [string, string][] = [
+    [tx.modalidad, tx.presencial],
     [tx.sede, sede || '—'],
     [tx.contacto, data.contacto],
   ]
@@ -177,6 +187,10 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
         </tr>`
     })
     .join('')
+
+  // El simposio es presencial: se destaca arriba, justo tras el saludo y
+  // antes del programa, además de la fila "Modalidad" de abajo.
+  const presencialDetalle = sede ? tx.presencialEn(sede) : tx.presencialSinSede
 
   const intro = esCombinado ? tx.introAmbos : tx.intro(escapeHtml(data.dias[0]?.titulo ?? ''))
 
@@ -212,6 +226,10 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
             <tr>
               <td style="padding:32px;color:${NEGRO};">
                 <p style="margin:0 0 4px;font-size:15px;line-height:1.5;font-family:'Mattone','Arial Black',Arial,sans-serif;font-weight:700;">${escapeHtml(tx.hola(data.nombre))}</p>
+                <div style="margin:12px 0 16px;border-left:4px solid ${ROJO};background:#fbeee9;border-radius:6px;padding:12px 16px;">
+                  <p style="margin:0;font-size:15px;line-height:1.4;font-weight:700;color:${ROJO};text-transform:uppercase;letter-spacing:0.04em;font-family:'Mattone','Arial Black',Arial,sans-serif;">${escapeHtml(tx.presencialTitulo)}</p>
+                  <p style="margin:4px 0 0;font-size:14px;line-height:1.5;color:${NEGRO};">${escapeHtml(presencialDetalle)}</p>
+                </div>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">${intro}</p>
                 ${diasHtml}
                 <div style="margin:20px 0 0;background:${GRIS_OSCURO};border-radius:10px;padding:16px 18px 18px;">
@@ -234,6 +252,8 @@ export function renderConfirmacionEmail(data: ConfirmacionEmailData): { subject:
 
   const text = [
     tx.hola(data.nombre),
+    '',
+    `${tx.presencialTitulo.toUpperCase()}: ${presencialDetalle}`,
     '',
     esCombinado ? tx.introAmbosTexto : tx.introTexto(data.dias[0]?.titulo ?? ''),
     '',

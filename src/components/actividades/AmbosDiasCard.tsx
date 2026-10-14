@@ -65,8 +65,10 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
           </p>
         )}
 
-        <p className="text-[11px] text-white/60" style={labelStyle}>
-          {estadoLabel}
+        {/* Mismo criterio que ActividadCard: plazas en la pastilla, aquí
+            la modalidad. */}
+        <p className="font-mattone text-[11px] font-bold tracking-wide text-white uppercase">
+          {t('actividadCard.presencial')}
         </p>
 
         <span

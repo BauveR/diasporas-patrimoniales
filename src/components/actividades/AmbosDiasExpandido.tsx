@@ -139,6 +139,10 @@ export function AmbosDiasExpandido({ dia1, dia2, onClose, bare = false }: { dia1
               </p>
             )}
 
+            <span className="font-mattone text-xs font-bold tracking-wide text-white uppercase">
+              {t('actividadCard.presencial')}
+            </span>
+
             {booking.inscritoParcial ? (
               <p className="text-[13px] text-stone-400" style={labelStyle}>
                 {t('inscripcion.yaInscritoParcial', {

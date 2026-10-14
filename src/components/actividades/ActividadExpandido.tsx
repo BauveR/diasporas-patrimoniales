@@ -200,6 +200,9 @@ export function ActividadExpandido({ actividad, onClose, bare = false }: { activ
             </div>
 
             <div className="flex flex-col gap-3">
+              <span className="font-mattone text-xs font-bold tracking-wide text-white uppercase">
+                {t('actividadCard.presencial')}
+              </span>
               <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-[10px] tracking-widest uppercase text-stone-400" style={labelStyle}>{t('reserva.fecha')}</span>
                 <span className="font-mattone text-sm font-bold text-white capitalize wrap-break-word">{fecha}</span>
