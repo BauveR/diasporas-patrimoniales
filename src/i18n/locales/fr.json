@@ -215,6 +215,7 @@
   },
   "actividadCard": {
     "presencial": "Inscription en présentiel",
+    "presencialGratuita": "Inscription gratuite en présentiel",
     "verDetalle": "Voir le détail",
     "cancelado": "Annulé",
     "agotada": "Complet",
