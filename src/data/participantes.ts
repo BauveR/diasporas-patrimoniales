@@ -9,7 +9,7 @@ export type Participante = {
   bio: LocalizedText
   tituloIntervencion: string
   // URL base de ImageKit, sin transformación — cada lugar donde se usa pide
-  // su propio tamaño/recorte con fotoThumbnail/fotoCompleta en vez de cargar
+  // su propio tamaño con fotoIk (y FOTO_ANCHO) en vez de cargar
   // siempre la misma imagen (eso fue lo que hacía que el modal grande se
   // viera borroso: reusaba el recorte cuadrado de 128px pensado para la
   // tarjeta chica).
@@ -23,47 +23,51 @@ export type Participante = {
 // documento no trae título de intervención por persona, solo títulos de
 // panel (ver programa.ts).
 
-// `f-webp` en las dos: fuerza salida WebP (con canal alfa) en vez de dejar
-// que ImageKit decida el formato — si la cuenta tiene auto-format a JPEG
-// por defecto, eso aplana la transparencia del PNG a fondo blanco, que es
-// justo lo que no queremos. WebP con alpha pesa además bastante menos que
-// PNG, así que no es solo el fix de transparencia sino que ahorra banda.
+// `f-webp`: fuerza salida WebP (con canal alfa) en vez de dejar que
+// ImageKit decida el formato — si la cuenta tiene auto-format a JPEG por
+// defecto, eso aplana la transparencia del PNG a fondo blanco, que es justo
+// lo que no queremos. WebP con alpha pesa además bastante menos que PNG.
 
 // Cache-buster compartido: cuando se reemplaza un archivo en ImageKit
 // manteniendo el mismo nombre, la URL no cambia — y tanto el navegador como
 // el CDN de ImageKit siguen sirviendo la versión vieja cacheada contra esa
 // URL exacta hasta que se las "engaña" con un parámetro distinto. Subir
 // este número (v=2, v=3...) cada vez que se reemplacen fotos manteniendo el
-// nombre fuerza a traer la versión nueva de las 25 de una sola vez.
-const IK_CACHE_BUST = 'v=5'
+// nombre fuerza a traer la versión nueva de todas de una sola vez.
+const IK_CACHE_BUST = 'v=8'
 
-// Miniatura para la grilla (ParticipanteCard): solo ancho (256px — 2x del
-// tamaño real que se muestra, 112-128px, para que se vea nítido en retina),
-// sin alto — ImageKit no fuerza ningún recorte. La tarjeta ya no es un
-// círculo (cuadrado con `object-contain`), así que no hace falta el crop
-// cuadrado que sí tenía sentido antes.
-const IK_THUMB_TR = `${IK_CACHE_BUST}&tr=w-256,f-webp`
-
-// Versión completa para los popups (sheet/modal): solo se pide un ancho
-// (640px, cubre 2x del modal de 307px) y se deja la altura libre, así
-// ImageKit no fuerza ningún recorte — la imagen entera llega tal cual su
-// proporción original, y `ParticipanteFoto` la muestra con `object-contain`
-// (sin cortar nada).
-const IK_FULL_TR = `${IK_CACHE_BUST}&tr=w-640,f-webp`
+// Ancho máximo en px CSS al que se muestra cada foto (medido sobre el
+// layout de ParticipantesSection): la tarjeta de la grilla (75% de una
+// columna de 5 en max-w-7xl ≈ 182px; en mobile/tablet es menor), la
+// miniatura de Dirección científica (77px), la foto del sheet mobile
+// (112px), la del modal (19.2rem ≈ 307px) y la del panel desplegado en la
+// grilla (28% de 3 columnas ≈ 213px).
+export const FOTO_ANCHO = {
+  tarjeta: 192,
+  direccion: 80,
+  sheet: 112,
+  modal: 320,
+  expandido: 224,
+} as const
 
 // Algunas URLs ya traen su propio query string (p.ej. el `?updatedAt=...`
 // que ImageKit agrega solo al reemplazar un archivo) — si ya hay un `?` en
 // la URL, la transformación se suma con `&`, no con otro `?`.
-function conTransform(url: string, tr: string): string {
-  return `${url}${url.includes('?') ? '&' : '?'}${tr}`
+function conTransform(url: string, ancho: number): string {
+  return `${url}${url.includes('?') ? '&' : '?'}${IK_CACHE_BUST}&tr=w-${ancho},f-webp`
 }
 
-export function fotoThumbnail(p: Pick<Participante, 'foto'>): string | undefined {
-  return p.foto ? conTransform(p.foto, IK_THUMB_TR) : undefined
-}
-
-export function fotoCompleta(p: Pick<Participante, 'foto'>): string | undefined {
-  return p.foto ? conTransform(p.foto, IK_FULL_TR) : undefined
+// `src` al ancho real (pantallas 1x) y `srcSet` con 1x/2x: el navegador
+// baja solo la versión que necesita su pantalla — el doble de píxeles solo
+// en retina, en vez de mandarle a todas siempre la grande. Solo ancho, sin
+// alto: ImageKit no recorta nada y la foto llega en su proporción original
+// (se muestra con object-contain).
+export function fotoIk(foto: string | undefined, ancho: number): { src?: string; srcSet?: string } {
+  if (!foto) return {}
+  return {
+    src: conTransform(foto, ancho),
+    srcSet: `${conTransform(foto, ancho)} 1x, ${conTransform(foto, ancho * 2)} 2x`,
+  }
 }
 
 // Se muestran en orden alfabético por nombre (ver el sort al final), así que
@@ -355,7 +359,7 @@ export const PARTICIPANTES: Participante[] = ([
       pt: 'A sua investigação centra-se na bioarqueologia do Sudão antigo, antropologia dentária e diferentes indicadores de saúde e doença. No museu, trabalha também sobre questões éticas relacionadas com restos humanos, incluindo conservação, investigação, exposição, proveniência e relações com comunidades e instituições de origem.',
     },
     tituloIntervencion: '',
-    foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Rebecca%20Whiting.jpeg.png?updatedAt=1790066646524',
+    foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Rebecca%20Whiting.png',
   },
   {
     id: 17,

@@ -68,7 +68,7 @@ export function AmbosDiasCard({ dia1, dia2, onClick }: Props) {
         {/* Mismo criterio que ActividadCard: plazas en la pastilla, aquí
             la modalidad. */}
         <p className="font-mattone text-[11px] font-bold tracking-wide text-white uppercase">
-          {t('actividadCard.presencial')}
+          {t('actividadCard.presencialGratuita')}
         </p>
 
         <span

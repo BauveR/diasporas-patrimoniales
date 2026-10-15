@@ -7,11 +7,11 @@
 // vez de texto fijo.
 const GROUP_COPIES = 4
 
-// Apilado justo arriba de IntroTicker (bottom-20/py-[19px]/text-[22px] ≈
-// 64px de alto mobile; bottom-28/py-[25px]/text-[25px] ≈ 80px sm) — mismo
-// tipo de anclaje por abajo que esa barra, para quedar pegado a su borde
-// superior sin gap. Ajustar acá si hace falta separarlos o reubicar esta.
-const BOTTOM_OFFSET_CLASS = 'bottom-44 sm:bottom-56'
+// Apilada por encima de IntroTicker, con el mismo hueco de ~32px que
+// tenían antes: la franja de abajo arranca a bottom-32 (128px) y mide ~68px
+// en mobile; a sm:bottom-44 (176px) y ~78px desde sm. Ajustar acá si se
+// mueve o cambia de tamaño esa franja.
+const BOTTOM_OFFSET_CLASS = 'bottom-[228px] sm:bottom-[286px]'
 
 const Separator = () => <span className="mx-10 text-white/40 sm:mx-14">·</span>
 
@@ -47,7 +47,7 @@ export function IntroHeadlineTicker() {
           .intro-headline-track { animation: none; }
         }
       `}</style>
-      <div className="intro-headline-track flex w-max font-mattone text-base font-normal tracking-widest whitespace-nowrap text-white uppercase sm:text-xl">
+      <div className="intro-headline-track flex w-max font-mattone text-sm font-normal tracking-widest whitespace-nowrap text-white uppercase sm:text-base">
         <HeadlineGroup />
         <HeadlineGroup />
       </div>

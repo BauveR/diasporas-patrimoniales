@@ -215,6 +215,7 @@
   },
   "actividadCard": {
     "presencial": "Inscripción presencial",
+    "presencialGratuita": "Inscripción presencial gratuita",
     "verDetalle": "Ver detalle",
     "cancelado": "Cancelado",
     "agotada": "Aforo completo",

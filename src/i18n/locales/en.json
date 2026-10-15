@@ -215,6 +215,7 @@
   },
   "actividadCard": {
     "presencial": "In-person registration",
+    "presencialGratuita": "Free in-person registration",
     "verDetalle": "View details",
     "cancelado": "Cancelled",
     "agotada": "Fully booked",

@@ -2,12 +2,13 @@ import logoGobCan from '../../assets/Logo_GobCan_claim_blanco_mod1-01.webp'
 import logoCabildoTenerife from '../../assets/cabildo-de-tenerife [Converted]-01.webp'
 import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.webp'
 import logoMuna from '../../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.webp'
+import logoPatrimonioCultural from '../../assets/patrimonio cultural de canarias.webp'
 
 // Marquee CSS puro (2 grupos idénticos uno al lado del otro, animando
 // translateX 0 → -50%) en vez del enfoque anterior (react-bits'
 // ScrollVelocity adaptado, moviendo `baseX` a mano con
 // useAnimationFrame + midiendo el ancho de una copia por JS/ResizeObserver):
-// ese enfoque dependía de medir el ancho real ya con los 4 logos cargados, y
+// ese enfoque dependía de medir el ancho real ya con los logos cargados, y
 // aun con ResizeObserver el loop seguía viéndose desincronizado (TEA
 // encimándose con el "Simposio Internacional" del siguiente tramo). Acá no
 // hace falta medir nada — al ser 2 grupos EXACTAMENTE iguales, -50% del
@@ -17,7 +18,7 @@ import logoMuna from '../../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-
 // que ni siquiera un monitor ultra-wide se quede sin contenido a la vista.
 const GROUP_COPIES = 4
 
-const Separator = () => <span className="mx-[38px] text-white/40 sm:mx-[50px]">·</span>
+const Separator = () => <span className="mx-[33px] text-white/40 sm:mx-[44px]">·</span>
 
 function TickerCopy() {
   return (
@@ -28,11 +29,15 @@ function TickerCopy() {
       <Separator />
       <span>TEA, Santa Cruz de Tenerife</span>
       <Separator />
-      <span className="inline-flex items-center gap-[38px] sm:gap-[50px]">
-        <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[38px] w-auto object-contain sm:h-[44px]" />
-        <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-8 w-auto object-contain sm:h-[38px]" />
-        <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-8 w-auto object-contain sm:h-[38px]" />
-        <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[25px] w-auto object-contain sm:h-8" />
+      <span className="inline-flex items-center gap-[33px] sm:gap-[44px]">
+        {/* Mismos 5 logos, orden y proporciones que la fila del hero
+            (PointsToShapes): alturas de allí en cqw escaladas a px tomando
+            Cabildo como referencia, y luego toda la franja al 88% (−20%, +10%). */}
+        <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[37px] w-auto object-contain sm:h-[44px]" />
+        <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="h-[26px] w-auto object-contain sm:h-[31px]" />
+        <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-[29px] w-auto object-contain sm:h-[33px]" />
+        <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-[25px] w-auto object-contain sm:h-[31px]" />
+        <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[19px] w-auto object-contain sm:h-[22px]" />
       </span>
       <Separator />
     </span>
@@ -51,7 +56,7 @@ function TickerGroup() {
 
 export function IntroTicker() {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-20 z-20 overflow-hidden border-t border-white/10 bg-black/40 py-[19px] backdrop-blur-sm sm:bottom-28 sm:py-[25px]">
+    <div className="pointer-events-none absolute inset-x-0 bottom-32 z-20 overflow-hidden border-t border-white/10 bg-black/40 py-[17px] backdrop-blur-sm sm:bottom-44 sm:py-[22px]">
       <style>{`
         @keyframes intro-ticker-scroll {
           from { transform: translateX(0); }
@@ -62,7 +67,7 @@ export function IntroTicker() {
           .intro-ticker-track { animation: none; }
         }
       `}</style>
-      <div className="intro-ticker-track flex w-max font-mattone text-[22px] font-bold tracking-widest whitespace-nowrap text-white uppercase sm:text-[25px]">
+      <div className="intro-ticker-track flex w-max font-mattone text-[20px] font-bold tracking-widest whitespace-nowrap text-white uppercase sm:text-[22px]">
         <TickerGroup />
         <TickerGroup />
       </div>

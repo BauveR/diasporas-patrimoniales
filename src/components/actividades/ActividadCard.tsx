@@ -114,7 +114,7 @@ export function ActividadCard({ actividad, inactiva = false, from = 'actividades
         {/* El estado de plazas ya va en la pastilla sobre la imagen; aquí,
             la modalidad. */}
         <p className="font-mattone text-[11px] font-bold tracking-wide text-white uppercase">
-          {t('actividadCard.presencial')}
+          {t('actividadCard.presencialGratuita')}
         </p>
         {esProximamente && (
           <p className="text-[11px] text-white/60" style={labelStyle}>

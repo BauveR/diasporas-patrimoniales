@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion'
-import { PARTICIPANTES, type Participante, fotoThumbnail, fotoCompleta, participanteAnchorId } from '../data/participantes'
+import { PARTICIPANTES, type Participante, FOTO_ANCHO, fotoIk, participanteAnchorId } from '../data/participantes'
 import { SlideInText } from './SlideInText'
 import { ParticipantesBackground } from './ParticipantesBackground'
 import { RevealOnScroll, RevealGroup, RevealItem } from './RevealOnScroll'
@@ -83,7 +83,7 @@ function ParticipanteCard({
           y z-10 en la placa, al crecer se pintaba por encima de la placa. */}
       <div className="relative z-0 mx-auto aspect-square w-[75%] overflow-hidden transition-transform duration-300 group-hover:scale-105">
         {foto ? (
-          <img src={foto} alt={nombre} loading="lazy" decoding="async" className="h-full w-full object-contain" />
+          <img {...fotoIk(foto, FOTO_ANCHO.tarjeta)} alt={nombre} loading="lazy" decoding="async" className="h-full w-full object-contain" />
         ) : (
           <FotoPlaceholder />
         )}
@@ -201,10 +201,13 @@ function ParticipanteTextos({
 function ParticipanteFoto({
   participante,
   className,
+  ancho,
   circular = true,
 }: {
   participante: Participante
   className: string
+  // Ancho máximo al que se muestra (FOTO_ANCHO) — define qué tamaño se pide.
+  ancho: number
   // Experimento a pedido: en los popups (sheet/modal) probar sin el círculo,
   // ya que las fotos son PNG y forzarlas a un círculo recorta contenido que
   // un recuadro completo (object-contain, sin crop) no recortaría. La
@@ -218,7 +221,7 @@ function ParticipanteFoto({
     >
       {participante.foto ? (
         <img
-          src={fotoCompleta(participante)}
+          {...fotoIk(participante.foto, ancho)}
           alt={participante.nombre}
           loading="lazy"
           className={`h-full w-full ${circular ? 'object-cover' : 'object-contain'}`}
@@ -278,7 +281,7 @@ function ParticipanteSheet({ participante, onClose }: { participante: Participan
           className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         />
         <div className="flex flex-col items-center gap-6 px-8 pt-6 pb-10 text-center">
-          <ParticipanteFoto participante={participante} className="h-28 w-28" circular={false} />
+          <ParticipanteFoto participante={participante} className="h-28 w-28" ancho={FOTO_ANCHO.sheet} circular={false} />
           <ParticipanteTextos participante={participante} className="items-center text-center" dark />
         </div>
       </motion.div>
@@ -324,7 +327,7 @@ function ParticipanteModal({ participante, onClose }: { participante: Participan
             className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
           />
           <div className="flex h-full min-h-[31.5rem] items-center gap-12 py-10 pr-16 pl-28">
-            <ParticipanteFoto participante={participante} className="h-[19.2rem] w-[19.2rem]" circular={false} />
+            <ParticipanteFoto participante={participante} className="h-[19.2rem] w-[19.2rem]" ancho={FOTO_ANCHO.modal} circular={false} />
             <ParticipanteTextos participante={participante} className="max-w-md text-left" dark />
           </div>
         </div>
@@ -385,7 +388,7 @@ function ParticipanteExpandido({
       <div className="h-full w-[28%] shrink-0">
         {participante.foto ? (
           <img
-            src={fotoCompleta(participante)}
+            {...fotoIk(participante.foto, FOTO_ANCHO.expandido)}
             alt={participante.nombre}
             loading="lazy"
             className="h-full w-full object-contain"
@@ -488,7 +491,7 @@ export function ParticipantesSection() {
               {DIRECCION_CIENTIFICA.map(p => (
                 <div key={p.nombre} className="flex items-center gap-3">
                   <img
-                    src={fotoThumbnail(p)}
+                    {...fotoIk(p.foto, FOTO_ANCHO.direccion)}
                     alt={p.nombre}
                     loading="lazy"
                     className="h-[68px] w-[68px] shrink-0 object-contain sm:h-[77px] sm:w-[77px]"
@@ -518,7 +521,7 @@ export function ParticipantesSection() {
                 id={p.id}
                 nombre={p.nombre}
                 cargo={p.cargo[locale] || t('participantes.cargoPendiente')}
-                foto={fotoThumbnail(p)}
+                foto={p.foto}
                 onFotoClick={() => setSelected(p)}
               />
             </RevealItem>
