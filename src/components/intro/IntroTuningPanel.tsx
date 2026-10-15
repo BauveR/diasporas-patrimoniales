@@ -2,9 +2,14 @@ import { useEffect } from 'react'
 import type { MutableRefObject } from 'react'
 import { Leva, useControls, folder } from 'leva'
 import {
+  INTRO_LAYOUT_DEFAULTS,
+  INTRO_LAYOUT_FRAMES,
+  INTRO_GUIAS,
   INTRO_TUNING_DEFAULTS,
   INTRO_PHASES,
   ORB_TUNING_DEFAULTS,
+  type IntroLayout,
+  type IntroLayoutFrame,
   type IntroTuning,
   type OrbTuning,
 } from '../../lib/introTuning'
@@ -23,10 +28,12 @@ import type { IntroWordmarkController } from './IntroWordmark'
 export default function IntroTuningPanel({
   onChange,
   onOrbChange,
+  onLayoutChange,
   controllerRef,
 }: {
   onChange: (tuning: IntroTuning) => void
   onOrbChange: (tuning: OrbTuning) => void
+  onLayoutChange: (layout: IntroLayout) => void
   controllerRef: MutableRefObject<IntroWordmarkController | null>
 }) {
   // Separate `useControls` call from `tempo` below on purpose — the orb's
@@ -42,6 +49,37 @@ export default function IntroTuningPanel({
   useEffect(() => {
     onOrbChange(orb as OrbTuning)
   }, [orb, onOrbChange])
+
+  // Posición y tamaño — arrancan en INTRO_LAYOUT_DEFAULTS. Cuando un
+  // ajuste quede bien, copiar el valor a esos defaults para que llegue a
+  // producción (este panel no existe allí).
+  // Forma de función para obtener `setLayout`: elegir un frame guardado
+  // carga sus valores en los sliders.
+  const [layout, setLayout] = useControls('Intro — posición y tamaño', () => ({
+    Logo: folder({
+      logoAnchoVw: { value: INTRO_LAYOUT_DEFAULTS.logoAnchoVw, min: 20, max: 120, step: 1, label: 'ancho (vw)' },
+      logoAnchoMaxRem: { value: INTRO_LAYOUT_DEFAULTS.logoAnchoMaxRem, min: 20, max: 120, step: 1, label: 'ancho máx (rem)' },
+      logoX: { value: INTRO_LAYOUT_DEFAULTS.logoX, min: -50, max: 50, step: 0.5, label: 'X (vw)' },
+      logoY: { value: INTRO_LAYOUT_DEFAULTS.logoY, min: -50, max: 50, step: 0.5, label: 'Y (vh)' },
+    }),
+    Orb: folder({
+      orbTamano: { value: INTRO_LAYOUT_DEFAULTS.orbTamano, min: 0.3, max: 3, step: 0.01, label: 'tamaño' },
+      orbX: { value: INTRO_LAYOUT_DEFAULTS.orbX, min: -150, max: 150, step: 1, label: 'X' },
+      orbY: { value: INTRO_LAYOUT_DEFAULTS.orbY, min: -100, max: 100, step: 1, label: 'Y' },
+    }),
+    guia: { value: INTRO_LAYOUT_DEFAULTS.guia, options: INTRO_GUIAS, label: 'guía (puntos)' },
+  }))
+  useControls('Intro — posición y tamaño', {
+    frame: {
+      value: 'Frame 1',
+      options: Object.keys(INTRO_LAYOUT_FRAMES),
+      onChange: (frame: string) => setLayout(INTRO_LAYOUT_FRAMES[frame as IntroLayoutFrame]),
+      transient: true,
+    },
+  })
+  useEffect(() => {
+    onLayoutChange(layout as IntroLayout)
+  }, [layout, onLayoutChange])
 
   const tempo = useControls('Intro — tempo', {
     Holds: folder({
@@ -160,8 +198,7 @@ export default function IntroTuningPanel({
     },
   })
 
-  // TEMPORAL — oculto mientras se graba/revisa la pantalla; los controles
-  // siguen funcionando (solo se esconde la UI). Sacar `hidden` para volver
-  // a verlo.
+  // Para grabar la pantalla sin el panel, añadir `hidden` (los controles
+  // siguen funcionando, solo se esconde la UI).
   return <Leva hidden collapsed titleBar={{ title: 'Intro tuning' }} />
 }

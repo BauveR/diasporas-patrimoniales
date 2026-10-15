@@ -7,26 +7,28 @@ import { IntroTicker } from '../components/intro/IntroTicker'
 import { IntroHeadlineTicker } from '../components/intro/IntroHeadlineTicker'
 import { IntroCycleFade } from '../components/intro/IntroCycleFade'
 import { SeoHead } from '../components/SeoHead'
-import { INTRO_TUNING_DEFAULTS, ORB_TUNING_DEFAULTS } from '../lib/introTuning'
+import { INTRO_LAYOUT_DEFAULTS, INTRO_TUNING_DEFAULTS, ORB_TUNING_DEFAULTS, type IntroGuia } from '../lib/introTuning'
 
-// TEMPORAL — guía de encuadre 16:9 (proporción estándar de YouTube) para
-// grabar la pantalla. Borrar este bloque (y su <YoutubeFrameGuide /> más
-// abajo) una vez terminada la grabación.
-const YOUTUBE_RATIO = 16 / 9
-function computeYoutubeFrame() {
+// TEMPORAL — guía de encuadre (puntos verdes en las esquinas del área que
+// se verá): su proporción es parte de cada frame (`layout.guia`, ver
+// IntroLayout en lib/introTuning.ts). Borrar este bloque (y su
+// <FrameGuide /> más abajo) cuando ya no haga falta.
+function computeFrame(guia: IntroGuia) {
   if (typeof window === 'undefined') return { width: 0, height: 0 }
+  const ratio = guia === '9:16' ? 9 / 16 : 16 / 9
   const { innerWidth: vw, innerHeight: vh } = window
-  return vw / vh > YOUTUBE_RATIO
-    ? { width: vh * YOUTUBE_RATIO, height: vh }
-    : { width: vw, height: vw / YOUTUBE_RATIO }
+  return vw / vh > ratio
+    ? { width: vh * ratio, height: vh }
+    : { width: vw, height: vw / ratio }
 }
-function YoutubeFrameGuide() {
-  const [frame, setFrame] = useState(computeYoutubeFrame)
+function FrameGuide({ guia }: { guia: IntroGuia }) {
+  const [, setResizes] = useState(0)
   useEffect(() => {
-    const handler = () => setFrame(computeYoutubeFrame())
+    const handler = () => setResizes((n) => n + 1)
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
   }, [])
+  const frame = computeFrame(guia)
   const { width, height } = frame
   const dotStyle = 'pointer-events-none fixed z-50 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-green-500'
   const left = `calc(50% - ${width / 2}px)`
@@ -76,6 +78,8 @@ export function Intro() {
   // GSAP timeline, so bundling the orb's timing into it would restart the
   // wordmark every time an orb slider moved.
   const [orbTuning, setOrbTuning] = useState(ORB_TUNING_DEFAULTS)
+  // Posición y tamaño del wordmark y del orb (IntroLayout).
+  const [layout, setLayout] = useState(INTRO_LAYOUT_DEFAULTS)
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
@@ -84,12 +88,10 @@ export function Intro() {
           en IntroCanvas.tsx) + disappear (opacity de material,
           IntroParticleSwarm.tsx) — no pasa por IntroCycleFade porque
           comparte canvas con el fondo, que siempre queda visible. */}
-      <IntroCanvas orbTuning={orbTuning} />
-      {/* Wordmark nudged right of centre — the particle shape sits left (see
-          CAMERA_SHIFT_X in IntroCanvas). `translate-x-[16vw]` is the nudge:
-          raise it to push further right, lower to bring it back toward centre.
-          `-translate-y-[6vh]` raises it above vertical centre — more negative
-          pushes it further up, 0 to re-center. */}
+      <IntroCanvas orbTuning={orbTuning} layout={layout} />
+      {/* Wordmark a la derecha del centro (el orb queda a la izquierda) y
+          algo por encima del centro vertical: ancho y desplazamiento salen
+          de `layout` (IntroLayout en lib/introTuning.ts). */}
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-8">
         <IntroCycleFade
           orbTuning={orbTuning}
@@ -97,11 +99,14 @@ export function Intro() {
           appearFadeSeconds={WORDMARK_APPEAR_FADE_SECONDS}
           disappearBeforeEndSeconds={WORDMARK_DISAPPEAR_BEFORE_END_SECONDS}
         >
-          <IntroWordmark
-            className="h-auto w-[min(80vw,60rem)] translate-x-[16vw] -translate-y-[6vh]"
-            tuning={tuning}
-            controllerRef={controllerRef}
-          />
+          <div
+            style={{
+              width: `min(${layout.logoAnchoVw}vw, ${layout.logoAnchoMaxRem}rem)`,
+              transform: `translate(${layout.logoX}vw, ${layout.logoY}vh)`,
+            }}
+          >
+            <IntroWordmark className="h-auto w-full" tuning={tuning} controllerRef={controllerRef} />
+          </div>
         </IntroCycleFade>
       </div>
       <IntroCycleFade
@@ -114,10 +119,10 @@ export function Intro() {
         <IntroHeadlineTicker />
         <IntroTicker />
       </IntroCycleFade>
-      <YoutubeFrameGuide />
+      <FrameGuide guia={layout.guia} />
       {IntroTuningPanel && (
         <Suspense fallback={null}>
-          <IntroTuningPanel onChange={setTuning} onOrbChange={setOrbTuning} controllerRef={controllerRef} />
+          <IntroTuningPanel onChange={setTuning} onOrbChange={setOrbTuning} onLayoutChange={setLayout} controllerRef={controllerRef} />
         </Suspense>
       )}
     </div>

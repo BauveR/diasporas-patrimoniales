@@ -115,3 +115,53 @@ export const INTRO_PHASES = [
   { label: 'p4 — EN→ES starts', seek: 'p4' },
   { label: 'p4e — both lines swapping', seek: 'p4e' },
 ] as const
+
+// Posición y tamaño del wordmark y del orb en /intro — ajustables desde el
+// panel en desarrollo; Frame 1 fijado el 2026-10-14. Antes
+// eran: wordmark 80vw / 60rem / X 16 / Y −6, orb 1.1 / X −48 / Y 0.
+// '16:9' = vídeo de YouTube; '9:16' = pantalla de 55" en vertical
+// (1080×1920 / 2160×3840).
+export type IntroGuia = '16:9' | '9:16'
+export const INTRO_GUIAS: IntroGuia[] = ['16:9', '9:16']
+
+export interface IntroLayout {
+  logoAnchoVw: number // ancho del wordmark en vw…
+  logoAnchoMaxRem: number // …con este tope en rem
+  logoX: number // vw, + = derecha
+  logoY: number // vh, + = abajo
+  orbTamano: number // 1 = tamaño base, 1.1 = +10%
+  orbX: number // unidades de la escena, + = derecha
+  orbY: number // unidades de la escena, + = arriba
+  // Guía de encuadre (puntos verdes): proporción de la
+  // pantalla para la que se compone el frame.
+  guia: IntroGuia
+}
+
+// Composiciones guardadas (se eligen en el panel, desplegable "frame").
+export const INTRO_LAYOUT_FRAMES = {
+  'Frame 1': {
+    logoAnchoVw: 81,
+    logoAnchoMaxRem: 38,
+    logoX: 6.5,
+    logoY: -9,
+    orbTamano: 0.61,
+    orbX: -66,
+    orbY: 8,
+    guia: '16:9',
+  },
+  'Frame 2': {
+    logoAnchoVw: 81,
+    logoAnchoMaxRem: 26,
+    logoX: 0,
+    logoY: 7,
+    orbTamano: 0.61,
+    orbX: 0,
+    orbY: 22,
+    guia: '9:16',
+  },
+} satisfies Record<string, IntroLayout>
+
+export type IntroLayoutFrame = keyof typeof INTRO_LAYOUT_FRAMES
+
+// La que usa la web (en producción no hay panel).
+export const INTRO_LAYOUT_DEFAULTS: IntroLayout = INTRO_LAYOUT_FRAMES['Frame 1']
