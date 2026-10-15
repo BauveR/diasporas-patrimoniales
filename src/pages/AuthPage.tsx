@@ -512,7 +512,7 @@ export function AuthPage({ isModal = false }: Props) {
           >
             {t('auth.reset.titulo')}
           </h2>
-          <p className="text-xs text-stone-400 tracking-wide">
+          <p className="text-xs text-stone-500 tracking-wide">
             {t('auth.reset.subtitulo')}
           </p>
         </div>
@@ -524,19 +524,19 @@ export function AuthPage({ isModal = false }: Props) {
                 {t('auth.reset.enviado')}
               </p>
               <ul className="flex flex-col gap-1.5">
-                <li className="text-xs text-stone-400 flex gap-2">
+                <li className="text-xs text-stone-500 flex gap-2">
                   <span>·</span>
                   <span>{t('auth.reset.punto1')}</span>
                 </li>
-                <li className="text-xs text-stone-400 flex gap-2">
+                <li className="text-xs text-stone-500 flex gap-2">
                   <span>·</span>
                   <span>{t('auth.reset.punto2')}</span>
                 </li>
-                <li className="text-xs text-stone-400 flex gap-2">
+                <li className="text-xs text-stone-500 flex gap-2">
                   <span>·</span>
                   <span>{t('auth.reset.punto3')}</span>
                 </li>
-                <li className="text-xs text-stone-400 flex gap-2">
+                <li className="text-xs text-stone-500 flex gap-2">
                   <span>·</span>
                   <span>{t('auth.reset.punto4')}</span>
                 </li>
@@ -546,7 +546,7 @@ export function AuthPage({ isModal = false }: Props) {
             <button
               type="button"
               onClick={() => { setView('login'); setResetSent(false); setError('') }}
-              className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
+              className="text-[11px] tracking-widest uppercase text-stone-500 hover:text-stone-700 transition-colors cursor-pointer text-left"
             >
               {t('auth.reset.volver')}
             </button>
@@ -554,14 +554,14 @@ export function AuthPage({ isModal = false }: Props) {
         ) : (
           <form onSubmit={handleReset} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.email')}</label>
+              <label className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.email')}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
                 placeholder={t('auth.emailPlaceholder')}
-                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
 
@@ -580,7 +580,7 @@ export function AuthPage({ isModal = false }: Props) {
             <button
               type="button"
               onClick={() => { setView('login'); setError('') }}
-              className="text-[11px] tracking-widest uppercase text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-left"
+              className="text-[11px] tracking-widest uppercase text-stone-500 hover:text-stone-700 transition-colors cursor-pointer text-left"
             >
               {t('auth.reset.volver')}
             </button>
@@ -606,7 +606,7 @@ export function AuthPage({ isModal = false }: Props) {
         >
           {t(view === 'login' ? 'auth.titulo.login' : 'auth.titulo.registro')}
         </h2>
-        <p className="text-xs text-stone-400 tracking-wide">
+        <p className="text-xs text-stone-500 tracking-wide">
           {t(view === 'login' ? 'auth.subtitulo.login' : 'auth.subtitulo.registro')}
         </p>
       </div>
@@ -649,7 +649,7 @@ export function AuthPage({ isModal = false }: Props) {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-stone-100" />
-          <span className="text-[11px] text-stone-400 tracking-widest uppercase">{t('auth.separador')}</span>
+          <span className="text-[11px] text-stone-500 tracking-widest uppercase">{t('auth.separador')}</span>
           <div className="flex-1 h-px bg-stone-100" />
         </div>
         {view === 'login' ? (
@@ -677,7 +677,7 @@ export function AuthPage({ isModal = false }: Props) {
         {view === 'register' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5 min-w-0">
-              <label htmlFor="auth-nombre" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.nombre')}</label>
+              <label htmlFor="auth-nombre" className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.nombre')}</label>
               <input
                 id="auth-nombre"
                 type="text"
@@ -688,11 +688,11 @@ export function AuthPage({ isModal = false }: Props) {
                 maxLength={60}
                 autoComplete="given-name"
                 placeholder={t('auth.nombrePlaceholder')}
-                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5 min-w-0">
-              <label htmlFor="auth-apellidos" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.apellidos')}</label>
+              <label htmlFor="auth-apellidos" className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.apellidos')}</label>
               <input
                 id="auth-apellidos"
                 type="text"
@@ -702,32 +702,32 @@ export function AuthPage({ isModal = false }: Props) {
                 maxLength={80}
                 autoComplete="family-name"
                 placeholder={t('auth.apellidosPlaceholder')}
-                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+                className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 transition-colors"
               />
             </div>
           </div>
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.email')}</label>
+          <label className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.email')}</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
             placeholder={t('auth.emailPlaceholder')}
-            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-stone-400 transition-colors"
+            className="border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-stone-400 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="auth-contrasena" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.contrasena')}</label>
+            <label htmlFor="auth-contrasena" className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.contrasena')}</label>
             {view === 'login' && (
               <button
                 type="button"
                 onClick={() => { setView('reset'); setError(''); setResetSent(false) }}
-                className="text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors cursor-pointer"
+                className="text-[10px] text-stone-500 hover:text-stone-600 underline underline-offset-2 transition-colors cursor-pointer"
               >
                 {t('auth.olvidaste')}
               </button>
@@ -753,7 +753,7 @@ export function AuthPage({ isModal = false }: Props) {
 
         {view === 'register' && (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="auth-contrasena2" className="text-[10px] tracking-widest uppercase text-stone-400">{t('auth.contrasenaRepetir')}</label>
+            <label htmlFor="auth-contrasena2" className="text-[10px] tracking-widest uppercase text-stone-500">{t('auth.contrasenaRepetir')}</label>
             <CampoContrasena
               id="auth-contrasena2"
               value={password2}
@@ -832,7 +832,7 @@ function CampoContrasena({ id, value, onChange, autoComplete, noCoincide = false
         aria-invalid={noCoincide || undefined}
         maxLength={maxLength}
         aria-describedby={noCoincide ? `${id}-aviso` : describedBy}
-        className={`w-full border rounded-xl pl-4 pr-12 py-3 text-base text-stone-800 placeholder:text-stone-300 focus:outline-none transition-colors ${noCoincide ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-stone-400'}`}
+        className={`w-full border rounded-xl pl-4 pr-12 py-3 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none transition-colors ${noCoincide ? 'border-red-300 focus:border-red-400' : 'border-stone-200 focus:border-stone-400'}`}
       />
       <button
         type="button"
@@ -840,7 +840,7 @@ function CampoContrasena({ id, value, onChange, autoComplete, noCoincide = false
         aria-label={t(visible ? 'auth.ocultarContrasena' : 'auth.mostrarContrasena')}
         aria-pressed={visible}
         aria-controls={id}
-        className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+        className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
       >
         {visible ? (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -64,10 +64,14 @@ function ParticipantesChips({ participantes, cargos, dark, chipsLight }: { parti
   const borderClass = dark && !chipsLight ? 'border-white/10' : 'border-stone-100'
 
   if (cargos) {
-    const nameClass = dark && !chipsLight
-      ? 'text-stone-200 hover:text-brand-orange'
-      : 'text-stone-700 hover:text-brand-red'
-    const cargoClass = dark && !chipsLight ? 'text-stone-400' : 'text-stone-500'
+    // En ProgramaSection (dark + chipsLight) el fondo es negro sin tarjeta
+    // clara: nombres y cargos van en gris claro para que se lean.
+    const nameClass = dark && chipsLight
+      ? 'text-white hover:text-brand-orange'
+      : dark
+        ? 'text-stone-200 hover:text-brand-orange'
+        : 'text-stone-700 hover:text-brand-red'
+    const cargoClass = dark && chipsLight ? 'text-stone-300' : dark ? 'text-stone-400' : 'text-stone-500'
     return (
       <div className={`mt-3 flex flex-col gap-3 border-t pt-3 ${borderClass}`}>
         {participantes.map((nombre, i) => {
@@ -85,7 +89,7 @@ function ParticipantesChips({ participantes, cargos, dark, chipsLight }: { parti
                   {nombre}
                 </button>
               ) : (
-                <span className={`text-xs font-semibold ${dark && !chipsLight ? 'text-stone-200' : 'text-stone-700'}`} style={labelStyle}>
+                <span className={`text-xs font-semibold ${dark && chipsLight ? 'text-white' : dark ? 'text-stone-200' : 'text-stone-700'}`} style={labelStyle}>
                   {nombre}
                 </span>
               )}
@@ -235,7 +239,7 @@ const TimelineRow = memo(function TimelineRow({
               <div id={contentId} role="region" aria-labelledby={headerId}>
                 {descripcion && (
                   <p
-                    className={`mt-3 border-t pt-3 text-xs leading-relaxed ${dark && !chipsLight ? 'border-white/10 text-stone-300' : 'border-stone-100 text-stone-600'}`}
+                    className={`mt-3 border-t pt-3 text-xs leading-relaxed ${dark && !chipsLight ? 'border-white/10 text-stone-300' : dark ? 'border-stone-100 text-stone-300' : 'border-stone-100 text-stone-600'}`}
                     style={labelStyle}
                   >
                     {descripcion}

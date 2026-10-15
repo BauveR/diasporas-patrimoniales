@@ -102,7 +102,7 @@ export function Footer() {
             <img src={logoDiasporasTea} alt="Diásporas Patrimoniales — TEA Tenerife" width={600} height={220} loading="lazy" className="-translate-x-2 h-14 w-auto object-contain" />
             <div className="flex items-center justify-center gap-5">
               <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} loading="lazy" className="-translate-x-5 h-16 w-auto object-contain" />
-              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="-ml-4 -translate-x-2 h-11 w-auto object-contain" />
+              <img src={logoDiasporasPoster} alt="Patrimonio Cultural de Canarias" width={700} height={350} loading="lazy" className="-ml-4 -translate-x-2 h-8 w-auto object-contain" />
               <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="ml-2 h-14 w-auto object-contain" />
             </div>
             <div className="flex items-center justify-center gap-8">
@@ -132,7 +132,7 @@ export function Footer() {
               width={700}
               height={350}
               loading="lazy"
-              className="h-16 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
             <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />
             <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} loading="lazy" className="h-[4.2rem] w-auto object-contain lg:ml-4" />
