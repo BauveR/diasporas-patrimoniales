@@ -148,7 +148,7 @@ export function BookingWidget({
           <div className="flex flex-col gap-1.5">
             <h3 className="text-lg leading-snug font-bold text-white">{t('reserva.nosVemos', { fecha: fechaCorta })}</h3>
             {correoNoEnviado ? avisoCorreo(true) : (
-              <p className="text-[13px] leading-relaxed text-stone-400">
+              <p className="text-[13px] leading-relaxed text-stone-300">
                 {t('reserva.correoEnviado')}
               </p>
             )}
@@ -156,7 +156,7 @@ export function BookingWidget({
 
           {confirmando ? (
             <div className="flex flex-col gap-2">
-              <p className="text-[11px] text-stone-400 text-center">{t('reserva.liberarPregunta')}</p>
+              <p className="text-[11px] text-stone-300 text-center">{t('reserva.liberarPregunta')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={onLiberar}
@@ -249,7 +249,7 @@ export function BookingWidget({
             )}
           </div>
           {avisoCorreo(false)}
-          <p className="text-[10px] text-stone-400 text-center">{t('reserva.gratuita')}</p>
+          <p className="text-[10px] text-stone-500 text-center">{t('reserva.gratuita')}</p>
         </div>
       )
     }
@@ -269,28 +269,28 @@ export function BookingWidget({
             <p className="text-white text-sm leading-snug" style={textFont}>{actividad.titulo}</p>
           </div>
           <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-            <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.fecha')}</span>
+            <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.fecha')}</span>
             <span className="text-sm text-stone-800 capitalize" style={textFont}>{fecha}</span>
             {(actividad.hora || actividad.duracion) && (
-              <span className="text-[11px] text-stone-400" style={textFont}>
+              <span className="text-[11px] text-stone-500" style={textFont}>
                 {[actividad.hora, actividad.duracion].filter(Boolean).join(' · ')}
               </span>
             )}
           </div>
           {actividad.puntoEncuentro && (
             <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.puntoEncuentro')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.puntoEncuentro')}</span>
               <span className="text-sm text-stone-800 leading-snug" style={textFont}>{actividad.puntoEncuentro}</span>
             </div>
           )}
           {actividad.organizador && (
             <div className="px-6 py-4 border-t border-dashed border-stone-200 flex flex-col gap-0.5">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.organizador')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.organizador')}</span>
               <span className="text-sm text-stone-800" style={textFont}>{actividad.organizador}</span>
               {actividad.contacto && (
                 <a
                   href={`mailto:${actividad.contacto}`}
-                  className="text-[11px] text-stone-400 hover:text-stone-600 transition-colors truncate"
+                  className="text-[11px] text-stone-500 hover:text-stone-600 transition-colors truncate"
                   style={textFont}
                 >
                   {actividad.contacto}
@@ -350,23 +350,23 @@ export function BookingWidget({
 
       {!compact && (
         <div>
-          <p className="text-[10px] tracking-widest uppercase text-stone-400 mb-3" style={textFont}>
+          <p className="text-[10px] tracking-widest uppercase text-stone-500 mb-3" style={textFont}>
             {t('reserva.detalles')}
           </p>
           <div className="grid grid-cols-2 gap-y-4 gap-x-4">
             <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.fecha')}</span>
+              <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.fecha')}</span>
               <span className="text-sm text-stone-800 capitalize wrap-break-word" style={textFont}>{fecha}</span>
             </div>
             {actividad.hora && (
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.hora')}</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.hora')}</span>
                 <span className="text-sm text-stone-800" style={textFont}>{actividad.hora}</span>
               </div>
             )}
             {actividad.duracion && (
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[10px] tracking-widest uppercase text-stone-400" style={textFont}>{t('reserva.duracion')}</span>
+                <span className="text-[10px] tracking-widest uppercase text-stone-500" style={textFont}>{t('reserva.duracion')}</span>
                 <span className="text-sm text-stone-800" style={textFont}>{actividad.duracion}</span>
               </div>
             )}
@@ -385,7 +385,7 @@ export function BookingWidget({
       )}
 
       {noAbierto && actividad.fechaAperturaInscripciones && (
-        <p className={`text-[11px] ${dark ? 'text-stone-400' : 'text-stone-500'}`} style={textFont}>
+        <p className={`text-[11px] ${dark ? 'text-stone-300' : 'text-stone-600'}`} style={textFont}>
           {t('reserva.abren', { fecha: formatFechaDiaMesAnio(actividad.fechaAperturaInscripciones) })}
         </p>
       )}
@@ -400,7 +400,7 @@ export function BookingWidget({
               {t('reserva.sesionIniciada')}
             </p>
           )}
-          <label className={`text-[10px] tracking-widest uppercase ${dark ? 'text-stone-400' : 'text-stone-400'}`} style={textFont}>
+          <label className={`text-[10px] tracking-widest uppercase ${dark ? 'text-stone-300' : 'text-stone-500'}`} style={textFont}>
             {t('reserva.telefono')}
           </label>
           <input
@@ -408,7 +408,7 @@ export function BookingWidget({
             value={telefono}
             onChange={e => onTelefonoChange(e.target.value)}
             placeholder={t('reserva.telefonoPlaceholder')}
-            className={`w-full rounded-xl px-3 py-2.5 text-base focus:outline-none transition-colors ${dark ? 'border border-white/15 bg-white/5 text-white placeholder:text-stone-500 focus:border-white/30' : 'border border-stone-200 text-stone-800 focus:border-stone-400'}`}
+            className={`w-full rounded-xl px-3 py-2.5 text-base focus:outline-none transition-colors ${dark ? 'border border-white/15 bg-white/5 text-white placeholder:text-stone-400 focus:border-white/30' : 'border border-stone-200 text-stone-800 focus:border-stone-400'}`}
             style={dark ? { ...textFont, color: '#ffffff', colorScheme: 'dark' } : textFont}
           />
           {telefonoError && (
@@ -480,7 +480,7 @@ export function BookingWidget({
         </button>
       )}
 
-      <p className={`text-[10px] text-center ${dark ? 'text-stone-500' : 'text-stone-400'}`} style={textFont}>
+      <p className={`text-[10px] text-center ${dark ? 'text-stone-400' : 'text-stone-500'}`} style={textFont}>
         {t('reserva.gratuita')}
       </p>
     </div>
