@@ -7,6 +7,7 @@ import { IntroTicker } from '../components/intro/IntroTicker'
 import { IntroHeadlineTicker } from '../components/intro/IntroHeadlineTicker'
 import { IntroCycleFade } from '../components/intro/IntroCycleFade'
 import { SeoHead } from '../components/SeoHead'
+import { useIntroIdioma } from '../hooks/useIntroIdioma'
 import { INTRO_LAYOUT_DEFAULTS, INTRO_TUNING_DEFAULTS, ORB_TUNING_DEFAULTS, type IntroGuia } from '../lib/introTuning'
 
 // TEMPORAL — guía de encuadre (puntos verdes en las esquinas del área que
@@ -80,6 +81,8 @@ export function Intro() {
   const [orbTuning, setOrbTuning] = useState(ORB_TUNING_DEFAULTS)
   // Posición y tamaño del wordmark y del orb (IntroLayout).
   const [layout, setLayout] = useState(INTRO_LAYOUT_DEFAULTS)
+  // Idioma del badge y de la franja de la frase (ES → FR → PT → EN).
+  const idioma = useIntroIdioma(orbTuning, OVERLAYS_APPEAR_AT_SECONDS, OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS)
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
@@ -115,8 +118,8 @@ export function Intro() {
         appearFadeSeconds={OVERLAYS_APPEAR_FADE_SECONDS}
         disappearBeforeEndSeconds={OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS}
       >
-        <IntroLiveBadge />
-        <IntroHeadlineTicker />
+        <IntroLiveBadge {...idioma} />
+        <IntroHeadlineTicker {...idioma} />
         <IntroTicker />
       </IntroCycleFade>
       <FrameGuide guia={layout.guia} />

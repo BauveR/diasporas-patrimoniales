@@ -32,12 +32,13 @@ function TickerCopy() {
       <span className="inline-flex items-center gap-[33px] sm:gap-[44px]">
         {/* Mismos 5 logos, orden y proporciones que la fila del hero
             (PointsToShapes): alturas de allí en cqw escaladas a px tomando
-            Cabildo como referencia, y luego toda la franja al 88% (−20%, +10%). */}
-        <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[37px] w-auto object-contain sm:h-[44px]" />
+            Cabildo como referencia, y luego toda la franja al 88% (−20%, +10%);
+            después todos menos Patrimonio Cultural +25%. */}
+        <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[47px] w-auto object-contain sm:h-[56px]" />
         <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="h-[26px] w-auto object-contain sm:h-[31px]" />
-        <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-[29px] w-auto object-contain sm:h-[33px]" />
-        <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-[25px] w-auto object-contain sm:h-[31px]" />
-        <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[19px] w-auto object-contain sm:h-[22px]" />
+        <img src={logoCabildoTenerife} alt="Cabildo de Tenerife" width={170} height={206} className="h-[36px] w-auto object-contain sm:h-[42px]" />
+        <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="h-[32px] w-auto object-contain sm:h-[40px]" />
+        <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[24px] w-auto object-contain sm:h-[28px]" />
       </span>
       <Separator />
     </span>
