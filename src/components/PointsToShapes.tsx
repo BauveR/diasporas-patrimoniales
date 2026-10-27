@@ -27,6 +27,7 @@ import {
 import { useBreakpoint, type BreakpointBucket } from '../hooks/useBreakpoint'
 import { HeroWordmark } from './HeroWordmark'
 import { GrainientBackground } from './GrainientBackground'
+import { MaskLine, FadeUp } from './MaskReveal'
 import { SlideInText } from './SlideInText'
 import logoGobCan from '../assets/Logo_GobCan_claim_blanco_mod1-01.webp'
 import logoCabildoTenerife from '../assets/cabildo-de-tenerife [Converted]-01.webp'
@@ -60,6 +61,18 @@ const HeroTuningPanel = import.meta.env.DEV ? lazy(() => import('./HeroTuningPan
 // compete at the same time — the text starts right as the shape's motion is
 // settling down instead of while it's still actively assembling.
 const HEADLINE_START_DELAY = FORM_START + FORM_DURATION - 0.4
+
+// Resto de textos del hero, en cascada a partir del titular (que entra
+// palabra por palabra con SlideInText): las líneas con máscara (MaskLine)
+// y después descripción, botones y logos (FadeUp). Ver MaskReveal.tsx.
+const TEXTOS_DELAY = {
+  simposio: HEADLINE_START_DELAY + 0.3,
+  fecha: HEADLINE_START_DELAY + 0.45,
+  sede: HEADLINE_START_DELAY + 0.6,
+  descripcion: HEADLINE_START_DELAY + 0.9,
+  botones: HEADLINE_START_DELAY + 1.2,
+  logos: HEADLINE_START_DELAY + 1.6,
+}
 
 extend({ UnrealBloomPass })
 
@@ -967,6 +980,7 @@ export default function PointsToShapes() {
                   valores salen de los tamaños de `xl` sobre la fila más
                   ancha (~666px), con Patrimonio a 8cqw: logos ≈
                   80.7cqw + 4 gaps × 2.8cqw + 3.2cqw de TEA + 3.5cqw de Cabildo − 0.8cqw de Patrimonio ≈ 98cqw. */}
+              <FadeUp delay={TEXTOS_DELAY.logos}>
               <div className="w-full [container-type:inline-size]" style={shift(off.logosX, off.logosY)}>
               <div className="flex flex-nowrap items-center gap-[2.8cqw]">
                 <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
@@ -976,6 +990,7 @@ export default function PointsToShapes() {
                 <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />
               </div>
               </div>
+              </FadeUp>
             </div>
 
             {/* `self-end`: el borde inferior de esta columna (los botones)
@@ -990,20 +1005,21 @@ export default function PointsToShapes() {
             <div className="pointer-events-auto flex min-w-0 flex-col items-start gap-5 self-end text-white">
               <div style={shift(off.textosX, off.textosY)}>
                 <p className="font-mattone text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
-                  {t('hero.simposio')}
+                  <MaskLine delay={TEXTOS_DELAY.simposio}>{t('hero.simposio')}</MaskLine>
                 </p>
                 <p className="text-base leading-snug font-bold tracking-widest text-white uppercase md:text-lg">
-                  {t('hero.dateLine')}
-                  <br />
-                  {t('hero.location')}
+                  <MaskLine delay={TEXTOS_DELAY.fecha}>{t('hero.dateLine')}</MaskLine>
+                  <MaskLine delay={TEXTOS_DELAY.sede}>{t('hero.location')}</MaskLine>
                 </p>
                 {/* `text-sm` en lg, `text-base` desde xl: en lg la columna
                     mide ~220px y los botones van en dos filas; con el texto
                     a 16px los botones quedaban por debajo del primer
                     pantallazo a 1024×690 (hasta ~57px en francés). */}
-                <p className="mt-4 text-sm leading-relaxed text-white/80 xl:text-base">
-                  {t('hero.description')}
-                </p>
+                <FadeUp delay={TEXTOS_DELAY.descripcion}>
+                  <p className="mt-4 text-sm leading-relaxed text-white/80 xl:text-base">
+                    {t('hero.description')}
+                  </p>
+                </FadeUp>
               </div>
               {/* Padding/tracking/gap compactos en todo desktop (desde `lg`,
                   antes solo desde `xl`): en `lg` la columna de texto mide
@@ -1012,6 +1028,7 @@ export default function PointsToShapes() {
                   deformaba. `whitespace-nowrap`: el texto de cada botón
                   nunca se parte; si no entran los dos en una fila, el
                   segundo baja entero (flex-wrap). */}
+              <FadeUp delay={TEXTOS_DELAY.botones}>
               <div className="flex flex-wrap items-center gap-2" style={shift(off.botonesX, off.botonesY)}>
                 <Link
                   to={sedesHref}
@@ -1027,6 +1044,7 @@ export default function PointsToShapes() {
                   {t('hero.programCta')}
                 </Link>
               </div>
+              </FadeUp>
             </div>
           </div>
         </div>
@@ -1057,18 +1075,19 @@ export default function PointsToShapes() {
         />
         <div className="-mt-6">
           <p className="font-mattone text-base leading-snug font-bold tracking-widest whitespace-nowrap uppercase sm:text-lg">
-            {t('hero.simposio')}
+            <MaskLine delay={TEXTOS_DELAY.simposio}>{t('hero.simposio')}</MaskLine>
           </p>
           <p className="text-base leading-snug font-bold tracking-widest uppercase sm:text-lg">
-            {t('hero.dateLine')}
-            <br />
-            {t('hero.location')}
+            <MaskLine delay={TEXTOS_DELAY.fecha}>{t('hero.dateLine')}</MaskLine>
+            <MaskLine delay={TEXTOS_DELAY.sede}>{t('hero.location')}</MaskLine>
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
-            {t('hero.description')}
-          </p>
+          <FadeUp delay={TEXTOS_DELAY.descripcion}>
+            <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+              {t('hero.description')}
+            </p>
+          </FadeUp>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <FadeUp delay={TEXTOS_DELAY.botones} className="flex flex-wrap items-center justify-center gap-4">
           <Link
             to={sedesHref}
             className="w-fit rounded-full px-6 py-2.5 font-mattone text-xs font-bold tracking-widest text-white uppercase transition-opacity hover:opacity-80"
@@ -1082,14 +1101,14 @@ export default function PointsToShapes() {
           >
             {t('hero.programCta')}
           </Link>
-        </div>
+        </FadeUp>
 
         {/* Colaboradores/patrocinadores — mismos 5 logos y mismo orden
             que la versión desktop, con el mismo sistema en `cqw` de la
             fila: escala con el ancho disponible (tope 620px desde `sm`)
             en vez de tamaños fijos, que con 5 logos ya no entraban en una
             línea a 375px. */}
-        <div className="w-full max-w-[620px] [container-type:inline-size]">
+        <FadeUp delay={TEXTOS_DELAY.logos} className="w-full max-w-[620px] [container-type:inline-size]">
         <div className="flex flex-nowrap items-center justify-center gap-[2.8cqw]">
           <img src={logoGobCan} alt="Gobierno de Canarias" width={556} height={322} className="h-[11.5cqw] w-auto object-contain" />
           <img src={logoPatrimonioCultural} alt="Patrimonio Cultural de Canarias" width={700} height={350} className="-ml-[0.8cqw] h-[6.8cqw] w-auto object-contain" />
@@ -1097,7 +1116,7 @@ export default function PointsToShapes() {
           <img src={logoTEA} alt="Tenerife Espacio de las Artes" width={473} height={237} className="ml-[3.2cqw] h-[7.9cqw] w-auto object-contain" />
           <img src={logoMuna} alt="MUNA — Museo de la Naturaleza y el Hombre" width={640} height={169} className="h-[5.75cqw] w-auto object-contain" />
         </div>
-        </div>
+        </FadeUp>
       </div>
       )}
 

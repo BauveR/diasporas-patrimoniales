@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieBanner } from './components/CookieBanner'
+import { SmoothScroll } from './components/SmoothScroll'
 import { Home } from './pages/Home'
 import { UnderConstruction } from './pages/UnderConstruction'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -173,6 +174,7 @@ export default function App() {
     <AuthProvider>
       <DataProvider>
         <Navbar />
+        <SmoothScroll locationKey={location.key} enabled={!/(^|\/)admin(\/|$)/.test(location.pathname)} />
 
         {/* Main content — renders background location when modal is open */}
         <AnimatePresence>
