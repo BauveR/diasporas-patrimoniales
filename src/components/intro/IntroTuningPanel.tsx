@@ -3,6 +3,7 @@ import type { MutableRefObject } from 'react'
 import { Leva, useControls, folder } from 'leva'
 import {
   INTRO_LAYOUT_DEFAULTS,
+  INTRO_LAYOUT_FRAME_DEFAULT,
   INTRO_LAYOUT_FRAMES,
   INTRO_GUIAS,
   INTRO_TUNING_DEFAULTS,
@@ -68,10 +69,13 @@ export default function IntroTuningPanel({
       orbY: { value: INTRO_LAYOUT_DEFAULTS.orbY, min: -100, max: 100, step: 1, label: 'Y' },
     }),
     guia: { value: INTRO_LAYOUT_DEFAULTS.guia, options: INTRO_GUIAS, label: 'guía (puntos)' },
+    badge: { value: INTRO_LAYOUT_DEFAULTS.badge, label: 'badge «Empezamos…»' },
+    fondoNegro: { value: INTRO_LAYOUT_DEFAULTS.fondoNegro, label: 'fondo negro' },
+    fecha: { value: INTRO_LAYOUT_DEFAULTS.fecha, label: 'fecha (franja abajo)' },
   }))
   useControls('Intro — posición y tamaño', {
     frame: {
-      value: 'Frame 1',
+      value: INTRO_LAYOUT_FRAME_DEFAULT,
       options: Object.keys(INTRO_LAYOUT_FRAMES),
       onChange: (frame: string) => setLayout(INTRO_LAYOUT_FRAMES[frame as IntroLayoutFrame]),
       transient: true,

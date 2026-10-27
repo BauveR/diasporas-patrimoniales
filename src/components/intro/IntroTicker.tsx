@@ -3,6 +3,10 @@ import logoCabildoTenerife from '../../assets/cabildo-de-tenerife [Converted]-01
 import logoTEA from '../../assets/tenerife-espacio-de-las-artes [Converted]-01.webp'
 import logoMuna from '../../assets/15-Logo-MUNA-Museos-de-Tenerife-Naturaleza-y-Arqueologia-750x750.webp'
 import logoPatrimonioCultural from '../../assets/patrimonio cultural de canarias.webp'
+import { useTranslation } from 'react-i18next'
+import { INTRO_IDIOMAS, INTRO_IDIOMA_FADE_SECONDS } from '../../hooks/useIntroIdioma'
+
+type Lng = (typeof INTRO_IDIOMAS)[number]
 
 // Marquee CSS puro (2 grupos idénticos uno al lado del otro, animando
 // translateX 0 → -50%) en vez del enfoque anterior (react-bits'
@@ -20,13 +24,40 @@ const GROUP_COPIES = 4
 
 const Separator = () => <span className="mx-[33px] text-white/40 sm:mx-[44px]">·</span>
 
-function TickerCopy() {
+// "Simposio Internacional" en los 4 idiomas, al ritmo de useIntroIdioma
+// (igual que el badge y la franja de la frase). Las 4 versiones van
+// apiladas en la misma celda de grid y solo se ve la activa: el hueco mide
+// siempre lo que la más larga, así el resto de la franja (logos incluidos)
+// no salta al cambiar de idioma.
+function Simposio({ lng, visible }: { lng: Lng; visible: boolean }) {
+  const { t } = useTranslation()
+  return (
+    <span className="inline-grid">
+      {INTRO_IDIOMAS.map((l) => (
+        <span
+          key={l}
+          className="col-start-1 row-start-1 text-center transition-opacity"
+          style={{ opacity: l === lng && visible ? 1 : 0, transitionDuration: `${INTRO_IDIOMA_FADE_SECONDS}s` }}
+          aria-hidden={l !== lng}
+        >
+          {t('hero.simposio', { lng: l })}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function TickerCopy({ fecha, lng, visible }: { fecha: boolean; lng: Lng; visible: boolean }) {
   return (
     <span className="inline-flex shrink-0 items-center whitespace-nowrap">
-      <span>Simposio Internacional</span>
+      <Simposio lng={lng} visible={visible} />
       <Separator />
-      <span>12 y 13 de noviembre de 2026</span>
-      <Separator />
+      {fecha && (
+        <>
+          <span>12 y 13 de noviembre de 2026</span>
+          <Separator />
+        </>
+      )}
       <span>TEA, Santa Cruz de Tenerife</span>
       <Separator />
       <span className="inline-flex items-center gap-[33px] sm:gap-[44px]">
@@ -45,17 +76,19 @@ function TickerCopy() {
   )
 }
 
-function TickerGroup() {
+function TickerGroup({ fecha, lng, visible }: { fecha: boolean; lng: Lng; visible: boolean }) {
   return (
     <span className="inline-flex shrink-0 items-center">
       {Array.from({ length: GROUP_COPIES }).map((_, i) => (
-        <TickerCopy key={i} />
+        <TickerCopy key={i} fecha={fecha} lng={lng} visible={visible} />
       ))}
     </span>
   )
 }
 
-export function IntroTicker() {
+// `fecha`: el frame decide si se muestra (IntroLayout.fecha). `lng` y
+// `visible`: idioma de "Simposio Internacional" (useIntroIdioma).
+export function IntroTicker({ fecha = true, lng, visible }: { fecha?: boolean; lng: Lng; visible: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-32 z-20 overflow-hidden border-t border-white/10 bg-black/40 py-[17px] backdrop-blur-sm sm:bottom-44 sm:py-[22px]">
       <style>{`
@@ -69,8 +102,8 @@ export function IntroTicker() {
         }
       `}</style>
       <div className="intro-ticker-track flex w-max font-mattone text-[20px] font-bold tracking-widest whitespace-nowrap text-white uppercase sm:text-[22px]">
-        <TickerGroup />
-        <TickerGroup />
+        <TickerGroup fecha={fecha} lng={lng} visible={visible} />
+        <TickerGroup fecha={fecha} lng={lng} visible={visible} />
       </div>
     </div>
   )

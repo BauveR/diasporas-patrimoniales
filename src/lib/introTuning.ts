@@ -135,6 +135,9 @@ export interface IntroLayout {
   // Guía de encuadre (puntos verdes): proporción de la
   // pantalla para la que se compone el frame.
   guia: IntroGuia
+  badge: boolean // "Empezamos en unos minutos" (IntroLiveBadge)
+  fondoNegro: boolean // true = sin el degradado (GrainientBackground), negro liso
+  fecha: boolean // fecha en la franja de abajo (IntroTicker)
 }
 
 // Composiciones guardadas (se eligen en el panel, desplegable "frame").
@@ -148,6 +151,9 @@ export const INTRO_LAYOUT_FRAMES = {
     orbX: -66,
     orbY: 8,
     guia: '16:9',
+    badge: true,
+    fondoNegro: false,
+    fecha: true,
   },
   'Frame 2': {
     logoAnchoVw: 81,
@@ -158,10 +164,29 @@ export const INTRO_LAYOUT_FRAMES = {
     orbX: 0,
     orbY: 22,
     guia: '9:16',
+    badge: true,
+    fondoNegro: false,
+    fecha: true,
+  },
+  // Sin el badge "Empezamos en unos minutos" ni la fecha en la franja de
+  // abajo, con fondo negro y su propia composición (2026-10-16).
+  'Frame 3': {
+    logoAnchoVw: 81,
+    logoAnchoMaxRem: 30,
+    logoX: 8,
+    logoY: -18,
+    orbTamano: 0.47,
+    orbX: -55,
+    orbY: 39,
+    guia: '16:9',
+    badge: false,
+    fondoNegro: true,
+    fecha: false,
   },
 } satisfies Record<string, IntroLayout>
 
 export type IntroLayoutFrame = keyof typeof INTRO_LAYOUT_FRAMES
 
 // La que usa la web (en producción no hay panel).
-export const INTRO_LAYOUT_DEFAULTS: IntroLayout = INTRO_LAYOUT_FRAMES['Frame 1']
+export const INTRO_LAYOUT_FRAME_DEFAULT: IntroLayoutFrame = 'Frame 3'
+export const INTRO_LAYOUT_DEFAULTS: IntroLayout = INTRO_LAYOUT_FRAMES[INTRO_LAYOUT_FRAME_DEFAULT]
