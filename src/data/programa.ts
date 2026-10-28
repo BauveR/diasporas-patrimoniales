@@ -122,4 +122,11 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
     titulo: 'Sesión de clausura',
     descripcion: 'Lectura de la «Declaración de Santa Cruz de Tenerife» y clausura institucional.',
   },
+  {
+    id: 'd2-7',
+    hora: '18:00',
+    titulo: 'Performance sobre la memoria silenciada de las mujeres guanches',
+    descripcion: 'Lugar: Plaza del TEA.',
+    participantes: ['Yapci Ramos'],
+  },
 ]
