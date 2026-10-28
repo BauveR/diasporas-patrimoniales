@@ -76,7 +76,10 @@ function programaItem(locale: Locale, item: ProgramaItem) {
 
 function startEnd(): { start: string; end: string } {
   const first = PROGRAMA_DIA_1[0].hora.split(/[–-]/)[0].trim()
-  const last = PROGRAMA_DIA_2[PROGRAMA_DIA_2.length - 1].hora.split(/[–-]/)[1].trim()
+  // El último ítem puede ser solo una hora de inicio ("18:00", sin rango):
+  // entonces esa es la hora de cierre del evento.
+  const ultima = PROGRAMA_DIA_2[PROGRAMA_DIA_2.length - 1].hora.split(/[–-]/)
+  const last = (ultima[1] ?? ultima[0]).trim()
   return { start: `${DIA_1}T${first}:00${TZ}`, end: `${DIA_2}T${last}:00${TZ}` }
 }
 
