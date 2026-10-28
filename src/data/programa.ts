@@ -128,5 +128,8 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
     titulo: 'Performance sobre la memoria silenciada de las mujeres guanches',
     descripcion: 'Lugar: Plaza del TEA.',
     participantes: ['Yapci Ramos'],
+    // Sin cargo por ahora: con la lista (aunque vacía) se muestra como el
+    // resto de ponentes (nombre en texto) en vez de como píldora.
+    participantesCargo: [''],
   },
 ]
