@@ -81,7 +81,8 @@ export function Intro() {
   const [orbTuning, setOrbTuning] = useState(ORB_TUNING_DEFAULTS)
   // Posición y tamaño del wordmark y del orb (IntroLayout).
   const [layout, setLayout] = useState(INTRO_LAYOUT_DEFAULTS)
-  // Idioma del badge y de la franja de la frase (ES → FR → PT → EN).
+  // Idioma del badge, de la franja de la frase y de "Simposio
+  // Internacional" en la franja de abajo (ES → FR → PT → EN).
   const idioma = useIntroIdioma(orbTuning, OVERLAYS_APPEAR_AT_SECONDS, OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS)
 
   return (
@@ -118,9 +119,9 @@ export function Intro() {
         appearFadeSeconds={OVERLAYS_APPEAR_FADE_SECONDS}
         disappearBeforeEndSeconds={OVERLAYS_DISAPPEAR_BEFORE_END_SECONDS}
       >
-        <IntroLiveBadge {...idioma} />
+        {layout.badge && <IntroLiveBadge {...idioma} />}
         <IntroHeadlineTicker {...idioma} />
-        <IntroTicker />
+        <IntroTicker fecha={layout.fecha} {...idioma} />
       </IntroCycleFade>
       <FrameGuide guia={layout.guia} />
       {IntroTuningPanel && (

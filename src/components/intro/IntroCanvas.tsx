@@ -116,14 +116,18 @@ export function IntroCanvas({
         style={{ opacity: ready ? 1 : 0 }}
         dpr={[1, 1.5]}
       >
-        <GrainientBackground
-          color1={GRADIENT_ACCENT}
-          color2={GRADIENT_DOMINANT}
-          color3={GRADIENT_THIRD}
-          contrast={1}
-          saturation={1}
-          timeSpeed={0} // TEMPORAL — fondo pausado, sacar para reactivar el movimiento
-        />
+        {/* Con `fondoNegro` no se pinta el degradado: queda el negro del
+            contenedor de /intro (bg-black en Intro.tsx). */}
+        {!layout.fondoNegro && (
+          <GrainientBackground
+            color1={GRADIENT_ACCENT}
+            color2={GRADIENT_DOMINANT}
+            color3={GRADIENT_THIRD}
+            contrast={1}
+            saturation={1}
+            timeSpeed={0} // TEMPORAL — fondo pausado, sacar para reactivar el movimiento
+          />
+        )}
         <CameraSync x={cameraX} y={cameraY} zoom={zoom} />
         {orbAppeared && <IntroParticleSwarm orbTuning={orbTuning} />}
         {!ready && <WarmupGate onReady={() => setReady(true)} />}
