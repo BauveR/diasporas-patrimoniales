@@ -124,7 +124,7 @@ export const PROGRAMA_DIA_2: ProgramaItem[] = [
   },
   {
     id: 'd2-7',
-    hora: '18:00',
+    hora: '17:30',
     titulo: 'MONUMENTA. Nueve encarnaciones guanches',
     descripcion: 'Performance sobre la memoria silenciada de las mujeres guanches.',
     participantes: ['Yapci Ramos'],
