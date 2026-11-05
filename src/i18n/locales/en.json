@@ -88,7 +88,8 @@
       "es": "Spanish",
       "en": "English",
       "fr": "French"
-    }
+    },
+    "idiomaSelector": "Stream language"
   },
   "programaItems": {
     "d1-1": {

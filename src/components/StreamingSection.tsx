@@ -1,6 +1,5 @@
-import { useEffect, useState, type PointerEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion'
 import { SlideInText } from './SlideInText'
 import { RevealOnScroll } from './RevealOnScroll'
 import { labelStyle } from '../lib/styles'
@@ -11,21 +10,18 @@ import {
   ZONA_HORARIA_EVENTO,
   estadoSesion,
   idiomaStreamingPorDefecto,
-  miniaturaVideo,
   tiempoRestante,
   urlVideo,
-  type SesionStreaming,
+  type IdiomaStreaming,
 } from '../data/streaming'
 
-// Calendario de retransmisiones al estilo de los calendarios de semanas de
-// la moda (FHCM / Vogue Runway): una fila editorial por sesión con fecha
-// grande, turno y las 3 versiones de idioma como pastillas que abren
-// YouTube. En escritorio, al pasar sobre una fila la miniatura del directo
-// sigue al cursor — solo se descarga entonces (mqdefault, ~15 KB), sin
-// iframes ni scripts de YouTube en la página.
+// Retransmisiones como "lookbook" (Prada / Jacquemus / SSENSE): rejilla 2×2
+// de tarjetas grandes con la miniatura del directo en 16:9, desaturada hasta
+// el hover, y un selector de idioma único para toda la sección (por defecto
+// el del sitio; PT → EN). Sin iframes ni scripts de YouTube: cada tarjeta es
+// un enlace y la miniatura se carga en diferido (loading="lazy").
 
-// Re-render cada 30 s: suficiente para que "En directo"/la cuenta atrás
-// cambien solos sin recargar.
+// Re-render cada 30 s: "En directo"/la cuenta atrás cambian solos.
 function useAhora(intervaloMs = 30_000) {
   const [ahora, setAhora] = useState(() => Date.now())
   useEffect(() => {
@@ -35,60 +31,54 @@ function useAhora(intervaloMs = 30_000) {
   return ahora
 }
 
-function usePunteroFino() {
-  const [fino, setFino] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia?.('(hover: hover) and (pointer: fine)')
-    if (!mq) return
-    setFino(mq.matches)
-    const onChange = (e: MediaQueryListEvent) => setFino(e.matches)
-    mq.addEventListener?.('change', onChange)
-    return () => mq.removeEventListener?.('change', onChange)
-  }, [])
-  return fino
-}
-
-function fechaPartes(iso: string, tag: string) {
-  const partes = new Intl.DateTimeFormat(tag, { day: 'numeric', month: 'short', timeZone: ZONA_HORARIA_EVENTO }).formatToParts(new Date(iso))
-  const dia = partes.find(p => p.type === 'day')?.value ?? ''
-  const mes = (partes.find(p => p.type === 'month')?.value ?? '').replace('.', '')
-  return { dia, mes }
+function fecha(iso: string, tag: string) {
+  return new Intl.DateTimeFormat(tag, { day: 'numeric', month: 'short', timeZone: ZONA_HORARIA_EVENTO })
+    .format(new Date(iso))
+    .replace('.', '')
 }
 
 function hora(iso: string, tag: string) {
   return new Intl.DateTimeFormat(tag, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: ZONA_HORARIA_EVENTO }).format(new Date(iso))
 }
 
+// hqdefault (480×360) recortada a 16:9 con object-cover: tapa las bandas
+// negras y existe siempre, también en directos aún no emitidos (maxresdefault no).
+function miniatura(id: string) {
+  return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+}
+
+// Punto naranja que parpadea — señal de "en vivo" junto al título.
+function PuntoVivo({ className = '' }: { className?: string }) {
+  return (
+    <span aria-hidden="true" className={`relative inline-flex ${className}`}>
+      <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-orange opacity-75 motion-reduce:animate-none" />
+      <span className="relative inline-flex size-full rounded-full bg-brand-orange animate-pulse motion-reduce:animate-none" />
+    </span>
+  )
+}
+
 export function StreamingSection() {
   const { t, i18n } = useTranslation()
   const locale = (i18n.language as Locale) ?? DEFAULT_LOCALE
   const tag = LOCALE_TAGS[locale] ?? LOCALE_TAGS[DEFAULT_LOCALE]
-  const idiomaDefecto = idiomaStreamingPorDefecto(locale)
   const ahora = useAhora()
-  const punteroFino = usePunteroFino()
-  const reducirMovimiento = useReducedMotion()
-  const flotante = punteroFino && !reducirMovimiento
 
-  const [hover, setHover] = useState<SesionStreaming | null>(null)
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const sx = useSpring(x, { stiffness: 300, damping: 30, mass: 0.6 })
-  const sy = useSpring(y, { stiffness: 300, damping: 30, mass: 0.6 })
-
-  const onMove = (e: PointerEvent) => {
-    x.set(e.clientX + 24)
-    y.set(e.clientY - 90)
-  }
+  const [idioma, setIdioma] = useState<IdiomaStreaming>(() => idiomaStreamingPorDefecto(locale))
+  // Cambiar el idioma del sitio reajusta el selector.
+  useEffect(() => setIdioma(idiomaStreamingPorDefecto(locale)), [locale])
 
   return (
     <section id="streaming" className="scroll-mt-16 w-full bg-stone-50 px-10 py-24 text-stone-900 sm:px-16 sm:py-32 lg:px-24 lg:py-40">
       <div className="mx-auto flex max-w-7xl flex-col gap-14">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[30fr_70fr] lg:gap-16">
-          <SlideInText
-            text={t('streaming.titulo')}
-            revealOnScroll
-            className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
-          />
+          <div className="flex items-start gap-3">
+            <SlideInText
+              text={t('streaming.titulo')}
+              revealOnScroll
+              className="font-mattone text-fluid-title font-bold tracking-tight text-brand-red uppercase"
+            />
+            <PuntoVivo className="mt-[0.35em] size-3 shrink-0 lg:size-3.5" />
+          </div>
           <RevealOnScroll>
             <p className="max-w-2xl text-sm leading-relaxed text-stone-600 md:text-base lg:text-lg" style={labelStyle}>
               {t('streaming.parrafo')}
@@ -98,130 +88,126 @@ export function StreamingSection() {
                 {t('streaming.avisoIdioma')}
               </p>
             )}
+
+            {/* Selector de idioma único para las 4 tarjetas. */}
+            <div role="radiogroup" aria-label={t('streaming.idiomaSelector')} className="mt-8 inline-flex rounded-full border border-stone-900/20 p-1">
+              {IDIOMAS_STREAMING.map(i => {
+                const activo = i === idioma
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    role="radio"
+                    aria-checked={activo}
+                    aria-label={t(`streaming.idiomas.${i}`)}
+                    onClick={() => setIdioma(i)}
+                    className={
+                      'rounded-full px-5 py-2 font-mattone text-xs font-bold tracking-widest uppercase transition-colors ' +
+                      (activo ? 'bg-brand-orange text-white' : 'text-stone-600 hover:text-brand-red')
+                    }
+                  >
+                    {i}
+                  </button>
+                )
+              })}
+            </div>
           </RevealOnScroll>
         </div>
 
-        <RevealOnScroll amount={0.1}>
-          <ul className="border-b border-stone-900/15" onPointerLeave={() => setHover(null)}>
-            {SESIONES_STREAMING.map(sesion => {
-              const estado = estadoSesion(sesion, ahora)
-              const { dia, mes } = fechaPartes(sesion.inicio, tag)
-              const restante = estado === 'programada' ? tiempoRestante(sesion.inicio, ahora) : null
-              const turno = t(sesion.turno === 'manana' ? 'streaming.manana' : 'streaming.tarde')
-              return (
-                <li
-                  key={sesion.id}
-                  onPointerEnter={flotante ? () => setHover(sesion) : undefined}
-                  onPointerMove={flotante ? onMove : undefined}
-                  className="group grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-5 border-t border-stone-900/15 py-8 transition-colors hover:bg-white md:grid-cols-[11rem_1fr_auto] md:gap-x-10 md:px-4 lg:py-10"
+        <ul className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 lg:gap-x-12 lg:gap-y-20">
+          {SESIONES_STREAMING.map((sesion, i) => {
+            const estado = estadoSesion(sesion, ahora)
+            const restante = estado === 'programada' ? tiempoRestante(sesion.inicio, ahora) : null
+            const turno = t(sesion.turno === 'manana' ? 'streaming.manana' : 'streaming.tarde')
+            const videoId = sesion.videos[idioma]
+            return (
+              <li key={sesion.id}>
+              <RevealOnScroll delay={(i % 2) * 0.12} amount={0.2}>
+                <a
+                  href={urlVideo(videoId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t('streaming.verEn', { idioma: t(`streaming.idiomas.${idioma}`), turno })}
+                  className="group block"
                 >
-                  {/* Fecha grande — el gesto editorial del calendario. */}
-                  <div className="flex flex-col leading-none">
-                    <span className="font-mattone text-5xl font-bold tracking-tight transition-colors group-hover:text-brand-red lg:text-6xl">
-                      {dia}
-                    </span>
-                    <span className="mt-2 font-mattone text-xs tracking-[0.3em] text-stone-500 uppercase">
-                      {mes} · {t('streaming.dia', { n: sesion.dia })}
+                  <div className="relative aspect-video overflow-hidden bg-stone-200">
+                    <img
+                      key={videoId}
+                      src={miniatura(videoId)}
+                      alt=""
+                      width={480}
+                      height={270}
+                      loading="lazy"
+                      decoding="async"
+                      className={
+                        'size-full object-cover transition duration-700 ease-out group-hover:scale-[1.04] group-hover:grayscale-0 ' +
+                        (estado === 'directo' ? 'grayscale-0' : 'grayscale')
+                      }
+                    />
+                    {/* Etiqueta de estado arriba a la izquierda, como el
+                        "NEW IN" de las fichas de moda. */}
+                    <div className="absolute top-4 left-4">
+                      <EstadoEtiqueta estado={estado} restante={restante} />
+                    </div>
+                    {/* Número de look grande, abajo a la derecha. */}
+                    <span className="absolute right-4 bottom-2 font-mattone text-5xl font-bold text-white/90 mix-blend-difference lg:text-6xl">
+                      {String(i + 1).padStart(2, '0')}
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 flex-col gap-2">
-                    <a
-                      href={urlVideo(sesion.videos[idiomaDefecto])}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-fit font-mattone text-xl font-bold leading-tight tracking-tight uppercase transition-colors hover:text-brand-red lg:text-2xl"
-                    >
-                      {turno}
-                    </a>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-stone-500" style={labelStyle}>
-                      <span>
+                  <div className="mt-5 flex items-start justify-between gap-6 border-t border-stone-900/15 pt-4">
+                    <div className="flex min-w-0 flex-col gap-1.5">
+                      <span className="font-mattone text-[0.65rem] tracking-[0.3em] text-stone-500 uppercase">
+                        {t('streaming.dia', { n: sesion.dia })} · {fecha(sesion.inicio, tag)}
+                      </span>
+                      <span className="font-mattone text-lg font-bold leading-tight tracking-tight uppercase transition-colors group-hover:text-brand-red lg:text-xl">
+                        {turno}
+                      </span>
+                      <span className="text-sm text-stone-500" style={labelStyle}>
                         {hora(sesion.inicio, tag)}–{hora(sesion.fin, tag)} · {t('streaming.horaCanarias')}
                       </span>
-                      <EstadoBadge estado={estado} restante={restante} />
                     </div>
+                    <span
+                      aria-hidden="true"
+                      className="mt-5 font-mattone text-2xl text-stone-400 transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-brand-red"
+                    >
+                      ↗
+                    </span>
                   </div>
-
-                  {/* Pastillas de idioma: la del idioma del sitio va rellena. */}
-                  <div className="col-span-2 flex gap-2 md:col-span-1">
-                    {IDIOMAS_STREAMING.map(idioma => {
-                      const activa = idioma === idiomaDefecto
-                      return (
-                        <a
-                          key={idioma}
-                          href={urlVideo(sesion.videos[idioma])}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={t('streaming.verEn', { idioma: t(`streaming.idiomas.${idioma}`), turno })}
-                          className={
-                            'rounded-full border px-4 py-2 font-mattone text-xs font-bold tracking-widest uppercase transition-colors ' +
-                            (activa
-                              ? 'border-brand-orange bg-brand-orange text-white hover:opacity-85'
-                              : 'border-stone-900/25 text-stone-700 hover:border-brand-red hover:text-brand-red')
-                          }
-                        >
-                          {idioma}
-                        </a>
-                      )
-                    })}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        </RevealOnScroll>
+                </a>
+              </RevealOnScroll>
+              </li>
+            )
+          })}
+        </ul>
       </div>
-
-      {/* Miniatura flotante que sigue al cursor (solo escritorio). */}
-      <AnimatePresence>
-        {flotante && hover && (
-          <motion.div
-            key="miniatura"
-            aria-hidden="true"
-            className="pointer-events-none fixed top-0 left-0 z-30 w-72 overflow-hidden rounded-sm shadow-2xl"
-            style={{ x: sx, y: sy }}
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <img
-              src={miniaturaVideo(hover.videos[idiomaDefecto])}
-              alt=""
-              width={320}
-              height={180}
-              className="aspect-video w-full object-cover"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   )
 }
 
-function EstadoBadge({ estado, restante }: { estado: ReturnType<typeof estadoSesion>; restante: ReturnType<typeof tiempoRestante> }) {
+function EstadoEtiqueta({ estado, restante }: { estado: ReturnType<typeof estadoSesion>; restante: ReturnType<typeof tiempoRestante> }) {
   const { t } = useTranslation()
-  const base = 'inline-flex items-center gap-2 font-mattone text-[0.65rem] font-bold tracking-widest uppercase'
+  const base = 'inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mattone text-[0.6rem] font-bold tracking-widest uppercase backdrop-blur-sm'
 
   if (estado === 'directo') {
     return (
-      <span className={`${base} text-brand-orange`}>
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-orange opacity-75 motion-reduce:animate-none" />
-          <span className="relative inline-flex size-2 rounded-full bg-brand-orange" />
+      <span className={`${base} bg-brand-orange text-white`}>
+        <span className="relative flex size-1.5">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-75 motion-reduce:animate-none" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-white" />
         </span>
         {t('streaming.enDirecto')}
       </span>
     )
   }
   if (estado === 'finalizada') {
-    return <span className={`${base} text-stone-400`}>{t('streaming.diferido')}</span>
+    return <span className={`${base} bg-white/85 text-stone-700`}>{t('streaming.diferido')}</span>
   }
   if (restante) {
     const tiempo = restante.dias > 0
       ? t('streaming.diasHoras', { d: restante.dias, h: restante.horas })
       : t('streaming.horasMinutos', { h: restante.horas, m: restante.minutos })
-    return <span className={`${base} text-brand-red`}>{t('streaming.empiezaEn', { tiempo })}</span>
+    return <span className={`${base} bg-white/85 text-brand-red`}>{t('streaming.empiezaEn', { tiempo })}</span>
   }
-  return <span className={`${base} text-stone-400`}>{t('streaming.programada')}</span>
+  return <span className={`${base} bg-white/85 text-stone-700`}>{t('streaming.programada')}</span>
 }
