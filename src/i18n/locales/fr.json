@@ -12,6 +12,7 @@
     "registro": "Inscription",
     "participantes": "Intervenants",
     "programa": "Programme",
+    "streaming": "Streaming",
     "contacto": "Contact",
     "login": "Connexion / Mon compte",
     "miCuenta": "Mon compte",
@@ -68,6 +69,26 @@
     "dia1": "Jour 1 — 12 novembre",
     "dia2": "Jour 2 — 13 novembre",
     "moderador": "Modérateur :"
+  },
+  "streaming": {
+    "titulo": "Streaming",
+    "parrafo": "Les quatre sessions du symposium seront retransmises en direct sur la chaîne YouTube de Patrimonio Cultural de Canarias, en espagnol, en anglais et en français. Les enregistrements resteront disponibles au même lien.",
+    "manana": "Session du matin",
+    "tarde": "Session de l'après-midi",
+    "dia": "Jour {{n}}",
+    "horaCanarias": "heure des Canaries",
+    "enDirecto": "En direct",
+    "programada": "Programmée",
+    "diferido": "Voir l'enregistrement",
+    "empiezaEn": "Commence dans {{tiempo}}",
+    "diasHoras": "{{d}} j {{h}} h",
+    "horasMinutos": "{{h}} h {{m}} min",
+    "verEn": "Voir la {{turno}} en {{idioma}} sur YouTube",
+    "idiomas": {
+      "es": "espagnol",
+      "en": "anglais",
+      "fr": "français"
+    }
   },
   "programaItems": {
     "d1-1": {

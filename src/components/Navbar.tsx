@@ -27,6 +27,7 @@ function getNavLinks(t: TFunction, prefix: string): NavEntry[] {
     { label: t('nav.registro'),      to: anchor('sedes') },
     { label: t('nav.participantes'), to: anchor('participantes') },
     { label: t('nav.programa'),      to: anchor('programa') },
+    { label: t('nav.streaming'),     to: anchor('streaming') },
     // A diferencia de los 3 links de arriba, el footer no vive solo en
     // Home.tsx — <Footer/> se monta en App.tsx por fuera de <Routes>, así
     // que existe en el DOM sin importar la página actual. No hace falta

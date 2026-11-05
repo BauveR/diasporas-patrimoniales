@@ -14,6 +14,7 @@ import { SeoHead } from '../components/SeoHead'
 const SedeSection = lazy(() => import('../components/SedeSection').then(m => ({ default: m.SedeSection })))
 const ParticipantesSection = lazy(() => import('../components/ParticipantesSection').then(m => ({ default: m.ParticipantesSection })))
 const ProgramaSection = lazy(() => import('../components/ProgramaSection').then(m => ({ default: m.ProgramaSection })))
+const StreamingSection = lazy(() => import('../components/StreamingSection').then(m => ({ default: m.StreamingSection })))
 
 export function Home() {
   const { t } = useTranslation()
@@ -46,6 +47,10 @@ export function Home() {
 
       <Suspense fallback={null}>
         <ProgramaSection />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <StreamingSection />
       </Suspense>
     </main>
   )
