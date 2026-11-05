@@ -89,7 +89,8 @@
       "es": "espanhol",
       "en": "inglês",
       "fr": "francês"
-    }
+    },
+    "idiomaSelector": "Idioma da transmissão"
   },
   "programaItems": {
     "d1-1": {

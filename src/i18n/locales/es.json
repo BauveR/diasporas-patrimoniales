@@ -88,7 +88,8 @@
       "es": "español",
       "en": "inglés",
       "fr": "francés"
-    }
+    },
+    "idiomaSelector": "Idioma de la retransmisión"
   },
   "programaItems": {
     "d1-1": {
