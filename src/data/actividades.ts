@@ -78,7 +78,7 @@ Participantes
 Mustapha Jlok – Director de Patrimonio Cultural, Ministerio de Juventud, Cultura y Comunicación, Marruecos.
 Patricia Ledesma Bouchán – Directora del Museo del Templo Mayor / ENAH, México.
 María Miñana – UNESCO, Convención de 1970 / Tráfico Ilícito Internacional y Museo Virtual, Francia.
-Raphael Callou – Director General de Cultura de la OEI, España.`,
+Mariana Soares Ribeiro – Directora adjunta de Cultura de la Organización de Estados Iberoamericanos (OEI), España.`,
     fecha: '2026-11-12',
     hora: '08:45',
     duracion: '8h',

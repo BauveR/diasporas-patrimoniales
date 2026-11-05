@@ -59,12 +59,12 @@ export const PROGRAMA_DIA_1: ProgramaItem[] = [
     hora: '15:30–16:45',
     titulo: 'Panel III. Experiencias internacionales: Europa, África y América Latina',
     moderador: 'Isaac Sastre',
-    participantes: ['Mustapha Jlok', 'Patricia Ledesma Bouchán', 'María José Miñana', 'Raphael Callou'],
+    participantes: ['Mustapha Jlok', 'Patricia Ledesma Bouchán', 'María José Miñana', 'Mariana Soares Ribeiro'],
     participantesCargo: [
       'Director de Patrimonio Cultural, Ministerio de Juventud, Cultura y Comunicación – Departamento de Cultura, Marruecos.',
       'Directora de la Zona Arqueológica y Museo de Sitio del Templo Mayor, INAH; profesora investigadora de la Dirección de Estudios Históricos y docente de la ENAH, México.',
       'Sector de Cultura de la UNESCO: Convención de 1970, lucha contra el tráfico ilícito de bienes culturales y Museo Virtual, Francia.',
-      'Director general de Cultura de la OEI, España.',
+      'Directora adjunta de Cultura de la Organización de Estados Iberoamericanos (OEI), España.',
     ],
   },
 ]
