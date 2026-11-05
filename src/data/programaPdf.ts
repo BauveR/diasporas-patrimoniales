@@ -5,8 +5,8 @@ import type { Locale } from '../i18n/config'
 // pestaña nueva. Lo usan ProgramaSection y el HTML prerenderizado
 // (src/seo/prerender.ts).
 export const PROGRAMA_PDF: Record<Locale, string> = {
-  es: 'https://drive.google.com/file/d/1TQMbdSbtxpvMaoup7mpgdOOO3qY_pNEp/view?usp=sharing',
-  en: 'https://drive.google.com/file/d/1uzz4hqMbHI14h-PLhy5fJAYeJZHwUk6I/view?usp=sharing',
-  fr: 'https://drive.google.com/file/d/1948xOgvanTA2H6rT6MdE96aV_nBcDxHF/view?usp=sharing',
-  pt: 'https://drive.google.com/file/d/1tPipoJSycMxMFrQmTf8poeME7KbR8Epx/view?usp=sharing',
+  es: 'https://drive.google.com/file/d/1aAQG-chsqXxgudp6Ew7Vd8DFmZ5_bSns/view?usp=sharing',
+  en: 'https://drive.google.com/file/d/1qCZk5O2Su1PfM9xeszQ2gqWinIjgae5M/view?usp=sharing',
+  fr: 'https://drive.google.com/file/d/1SPNT9mRLzQZtjm2Q-7K830NW-N7aKrBC/view?usp=sharing',
+  pt: 'https://drive.google.com/file/d/1I4daTMZXgNWiErSWTJPkda1kbCM2cQ3b/view?usp=sharing',
 }

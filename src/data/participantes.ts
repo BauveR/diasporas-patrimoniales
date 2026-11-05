@@ -233,7 +233,7 @@ export const PARTICIPANTES: Participante[] = ([
       pt: 'É especialista em gestão, políticas públicas e cooperação cultural internacional, com vinte anos de experiência na América Latina, em Portugal e em Espanha. Trabalhou no Programa Ibermuseus, no Ministério da Cultura do Brasil e na Secretaria de Cultura do Distrito Federal. Atualmente integra a equipa da Direção-Geral de Cultura da OEI.',
     },
     tituloIntervencion: '',
-    foto: '',
+    foto: 'https://ik.imagekit.io/h6qtszktl/ponentes%20/Fotos%20ponentes%20editadas%20(3).png',
   },
   {
     id: 10,
