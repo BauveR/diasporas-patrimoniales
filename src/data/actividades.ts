@@ -67,7 +67,7 @@ Participantes
 Claire Chastanier – Adjunta de la Subdirección de Colecciones, Dirección General de Patrimonios y Arquitectura, Ministerio de Cultura, Francia.
 Fátima Roque – Presidenta del Consejo Intergubernamental de Ibermuseos y coordinadora de la Red Portuguesa de Museos, Portugal.
 Hanna Pennock – Asesora sénior de la Agencia del Patrimonio Cultural de los Países Bajos y presidenta del Grupo de Trabajo sobre Descolonización del ICOM.
-Maria Auxiliadora Llamas Márquez – Presidenta de ICOM España y directora del Museo de Cádiz, España.
+David Donaire Domínguez – Subdirector general del Departamento de Asuntos Culturales del Gabinete del Presidente del Gobierno, España.
 
 13:30–15:30 h | Pausa
 
